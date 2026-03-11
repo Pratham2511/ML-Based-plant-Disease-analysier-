@@ -1,0 +1,24 @@
+name: Render Keepalive
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend health
+        if: ${{ secrets.BACKEND_HEALTH_URL != '' }}
+        run: |
+          curl --fail --silent --show-error --max-time 20 "$BACKEND_HEALTH_URL"
+        env:
+          BACKEND_HEALTH_URL: ${{ secrets.BACKEND_HEALTH_URL }}
+
+      - name: Ping ML health
+        if: ${{ secrets.ML_HEALTH_URL != '' }}
+        run: |
+          curl --fail --silent --show-error --max-time 20 "$ML_HEALTH_URL"
+        env:
+          ML_HEALTH_URL: ${{ secrets.ML_HEALTH_URL }}

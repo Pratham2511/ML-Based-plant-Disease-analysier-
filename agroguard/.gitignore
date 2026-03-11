@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+instance/
+.pytest_cache/
+.coverage
+*.log
+
+# Node / frontend
+node_modules/
+.pnp.cjs
+.pnp.loader.mjs
+.pnp.data.json
+.npmrc
+npm-debug.log*
+yarn-error.log*
+pnpm-error.log*
+dist/
+build/
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

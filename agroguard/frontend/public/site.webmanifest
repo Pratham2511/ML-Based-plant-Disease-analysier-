@@ -1,0 +1,23 @@
+{
+  "name": "AgroGuard",
+  "short_name": "AgroGuard",
+  "description": "Location-aware ML plant disease analyzer and medicine batch verification platform.",
+  "theme_color": "#2E7D32",
+  "background_color": "#F1F8E9",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "256x256",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
