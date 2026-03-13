@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-from app.api import auth, health, medicine, scans
+from app.api import area_intelligence, auth, health, medicine, scans
 from app.core.config import settings
 from app.db import base  # noqa: F401
 from app.db.base_class import Base
@@ -31,3 +31,4 @@ app.include_router(health.router)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(scans.router, prefix="/scans", tags=["scans"])
 app.include_router(medicine.router, prefix="/medicine", tags=["medicine"])
+app.include_router(area_intelligence.router, prefix="/area-intelligence", tags=["area-intelligence"])

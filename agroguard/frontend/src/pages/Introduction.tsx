@@ -1,104 +1,115 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { formatLocalizedNumber } from '../utils/localization';
 
 const Introduction = () => {
+  const { t, i18n } = useTranslation();
+  const formattedLastScanConfidence = formatLocalizedNumber(93.6, i18n.language, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+
+  const formatFeatureIndex = (index: number) =>
+    formatLocalizedNumber(index, i18n.language, {
+      minimumIntegerDigits: 2,
+      useGrouping: false,
+    });
+
   return (
     <div className="landing-layout">
       <section className="hero-shell">
         <div className="hero-content">
-          <p className="subtitle">Smart Crop Protection for Farmers</p>
-          <h1 className="headline">AI-Powered Crop Disease Detection and Agro-Medicine Verification</h1>
+          <p className="subtitle">{t('intro.subtitle')}</p>
+          <h1 className="headline">{t('intro.title')}</h1>
           <p className="lead">
-            AgroGuard helps farmers detect crop diseases early using AI-powered leaf analysis and verify the authenticity
-            of agricultural medicines using secure batch-code verification.
+            {t('intro.leadOne')}
           </p>
           <p className="lead">
-            Upload a plant leaf image to identify diseases instantly, understand their causes, and get recommended
-            treatments. Farmers can also scan medicine batch codes to ensure the products they are using are genuine
-            and safe.
+            {t('intro.leadTwo')}
           </p>
 
           <div className="hero-actions">
             <Link className="btn primary" to="/dashboard">
-              Start Disease Analysis
+              {t('intro.primaryAction')}
             </Link>
             <Link className="btn outline" to="/dashboard">
-              Verify Medicine Batch
+              {t('intro.secondaryAction')}
             </Link>
           </div>
 
           <div className="hero-chip-row">
-            <span className="pill">AI Crop Disease Detection</span>
-            <span className="pill">Medicine Authenticity Verification</span>
-            <span className="pill">Location-Based Disease Insights</span>
-            <span className="pill">Secure Farmer Login</span>
+            <span className="pill">{t('intro.chips.aiDetection')}</span>
+            <span className="pill">{t('intro.chips.medicineAuth')}</span>
+            <span className="pill">{t('intro.chips.locationInsights')}</span>
+            <span className="pill">{t('intro.chips.secureLogin')}</span>
           </div>
         </div>
 
         <div className="hero-visual" aria-hidden>
           <div className="hero-visual__glass">
-            <p>Live Monitoring</p>
-            <strong>Field Risk Score: Low</strong>
-            <span>Last scan confidence: 93.2%</span>
+            <p>{t('intro.liveMonitoring')}</p>
+            <strong>{t('intro.fieldRisk')}</strong>
+            <span>{t('intro.lastScan', { value: formattedLastScanConfidence })}</span>
           </div>
         </div>
       </section>
 
       <section className="card section-block">
         <div className="section-title-row">
-          <h2>Why AgroGuard</h2>
-          <span className="pill">Built for Farm Decisions</span>
+          <h2>{t('intro.whyTitle')}</h2>
+          <span className="pill">{t('intro.whyPill')}</span>
         </div>
 
         <div className="feature-grid">
           <article className="feature-card">
-            <div className="feature-icon">01</div>
-            <h3>AI Disease Detection</h3>
-            <p>Upload a leaf image and instantly identify plant diseases using advanced machine learning models.</p>
+            <div className="feature-icon">{formatFeatureIndex(1)}</div>
+            <h3>{t('intro.features.aiTitle')}</h3>
+            <p>{t('intro.features.aiDesc')}</p>
           </article>
 
           <article className="feature-card">
-            <div className="feature-icon">02</div>
-            <h3>Medicine Authenticity Verification</h3>
-            <p>Scan agro-medicine batch codes to verify that the products are genuine and not counterfeit.</p>
+            <div className="feature-icon">{formatFeatureIndex(2)}</div>
+            <h3>{t('intro.features.authTitle')}</h3>
+            <p>{t('intro.features.authDesc')}</p>
           </article>
 
           <article className="feature-card">
-            <div className="feature-icon">03</div>
-            <h3>Location-Aware Crop Insights</h3>
-            <p>Your farm location helps AgroGuard provide more accurate disease analysis and recommendations.</p>
+            <div className="feature-icon">{formatFeatureIndex(3)}</div>
+            <h3>{t('intro.features.locationTitle')}</h3>
+            <p>{t('intro.features.locationDesc')}</p>
           </article>
         </div>
       </section>
 
       <section className="card section-block">
         <div className="section-title-row">
-          <h2>Who Uses AgroGuard</h2>
-          <span className="pill">Practical Field Support</span>
+          <h2>{t('intro.usersTitle')}</h2>
+          <span className="pill">{t('intro.usersPill')}</span>
         </div>
 
         <div className="impact-grid">
           <article className="impact-card">
-            <strong>Farmers</strong>
-            <p>Detect crop diseases early and choose treatment options quickly during daily field checks.</p>
+            <strong>{t('intro.users.farmersTitle')}</strong>
+            <p>{t('intro.users.farmersDesc')}</p>
           </article>
           <article className="impact-card">
-            <strong>Agricultural Researchers</strong>
-            <p>Review disease trends and confidence results to support crop health research and recommendations.</p>
+            <strong>{t('intro.users.researchTitle')}</strong>
+            <p>{t('intro.users.researchDesc')}</p>
           </article>
           <article className="impact-card">
-            <strong>Crop Advisors</strong>
-            <p>Verify medicine authenticity and guide farmers with safer, evidence-based treatment decisions.</p>
+            <strong>{t('intro.users.advisorsTitle')}</strong>
+            <p>{t('intro.users.advisorsDesc')}</p>
           </article>
         </div>
 
         <div className="closing-cta">
-          <h3>Ready to protect your crops with AgroGuard?</h3>
+          <h3>{t('intro.closingTitle')}</h3>
           <div className="hero-actions">
             <Link className="btn primary" to="/dashboard">
-              Start Disease Analysis
+              {t('intro.primaryAction')}
             </Link>
             <Link className="btn ghost" to="/history">
-              Scan History
+              {t('nav.scanHistory')}
             </Link>
           </div>
         </div>

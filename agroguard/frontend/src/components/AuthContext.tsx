@@ -3,13 +3,14 @@ import api from '../lib/api';
 
 export type User = {
   id: string;
+  full_name?: string | null;
   email: string;
 };
 
 type AuthContextProps = {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string, otp?: string) => Promise<void>;
+  login: (email: string, password: string, otp: string) => Promise<void>;
   requestOtp: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
@@ -28,11 +29,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const res = await api.get('/auth/me');
         if (!mounted) return;
         setUser(res.data);
-        localStorage.setItem('agroguard-user', JSON.stringify(res.data));
       } catch {
         if (!mounted) return;
         setUser(null);
-        localStorage.removeItem('agroguard-user');
       } finally {
         if (mounted) setLoading(false);
       }
@@ -52,12 +51,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const login = async (email: string, password: string, otp?: string) => {
+  const login = async (email: string, password: string, otp: string) => {
     setLoading(true);
     try {
       const res = await api.post('/auth/login-verify', { email, password, otp });
       setUser(res.data.user);
-      localStorage.setItem('agroguard-user', JSON.stringify(res.data.user));
     } finally {
       setLoading(false);
     }
@@ -68,7 +66,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Local cleanup is still required even if API call fails.
     });
     setUser(null);
-    localStorage.removeItem('agroguard-user');
   };
 
   return (

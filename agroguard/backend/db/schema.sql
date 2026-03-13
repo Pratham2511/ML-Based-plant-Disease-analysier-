@@ -1,6 +1,7 @@
 -- Core tables
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
+    full_name TEXT,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     latitude DOUBLE PRECISION,
@@ -9,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT chk_latitude_range CHECK (latitude IS NULL OR (latitude >= -90 AND latitude <= 90)),
     CONSTRAINT chk_longitude_range CHECK (longitude IS NULL OR (longitude >= -180 AND longitude <= 180))
 );
+ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name TEXT;
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users((LOWER(email)));
 
@@ -70,3 +72,38 @@ CREATE TABLE IF NOT EXISTS scan_history (
 );
 CREATE INDEX IF NOT EXISTS idx_scan_user ON scan_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_scan_created_at ON scan_history(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS soil_reports (
+    id UUID PRIMARY KEY,
+    state TEXT NOT NULL,
+    district TEXT NOT NULL,
+    soil_type TEXT NOT NULL,
+    ph_level TEXT NOT NULL,
+    nitrogen_level TEXT NOT NULL,
+    phosphorus_level TEXT NOT NULL,
+    potassium_level TEXT NOT NULL,
+    organic_matter TEXT NOT NULL,
+    moisture_retention TEXT NOT NULL,
+    drainage_capacity TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_soil_reports_state_district UNIQUE (state, district)
+);
+CREATE INDEX IF NOT EXISTS idx_soil_reports_state ON soil_reports(state);
+CREATE INDEX IF NOT EXISTS idx_soil_reports_district ON soil_reports(district);
+
+CREATE TABLE IF NOT EXISTS crop_recommendations (
+    id UUID PRIMARY KEY,
+    crop_name TEXT NOT NULL UNIQUE,
+    soil_type TEXT NOT NULL,
+    temperature_range TEXT NOT NULL,
+    rainfall_requirement TEXT NOT NULL,
+    water_requirement TEXT NOT NULL,
+    growing_season TEXT NOT NULL,
+    growth_duration TEXT NOT NULL,
+    seed_rate TEXT NOT NULL,
+    fertilizer_recommendation TEXT NOT NULL,
+    disease_risk TEXT NOT NULL,
+    market_demand TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_crop_recommendations_name ON crop_recommendations(crop_name);

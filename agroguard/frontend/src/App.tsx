@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { AuthProvider, useAuth } from './components/AuthContext';
 import AppSplash from './components/AppSplash';
+import LanguageSwitcher from './components/LanguageSwitcher';
 import Introduction from './pages/Introduction';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ScanHistory from './pages/ScanHistory';
+import AreaIntelligence from './pages/AreaIntelligence';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const SPLASH_STORAGE_KEY = 'agroguard-splash-seen';
 
 const TopNavigation = () => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <header className="top-nav">
@@ -23,31 +27,35 @@ const TopNavigation = () => {
         </div>
         <div>
           <strong>AgroGuard</strong>
-          <small>Plant Intelligence Suite</small>
+          <small>{t('app.tagline')}</small>
         </div>
       </NavLink>
 
-      <nav className="top-nav__links" aria-label="Primary">
+      <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
         <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-          Dashboard
+          {t('nav.dashboard')}
+        </NavLink>
+        <NavLink to="/area-intelligence" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+          {t('nav.areaIntelligence')}
         </NavLink>
         <NavLink to="/history" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-          Scan History
+          {t('nav.scanHistory')}
         </NavLink>
         <NavLink to="/profile" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-          Account Settings
+          {t('nav.accountSettings')}
         </NavLink>
       </nav>
 
       <div className="top-nav__actions">
-        <span className="session-indicator">{user ? 'Session Active' : 'Guest Mode'}</span>
+        <LanguageSwitcher />
+        <span className="session-indicator">{user ? t('nav.sessionActive') : t('nav.loginRequired')}</span>
         {user ? (
           <button className="btn ghost" onClick={logout}>
-            Logout
+            {t('nav.logout')}
           </button>
         ) : (
           <NavLink to="/auth" className="btn primary">
-            Login
+            {t('nav.login')}
           </NavLink>
         )}
       </div>
@@ -56,19 +64,24 @@ const TopNavigation = () => {
 };
 
 const MobileDock = () => {
+  const { t } = useTranslation();
+
   return (
-    <nav className="mobile-dock" aria-label="Mobile quick navigation">
+    <nav className="mobile-dock" aria-label={t('nav.mobileQuickNavigation')}>
       <NavLink to="/" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>Home</span>
+        <span>{t('nav.home')}</span>
       </NavLink>
       <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>Dashboard</span>
+        <span>{t('nav.dashboard')}</span>
+      </NavLink>
+      <NavLink to="/area-intelligence" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
+        <span>{t('nav.areaIntelligence')}</span>
       </NavLink>
       <NavLink to="/history" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>History</span>
+        <span>{t('nav.scanHistory')}</span>
       </NavLink>
       <NavLink to="/profile" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>Account Settings</span>
+        <span>{t('nav.accountSettings')}</span>
       </NavLink>
     </nav>
   );
@@ -118,6 +131,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ScanHistory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/area-intelligence"
+                element={
+                  <ProtectedRoute>
+                    <AreaIntelligence />
                   </ProtectedRoute>
                 }
               />

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import api from '../lib/api';
 import { BrowserMultiFormatReader } from '@zxing/library';
 import LeafLoader from '../components/LeafLoader';
 import MiniTrend from '../components/MiniTrend';
+import ReadAloudButton from '../components/ReadAloudButton';
+import { formatLocalizedNumber, localizeAgricultureText } from '../utils/localization';
 
 type PredictionResult = {
   disease_name: string;
@@ -38,7 +40,10 @@ type HistoryInsight = {
 const ONBOARDING_KEY = 'agroguard-onboarding-complete';
 
 const Dashboard = () => {
-  const [status, setStatus] = useState('Idle');
+  const { t, i18n } = useTranslation();
+  const language = i18n.language;
+
+  const [status, setStatus] = useState('');
   const [cameraResult, setCameraResult] = useState('');
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
@@ -99,7 +104,7 @@ const Dashboard = () => {
       diseaseFrequency[item.disease_name] = (diseaseFrequency[item.disease_name] || 0) + 1;
     });
 
-    const topDisease = Object.entries(diseaseFrequency).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+    const topDisease = Object.entries(diseaseFrequency).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
     const trendPoints = historyItems
       .slice(0, 8)
       .reverse()
@@ -115,13 +120,13 @@ const Dashboard = () => {
 
   const scanBatchCode = async () => {
     const codeReader = new BrowserMultiFormatReader();
-    setStatus('Opening camera for batch barcode');
+    setStatus(t('dashboard.status.openingCamera'));
     try {
       const result = await codeReader.decodeFromVideoDevice(undefined, 'preview', (out) => {
         if (out) {
           setCameraResult(out.getText());
           setBatchCode(out.getText());
-          setStatus('Captured');
+          setStatus(t('dashboard.status.captured'));
           codeReader.reset();
         }
       });
@@ -130,7 +135,7 @@ const Dashboard = () => {
         setBatchCode(result.getText());
       }
     } catch (err) {
-      setStatus('Camera error');
+      setStatus(t('dashboard.status.cameraError'));
     }
   };
 
@@ -138,20 +143,22 @@ const Dashboard = () => {
     setError('');
     try {
       await api.get('/health/deep');
-      setStatus('All services reachable');
+      setStatus(t('dashboard.status.servicesReachable'));
     } catch {
-      setStatus('One or more services unavailable');
+      setStatus(t('dashboard.status.servicesUnavailable'));
     }
   };
 
   const analyzeLeaf = async () => {
     if (!selectedFile) {
-      setError('Select a leaf image first.');
+      setError(t('dashboard.errors.selectImage'));
       return;
     }
+
     setLoadingPrediction(true);
     setError('');
     setPrediction(null);
+
     const form = new FormData();
     form.append('file', selectedFile);
     try {
@@ -159,9 +166,9 @@ const Dashboard = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setPrediction(res.data.result);
-      setStatus('Prediction complete');
+      setStatus(t('dashboard.status.predictionComplete'));
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Prediction failed');
+      setError(err?.response?.data?.detail || t('dashboard.errors.predictionFailed'));
     } finally {
       setLoadingPrediction(false);
     }
@@ -169,49 +176,99 @@ const Dashboard = () => {
 
   const verifyBatch = async () => {
     if (!batchCode.trim()) {
-      setError('Enter or scan a batch code first.');
+      setError(t('dashboard.errors.enterBatch'));
       return;
     }
+
     setLoadingBatch(true);
     setError('');
     setBatchResult(null);
+
     try {
       const res = await api.get(`/medicine/verify/${encodeURIComponent(batchCode.trim())}`);
       setBatchResult(res.data);
-      setStatus('Batch verification complete');
+      setStatus(t('dashboard.status.batchComplete'));
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Batch verification failed');
+      setError(err?.response?.data?.detail || t('dashboard.errors.batchFailed'));
     } finally {
       setLoadingBatch(false);
     }
   };
+
+  const topDiseaseLabel = insights.topDisease ? insights.topDisease.replaceAll('_', ' ') : t('dashboard.notAvailable');
+  const formattedTotalScans = formatLocalizedNumber(insights.totalScans, language);
+  const formattedAverageConfidence = formatLocalizedNumber(insights.avgConfidence, language, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const heroNarration = [
+    t('dashboard.heroTitle'),
+    t('dashboard.kpis.totalScans'),
+    `${formattedTotalScans}.`,
+    t('dashboard.kpis.avgConfidence'),
+    `${formattedAverageConfidence}%`,
+    t('dashboard.kpis.topDisease'),
+    `${topDiseaseLabel}.`,
+  ].join(' ');
+
+  const analyzerNarration = prediction
+    ? [
+        `${prediction.disease_name.replaceAll('_', ' ')}`,
+        `${t('dashboard.analyzer.confidence', {
+          value: formatLocalizedNumber(prediction.confidence * 100, language, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        })}`,
+        `${t('dashboard.analyzer.description')}: ${localizeAgricultureText(prediction.description || t('dashboard.analyzer.noDescription'), language)}`,
+        `${t('dashboard.analyzer.cause')}: ${localizeAgricultureText(prediction.cause || t('dashboard.analyzer.noCause'), language)}`,
+        `${t('dashboard.analyzer.treatment')}: ${localizeAgricultureText(prediction.treatment || t('dashboard.analyzer.noTreatment'), language)}`,
+        `${t('dashboard.analyzer.recommendedMedicines')}: ${(prediction.recommended_medicines || []).map((medicine) => localizeAgricultureText(medicine, language)).join(', ') || t('dashboard.analyzer.noMedicine')}`,
+      ].join('. ')
+    : '';
+
+  const batchNarration = batchResult
+    ? [
+        batchResult.is_valid ? t('dashboard.batch.validBatch') : t('dashboard.batch.invalidBatch'),
+        `${t('dashboard.batch.code')}: ${batchResult.batch_code}`,
+        `${t('dashboard.batch.activeIngredient')}: ${localizeAgricultureText(batchResult.medicine.active_ingredient || t('dashboard.notAvailable'), language)}`,
+        `${t('dashboard.batch.crop')}: ${localizeAgricultureText(batchResult.medicine.crop_type || t('dashboard.notAvailable'), language)}`,
+        `${t('dashboard.batch.diseaseCategory')}: ${localizeAgricultureText(batchResult.medicine.disease_category || t('dashboard.notAvailable'), language)}`,
+        `${t('dashboard.batch.unknownBrand')}: ${localizeAgricultureText(batchResult.medicine.brand_name || t('dashboard.notAvailable'), language)}`,
+        `${t('dashboard.batch.unknownCompany')}: ${localizeAgricultureText(batchResult.medicine.company || t('dashboard.notAvailable'), language)}`,
+      ].join('. ')
+    : '';
+
+  const operationsNarration = [heroNarration, analyzerNarration, batchNarration]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join('. ');
 
   return (
     <div className="dashboard-layout">
       {showOnboarding && (
         <div className="onboarding-overlay">
           <div className="card onboarding-card">
-            <p className="subtitle">Quick Orientation</p>
-            <h2>Welcome to your AgroGuard dashboard</h2>
-            <p>
-              Analyze plant diseases, verify agricultural medicines, and track your crop health history in one place.
-            </p>
+            <p className="subtitle">{t('dashboard.onboarding.subtitle')}</p>
+            <h2>{t('dashboard.onboarding.title')}</h2>
+            <p>{t('dashboard.onboarding.lead')}</p>
             <div className="onboarding-steps">
               <div>
-                <strong>1. Plant Disease Analyzer</strong>
-                <span>Upload a clear leaf image to detect disease and view treatment guidance.</span>
+                <strong>{t('dashboard.onboarding.step1Title')}</strong>
+                <span>{t('dashboard.onboarding.step1Desc')}</span>
               </div>
               <div>
-                <strong>2. Medicine Authenticity Verification</strong>
-                <span>Enter or scan medicine batch codes to verify product authenticity.</span>
+                <strong>{t('dashboard.onboarding.step2Title')}</strong>
+                <span>{t('dashboard.onboarding.step2Desc')}</span>
               </div>
               <div>
-                <strong>3. Scan History</strong>
-                <span>Review previous analyses, confidence scores, and disease patterns.</span>
+                <strong>{t('dashboard.onboarding.step3Title')}</strong>
+                <span>{t('dashboard.onboarding.step3Desc')}</span>
               </div>
             </div>
             <button className="btn primary" onClick={dismissOnboarding}>
-              Start Monitoring
+              {t('dashboard.onboarding.start')}
             </button>
           </div>
         </div>
@@ -219,54 +276,58 @@ const Dashboard = () => {
 
       <section className="card dashboard-hero">
         <div>
-          <p className="subtitle">Operations Dashboard</p>
-          <h1 className="headline">Crop Health Monitoring Dashboard</h1>
-          <p className="lead">Analyze plant diseases, verify agricultural medicines, and track your crop health history in one place.</p>
+          <p className="subtitle">{t('dashboard.heroSubtitle')}</p>
+          <h1 className="headline">{t('dashboard.heroTitle')}</h1>
+          <p className="lead">{t('dashboard.heroLead')}</p>
+          <div className="inline-row">
+            <ReadAloudButton text={heroNarration} labelKey="dashboard.readHeroSummary" />
+            <ReadAloudButton text={operationsNarration} />
+          </div>
         </div>
 
         <div className="dashboard-kpis">
           <article className="kpi-tile">
-            <span>Total Disease Scans</span>
-            <strong>{insights.totalScans}</strong>
+            <span>{t('dashboard.kpis.totalScans')}</span>
+            <strong>{formattedTotalScans}</strong>
           </article>
           <article className="kpi-tile">
-            <span>Average Detection Confidence</span>
-            <strong>{insights.avgConfidence}%</strong>
+            <span>{t('dashboard.kpis.avgConfidence')}</span>
+            <strong>{formattedAverageConfidence}%</strong>
           </article>
           <article className="kpi-tile">
-            <span>Most Common Disease</span>
-            <strong>{insights.topDisease.replaceAll('_', ' ')}</strong>
+            <span>{t('dashboard.kpis.topDisease')}</span>
+            <strong>{topDiseaseLabel}</strong>
           </article>
           <article className="kpi-tile">
-            <span>Location Status</span>
-            <strong>{lat ? 'Farm location detected' : 'Farm location not available'}</strong>
+            <span>{t('dashboard.kpis.locationStatus')}</span>
+            <strong>{lat ? t('dashboard.locationDetected') : t('dashboard.locationUnavailable')}</strong>
           </article>
         </div>
       </section>
 
       <section className="card analytics-band">
         <div className="section-title-row">
-          <h2>Crop Health Snapshot</h2>
-          <span className="pill">Auto-refreshed from scan history</span>
+          <h2>{t('dashboard.snapshotTitle')}</h2>
+          <span className="pill">{t('dashboard.snapshotPill')}</span>
         </div>
 
         <div className="analytics-grid">
           <article className="analytics-tile">
-            <span>Total Scans</span>
-            <strong>{insights.totalScans}</strong>
+            <span>{t('dashboard.snapshot.totalScans')}</span>
+            <strong>{formattedTotalScans}</strong>
           </article>
           <article className="analytics-tile">
-            <span>Average Confidence</span>
-            <strong>{insights.avgConfidence}%</strong>
+            <span>{t('dashboard.snapshot.avgConfidence')}</span>
+            <strong>{formattedAverageConfidence}%</strong>
           </article>
           <article className="analytics-tile">
-            <span>Most Frequent Finding</span>
-            <strong>{insights.topDisease.replaceAll('_', ' ')}</strong>
+            <span>{t('dashboard.snapshot.topFinding')}</span>
+            <strong>{topDiseaseLabel}</strong>
           </article>
           <article className="analytics-tile analytics-tile--trend">
-            <span>Confidence Trend (last 8 scans)</span>
+            <span>{t('dashboard.snapshot.trend')}</span>
             {loadingInsights ? (
-              <LeafLoader variant="panel" label="Loading insights" />
+              <LeafLoader variant="panel" label={t('dashboard.loadingInsights')} />
             ) : (
               <MiniTrend points={insights.trendPoints} />
             )}
@@ -278,11 +339,11 @@ const Dashboard = () => {
         <article className="card panel-card">
           <div className="panel-card__header">
             <div>
-              <h2>Plant Disease Analyzer</h2>
-              <p>Upload a clear image of a plant leaf to detect diseases using AI. The system will identify the disease, explain its causes, and recommend treatment options.</p>
+              <h2>{t('dashboard.analyzer.title')}</h2>
+              <p>{t('dashboard.analyzer.lead')}</p>
             </div>
             <button className="btn outline" onClick={callHealth}>
-              Health Check
+              {t('dashboard.analyzer.healthCheck')}
             </button>
           </div>
 
@@ -290,43 +351,56 @@ const Dashboard = () => {
             <input
               className="input"
               type="file"
+              aria-label={t('dashboard.analyzer.uploadAria')}
               accept="image/png,image/jpeg"
               onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
             />
-            {selectedFile && <p className="panel-muted">Selected file: {selectedFile.name}</p>}
+            {selectedFile && <p className="panel-muted">{t('dashboard.analyzer.selectedFile', { name: selectedFile.name })}</p>}
             <button className="btn primary" onClick={analyzeLeaf} disabled={loadingPrediction}>
-              Analyze Leaf
+              {t('dashboard.analyzer.analyzeLeaf')}
             </button>
 
-            {loadingPrediction && <LeafLoader variant="panel" label="Analyzing plant disease" />}
+            {loadingPrediction && <LeafLoader variant="panel" label={t('dashboard.analyzer.loadingPrediction')} />}
 
             {prediction && (
               <div className="result-panel">
                 <div className="result-panel__heading">
                   <strong>{prediction.disease_name.replaceAll('_', ' ')}</strong>
-                  <span className="pill">Confidence {(prediction.confidence * 100).toFixed(2)}%</span>
+                  <span className="pill">
+                    {t('dashboard.analyzer.confidence', {
+                      value: formatLocalizedNumber(prediction.confidence * 100, language, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }),
+                    })}
+                  </span>
                 </div>
 
                 <div className="table-like">
-                  <span className="label-muted">Description</span>
-                  <span>{prediction.description || 'No description available.'}</span>
-                  <span className="label-muted">Cause</span>
-                  <span>{prediction.cause || 'No cause available.'}</span>
-                  <span className="label-muted">Treatment</span>
-                  <span>{prediction.treatment || 'No treatment available.'}</span>
+                  <span className="label-muted">{t('dashboard.analyzer.description')}</span>
+                  <span>{localizeAgricultureText(prediction.description || t('dashboard.analyzer.noDescription'), language)}</span>
+                  <span className="label-muted">{t('dashboard.analyzer.cause')}</span>
+                  <span>{localizeAgricultureText(prediction.cause || t('dashboard.analyzer.noCause'), language)}</span>
+                  <span className="label-muted">{t('dashboard.analyzer.treatment')}</span>
+                  <span>{localizeAgricultureText(prediction.treatment || t('dashboard.analyzer.noTreatment'), language)}</span>
                 </div>
 
                 <div className="pill-row">
                   {(prediction.recommended_medicines || []).length > 0 ? (
                     prediction.recommended_medicines.map((medicine) => (
                       <span className="pill" key={medicine}>
-                        {medicine}
+                        {localizeAgricultureText(medicine, language)}
                       </span>
                     ))
                   ) : (
-                    <span className="pill">No medicine recommendation provided</span>
+                    <span className="pill">{t('dashboard.analyzer.noMedicine')}</span>
                   )}
                 </div>
+
+                <ReadAloudButton
+                  text={analyzerNarration}
+                  labelKey="dashboard.readTreatmentAdvice"
+                />
               </div>
             )}
           </div>
@@ -335,41 +409,46 @@ const Dashboard = () => {
         <article className="card panel-card">
           <div className="panel-card__header">
             <div>
-              <h2>Medicine Authenticity Verification</h2>
-              <p>Scan or enter the batch code printed on agro-medicine bottles to verify product authenticity and ensure the medicine is genuine.</p>
+              <h2>{t('dashboard.batch.title')}</h2>
+              <p>{t('dashboard.batch.lead')}</p>
             </div>
           </div>
 
           <div className="panel-card__body">
-            <input className="input" placeholder="Enter batch code" value={batchCode} onChange={(e) => setBatchCode(e.target.value)} />
+            <input className="input" placeholder={t('dashboard.batch.enterBatchCode')} value={batchCode} onChange={(e) => setBatchCode(e.target.value)} />
 
             <div className="inline-row">
               <button className="btn ghost" onClick={scanBatchCode}>
-                Scan via Camera
+                {t('dashboard.batch.scanViaCamera')}
               </button>
               <button className="btn primary" onClick={verifyBatch} disabled={loadingBatch}>
-                Verify Batch
+                {t('dashboard.batch.verifyBatch')}
               </button>
             </div>
 
-            <p className="panel-muted">Camera readout: {cameraResult || 'No value captured yet.'}</p>
+            <p className="panel-muted">{t('dashboard.batch.cameraReadout', { value: cameraResult || t('dashboard.batch.noCapture') })}</p>
             <div id="preview" className="preview-window" />
 
-            {loadingBatch && <LeafLoader variant="panel" label="Validating batch record" />}
+            {loadingBatch && <LeafLoader variant="panel" label={t('dashboard.batch.validating')} />}
 
             {batchResult && (
               <div className={`verification-banner ${batchResult.is_valid ? 'ok' : 'error'}`}>
-                <strong>{batchResult.is_valid ? 'Valid Batch' : 'Invalid Batch'}</strong>
-                <span>Code: {batchResult.batch_code}</span>
+                <strong>{batchResult.is_valid ? t('dashboard.batch.validBatch') : t('dashboard.batch.invalidBatch')}</strong>
+                <span>{t('dashboard.batch.code')}: {batchResult.batch_code}</span>
                 <span>
-                  {batchResult.medicine.brand_name || 'Unknown brand'} | {batchResult.medicine.company || 'Unknown company'}
+                  {localizeAgricultureText(batchResult.medicine.brand_name || t('dashboard.batch.unknownBrand'), language)} | {localizeAgricultureText(batchResult.medicine.company || t('dashboard.batch.unknownCompany'), language)}
                 </span>
                 <span>
-                  Active ingredient: {batchResult.medicine.active_ingredient || 'N/A'} ({batchResult.medicine.concentration || 'N/A'})
+                  {t('dashboard.batch.activeIngredient')}: {localizeAgricultureText(batchResult.medicine.active_ingredient || t('dashboard.notAvailable'), language)} ({localizeAgricultureText(batchResult.medicine.concentration || t('dashboard.notAvailable'), language)})
                 </span>
                 <span>
-                  Crop: {batchResult.medicine.crop_type || 'N/A'} | Disease category: {batchResult.medicine.disease_category || 'N/A'}
+                  {t('dashboard.batch.crop')}: {localizeAgricultureText(batchResult.medicine.crop_type || t('dashboard.notAvailable'), language)} | {t('dashboard.batch.diseaseCategory')}: {localizeAgricultureText(batchResult.medicine.disease_category || t('dashboard.notAvailable'), language)}
                 </span>
+
+                <ReadAloudButton
+                  text={batchNarration}
+                  labelKey="dashboard.readBatchDetails"
+                />
               </div>
             )}
           </div>
@@ -377,17 +456,7 @@ const Dashboard = () => {
       </section>
 
       {error && <p className="form-error">{error}</p>}
-
-      <section className="quick-jump-grid">
-        <Link to="/profile" className="card quick-jump-card">
-          <h3>Account Settings</h3>
-          <p>Update geo coordinates and secure email identity.</p>
-        </Link>
-        <Link to="/history" className="card quick-jump-card">
-          <h3>Scan History</h3>
-          <p>Track diagnosis confidence and treatment timeline.</p>
-        </Link>
-      </section>
+      {status && <p className="panel-muted">{t('dashboard.systemStatus')}: {status}</p>}
     </div>
   );
 };
