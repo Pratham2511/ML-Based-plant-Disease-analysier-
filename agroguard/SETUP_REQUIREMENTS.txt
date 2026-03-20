@@ -1,0 +1,103 @@
+AGROGUARD - COMPLETE SETUP REQUIREMENTS
+
+1) REQUIRED TOOLS
+- Node.js 18+ (recommended 20+)
+- npm 9+
+- Python 3.11.x (required for TensorFlow 2.15.0 compatibility)
+- pip (inside virtual environment)
+
+2) PROJECT STRUCTURE (ACTIVE)
+- backend/: FastAPI backend
+- frontend/: React + Vite frontend
+- ml-service/: FastAPI ML inference service
+
+3) ENV FILES TO CONFIGURE
+Create from examples if missing:
+- backend/.env (copy from backend/.env.example)
+- frontend/.env.development.local (or frontend/.env.example)
+- ml-service/.env (copy from ml-service/.env.example)
+
+Example commands:
+- cp backend/.env.example backend/.env
+- cp frontend/.env.example frontend/.env.development.local
+- cp ml-service/.env.example ml-service/.env
+
+4) BACKEND PYTHON DEPENDENCIES (backend/requirements.txt)
+- fastapi==0.110.0
+- uvicorn[standard]==0.27.1
+- sqlalchemy==2.0.25
+- psycopg2-binary==2.9.9
+- pydantic==2.8.2
+- pydantic-settings==2.4.0
+- email-validator==2.2.0
+- PyJWT==2.8.0
+- httpx==0.26.0
+- boto3==1.34.34
+- redis==5.0.1
+- bcrypt==4.1.2
+- python-multipart==0.0.6
+
+5) ML SERVICE PYTHON DEPENDENCIES (ml-service/requirements.txt)
+- fastapi==0.110.0
+- uvicorn[standard]==0.27.1
+- tensorflow==2.15.0
+- numpy==1.26.3
+- pillow==10.2.0
+- scikit-learn==1.4.2
+
+6) FRONTEND DEPENDENCIES (frontend/package.json)
+Runtime dependencies:
+- @hookform/resolvers
+- @zxing/library
+- axios
+- i18next
+- react
+- react-dom
+- react-hook-form
+- react-i18next
+- react-router-dom
+- yup
+
+Dev dependencies:
+- @resvg/resvg-js
+- @types/react
+- @types/react-dom
+- @vitejs/plugin-react
+- typescript
+- vite
+
+7) INSTALL COMMANDS
+From repo root (agroguard/agroguard):
+
+Frontend:
+- cd frontend
+- npm install
+
+Python virtual environment (run at workspace root where .venv should exist):
+- python3.11 -m venv .venv
+- source .venv/bin/activate
+- pip install --upgrade pip setuptools wheel
+- pip install -r agroguard/agroguard/backend/requirements.txt
+- pip install -r agroguard/agroguard/ml-service/requirements.txt
+
+8) RUN COMMANDS
+From workspace root:
+
+Backend API (port 8000):
+- cd agroguard/agroguard/backend
+- source /absolute/path/to/.venv/bin/activate
+- uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+ML service (port 9000):
+- cd agroguard/agroguard/ml-service
+- source /absolute/path/to/.venv/bin/activate
+- uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
+
+Frontend (port 5174 used in this workspace):
+- cd agroguard/agroguard/frontend
+- npm run dev -- --host 0.0.0.0 --port 5174
+
+9) IMPORTANT NOTES
+- TensorFlow 2.15.0 does NOT support Python 3.14. Use Python 3.11.
+- If backend fails with pydantic import errors, ensure backend requirements are installed from updated requirements.txt.
+- For local frontend to backend calls, ensure backend CORS allows frontend origin (http://localhost:5174 or chosen port).

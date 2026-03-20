@@ -15,7 +15,7 @@ const WaterRequirementTable = ({ items }: WaterRequirementTableProps) => {
   return (
     <section className="card water-guidance-card">
       <div className="section-title-row">
-        <h2>{t('area.waterTitle')}</h2>
+        <h2>💧 {t('area.waterTitle')}</h2>
         <span className="pill">{cropsCountLabel}</span>
       </div>
 
@@ -23,9 +23,9 @@ const WaterRequirementTable = ({ items }: WaterRequirementTableProps) => {
         <table className="water-table">
           <thead>
             <tr>
-              <th>{t('area.fields.cropName')}</th>
-              <th>{t('area.fields.water')}</th>
-              <th>{t('area.fields.irrigationMethod')}</th>
+              <th>🌾 {t('area.fields.cropName')}</th>
+              <th>💧 {t('area.fields.water')}</th>
+              <th>🚿 {t('area.fields.irrigationMethod')}</th>
             </tr>
           </thead>
           <tbody>

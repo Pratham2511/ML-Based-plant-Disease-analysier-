@@ -55,6 +55,45 @@ const Introduction = () => {
       </section>
 
       <section className="card section-block">
+        <div className="landing-video-grid">
+          <div>
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="landing-video"
+              style={{ width: '100%', borderRadius: '16px', display: 'block' }}
+            >
+              <source src="/agroguard_landing.webm" type="video/webm" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+
+          <div className="landing-video-copy">
+            <h2 className="headline" style={{ marginBottom: '16px', fontSize: '2rem' }}>
+              {t('intro.videoHeadline', 'Disease Spreads Faster Than You Think.')}
+            </h2>
+            <p className="lead" style={{ marginBottom: '12px' }}>
+              {t(
+                'intro.videoLeadOne',
+                'Early field signs are easy to miss during routine rounds. AgroGuard helps you act before infection spreads across the plot.'
+              )}
+            </p>
+            <p className="lead" style={{ marginBottom: '16px' }}>
+              {t(
+                'intro.videoLeadTwo',
+                'Use AI crop checks, medicine verification, and district intelligence together to make faster, more confident farm decisions.'
+              )}
+            </p>
+            <Link className="btn primary" to="/dashboard">
+              {t('intro.videoAction', 'Start Crop Check')}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="card section-block">
         <div className="section-title-row">
           <h2>{t('intro.whyTitle')}</h2>
           <span className="pill">{t('intro.whyPill')}</span>

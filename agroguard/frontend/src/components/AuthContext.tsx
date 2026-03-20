@@ -18,28 +18,15 @@ type AuthContextProps = {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>({
+    id: 'guest',
+    full_name: 'Guest User',
+    email: 'guest@agroguard.local'
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-    const restore = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get('/auth/me');
-        if (!mounted) return;
-        setUser(res.data);
-      } catch {
-        if (!mounted) return;
-        setUser(null);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    restore();
-    return () => {
-      mounted = false;
-    };
+    // Guest login enabled: skip backend session restore
   }, []);
 
   const requestOtp = async (email: string, password: string) => {

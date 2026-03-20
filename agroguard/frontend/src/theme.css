@@ -484,6 +484,24 @@ a {
   gap: 12px;
 }
 
+.landing-video-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.landing-video {
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.landing-video-copy {
+  display: grid;
+  align-content: center;
+}
+
 .feature-card {
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -1651,6 +1669,7 @@ a {
   }
 
   .feature-grid,
+  .landing-video-grid,
   .dashboard-grid,
   .profile-grid,
   .quick-jump-grid,

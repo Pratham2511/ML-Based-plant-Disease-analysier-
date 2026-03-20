@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, UniqueConstraint, Uuid
 from sqlalchemy.orm import relationship
 from app.db.base_class import Base
 
@@ -20,7 +19,7 @@ class Medicine(Base):
         ),
     )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     brand_name = Column(String, nullable=False)
     company = Column(String, nullable=False)
     active_ingredient = Column(String, nullable=False)
@@ -35,8 +34,8 @@ class Medicine(Base):
 class MedicineBatch(Base):
     __tablename__ = "medicine_batches"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    medicine_id = Column(UUID(as_uuid=True), ForeignKey("medicines.id", ondelete="CASCADE"), nullable=False)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    medicine_id = Column(Uuid(as_uuid=True), ForeignKey("medicines.id", ondelete="CASCADE"), nullable=False)
     batch_code = Column(String, unique=True, index=True, nullable=False)
     batch_size = Column(Integer, default=100, nullable=False)
     manufacture_date = Column(Date, nullable=False)

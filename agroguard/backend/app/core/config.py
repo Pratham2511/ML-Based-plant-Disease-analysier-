@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings, validator
+from pydantic import AnyHttpUrl, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -17,7 +18,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_exp_minutes: int = 60
     jwt_cookie_name: str = "agroguard_token"
-    cookie_secure: bool = False
+    cookie_secure: Optional[bool] = None
 
     ml_service_url: str = "http://localhost:9000"
 
@@ -44,7 +45,8 @@ class Settings(BaseSettings):
     r2_bucket: Optional[str] = None
     r2_public_base: Optional[str] = None
 
-    @validator("backend_cors_origins", pre=True)
+    @field_validator("backend_cors_origins", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, value):
         if isinstance(value, str):
             value = value.strip()
@@ -58,7 +60,8 @@ class Settings(BaseSettings):
             return [v.strip() for v in value.split(",") if v.strip()]
         return value
 
-    @validator("allowed_hosts", pre=True)
+    @field_validator("allowed_hosts", mode="before")
+    @classmethod
     def assemble_allowed_hosts(cls, value):
         if isinstance(value, str):
             value = value.strip()
@@ -71,8 +74,9 @@ class Settings(BaseSettings):
             return [v.strip() for v in value.split(",") if v.strip()]
         return value
 
-    @validator("cookie_secure", pre=True, always=True)
-    def infer_cookie_secure(cls, value, values):
+    @field_validator("cookie_secure", mode="before")
+    @classmethod
+    def infer_cookie_secure(cls, value):
         if isinstance(value, str):
             normalized = value.strip().lower()
             if normalized in {"1", "true", "yes", "on"}:
@@ -81,10 +85,15 @@ class Settings(BaseSettings):
                 return False
         if value is not None:
             return bool(value)
-        return values.get("environment") == "production"
 
-    class Config:
-        env_file = ".env"
+        # When omitted, environment-based default is resolved in model_post_init.
+        return None
+
+    def model_post_init(self, __context) -> None:
+        if self.cookie_secure is None:
+            self.cookie_secure = self.environment == "production"
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 settings = Settings()

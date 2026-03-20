@@ -15,7 +15,6 @@ router = APIRouter()
 
 @router.get("/districts", response_model=DistrictListResponse)
 def list_districts(
-    current_user=Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
 ):
     area_service.ensure_area_intelligence_seed(db)
@@ -28,7 +27,6 @@ def list_districts(
 @router.post("/detect-district", response_model=DetectDistrictResponse)
 async def detect_district(
     payload: DetectDistrictRequest,
-    current_user=Depends(deps.get_current_user),
 ):
     district = await area_service.reverse_geocode_district(payload.latitude, payload.longitude)
     source = "nominatim"
@@ -48,7 +46,6 @@ async def detect_district(
 @router.get("/insights", response_model=AreaIntelligenceResponse)
 def get_area_insights(
     district: str,
-    current_user=Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
 ):
     return area_service.get_area_intelligence_payload(db, district)
