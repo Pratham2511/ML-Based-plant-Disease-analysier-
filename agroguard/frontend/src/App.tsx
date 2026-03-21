@@ -17,7 +17,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 const SPLASH_STORAGE_KEY = 'agroguard-splash-seen';
 
 const TopNavigation = () => {
-  const { user, logout, loginWithGoogleCredential, startMobileGoogleSignIn } = useAuth();
+  const { user, logout, startMobileGoogleSignIn } = useAuth();
   const { t } = useTranslation();
 
   const initiateLogin = useGoogleLogin({
@@ -44,8 +44,8 @@ const TopNavigation = () => {
   };
 
   return (
-    <header className="top-nav">
-      <NavLink to="/" className="brand-mark">
+    <header className="top-nav w-full max-w-[100vw]">
+      <NavLink to="/" className="brand-mark min-w-0">
         <div className="brand-mark__glyph" aria-hidden>
           <img src="/leaf.svg" alt="" />
         </div>
@@ -70,15 +70,15 @@ const TopNavigation = () => {
         </NavLink>
       </nav>
 
-      <div className="top-nav__actions">
-        <LanguageSwitcher />
+      <div className="top-nav__actions max-w-full flex-shrink-0">
+        <LanguageSwitcher compactMobile />
         <span className="session-indicator desktop-only">{user ? t('nav.sessionActive') : t('nav.loginRequired')}</span>
         {user ? (
-          <button className="btn ghost" onClick={logout}>
+          <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout}>
             {t('nav.logout')}
           </button>
         ) : (
-          <button className="btn primary" onClick={handleLoginClick}>
+          <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick}>
             {t('nav.login')}
           </button>
         )}
