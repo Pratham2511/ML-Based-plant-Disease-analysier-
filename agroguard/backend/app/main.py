@@ -1,7 +1,6 @@
 import json
 import logging
 import traceback
-from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
 
@@ -11,11 +10,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
-import tensorflow as tf
-from tensorflow.keras.models import load_model
-
-tf.config.threading.set_inter_op_parallelism_threads(1)
-tf.config.threading.set_intra_op_parallelism_threads(1)
 
 from app.api import area_intelligence, auth, health, medicine, scans
 from app.core.config import settings
@@ -34,6 +28,8 @@ DISEASE_DB_PATH = Path(__file__).resolve().parent.parent / "disease_database.jso
 LOW_CONFIDENCE_THRESHOLD = 0.20
 LOW_CONFIDENCE_MARGIN = 0.05
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+model = None
+tf_runtime = None
 
 CLASSES = [
     "bell_pepper_bacterial_spot",
@@ -82,11 +78,24 @@ def clean_class_name(raw_class: str) -> str:
     return " ".join(raw_class.replace("___", "-").replace("_", " ").split())
 
 
-@lru_cache()
 def get_local_model():
+    global model, tf_runtime
+
+    if model is not None:
+        return model
+
+    import tensorflow as tf
+
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+
     if not MODEL_PATH.exists():
         raise RuntimeError(f"Model file not found at {MODEL_PATH}")
-    return load_model(str(MODEL_PATH), compile=False)
+
+    tf_runtime = tf
+    model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
+    logger.info("Local inference model lazy-loaded from %s", MODEL_PATH)
+    return model
 
 
 def normalize_prediction_vector(preds: np.ndarray) -> np.ndarray:
@@ -107,8 +116,15 @@ def normalize_prediction_vector(preds: np.ndarray) -> np.ndarray:
 
 
 def run_inference_with_fallback(model, image_array: np.ndarray) -> tuple[np.ndarray, str]:
+    global tf_runtime
+
+    if tf_runtime is None:
+        import tensorflow as tf
+
+        tf_runtime = tf
+
     raw_input = np.expand_dims(image_array.copy(), axis=0)
-    mobilenet_input = np.expand_dims(tf.keras.applications.mobilenet_v2.preprocess_input(image_array.copy()), axis=0)
+    mobilenet_input = np.expand_dims(tf_runtime.keras.applications.mobilenet_v2.preprocess_input(image_array.copy()), axis=0)
     legacy_input = np.expand_dims(image_array / 255.0, axis=0)
 
     candidate_inputs = [
@@ -177,16 +193,6 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(scans.router, prefix="/scans", tags=["scans"])
 app.include_router(medicine.router, prefix="/medicine", tags=["medicine"])
 app.include_router(area_intelligence.router, prefix="/area-intelligence", tags=["area-intelligence"])
-
-
-@app.on_event("startup")
-def warm_local_model() -> None:
-    try:
-        get_local_model()
-        logger.info("Local inference model loaded from %s", MODEL_PATH)
-    except Exception:
-        traceback.print_exc()
-        logger.exception("Failed to load local inference model from %s", MODEL_PATH)
 
 
 @app.post("/api/predict")
