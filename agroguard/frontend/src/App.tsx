@@ -17,7 +17,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 const SPLASH_STORAGE_KEY = 'agroguard-splash-seen';
 
 const TopNavigation = () => {
-  const { user, logout, startMobileGoogleSignIn } = useAuth();
+  const { user, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,9 +27,16 @@ const TopNavigation = () => {
   }, [location.pathname]);
 
   const initiateLogin = useGoogleLogin({
-    ux_mode: 'redirect',
-    onSuccess: (codeResponse) => {
-      // Identity is handled via redirection and callback in the AuthProvider
+    onSuccess: async (tokenResponse) => {
+      try {
+        if (!tokenResponse.access_token) {
+          throw new Error('Google access token was not returned by OAuth flow');
+        }
+        await loginWithGoogleAccessToken(tokenResponse.access_token);
+      } catch (err: any) {
+        const message = err.response?.data?.detail || err.message || 'Google login handoff failed';
+        alert(`AgroGuard Auth Error: ${message}`);
+      }
     },
     onError: (error) => {
       console.error('Auth Error:', error);

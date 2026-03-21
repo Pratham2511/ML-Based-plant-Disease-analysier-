@@ -3,7 +3,8 @@ from typing import Optional
 
 
 class GoogleAuthRequest(BaseModel):
-    credential: str = Field(min_length=20)
+    credential: Optional[str] = Field(default=None, min_length=20)
+    access_token: Optional[str] = Field(default=None, min_length=20)
 
 
 class UpdateLocationRequest(BaseModel):

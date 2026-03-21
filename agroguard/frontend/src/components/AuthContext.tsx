@@ -16,6 +16,7 @@ type AuthContextProps = {
   user: User | null;
   loading: boolean;
   loginWithGoogleCredential: (credential: string) => Promise<void>;
+  loginWithGoogleAccessToken: (accessToken: string) => Promise<void>;
   startMobileGoogleSignIn: () => Promise<void>;
   logout: () => void;
 };
@@ -67,9 +68,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const exchangeGoogleCredential = async (credential: string) => {
+  const exchangeGoogleAuth = async (payload: { credential?: string; access_token?: string }) => {
     try {
-      const res = await api.post('/auth/google', { credential });
+      const res = await api.post('/auth/google', payload);
       setUser(res.data.user);
       if (Capacitor.isNativePlatform() && res.data.access_token) {
         localStorage.setItem('agroguard_mobile_jwt', res.data.access_token);
@@ -152,7 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         setLoading(true);
         try {
-          await exchangeGoogleCredential(credential);
+          await exchangeGoogleAuth({ credential });
           await Browser.close();
         } finally {
           setLoading(false);
@@ -172,7 +173,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loginWithGoogleCredential = async (credential: string) => {
     setLoading(true);
     try {
-      await exchangeGoogleCredential(credential);
+      await exchangeGoogleAuth({ credential });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogleAccessToken = async (accessToken: string) => {
+    setLoading(true);
+    try {
+      await exchangeGoogleAuth({ access_token: accessToken });
     } finally {
       setLoading(false);
     }
@@ -213,7 +223,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogleCredential, startMobileGoogleSignIn, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, loginWithGoogleCredential, loginWithGoogleAccessToken, startMobileGoogleSignIn, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

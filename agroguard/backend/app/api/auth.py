@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+import httpx
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from google.auth.transport import requests as google_requests
@@ -42,17 +43,32 @@ def google_auth(payload: GoogleAuthRequest, request: Request, response: Response
     rate_key = f"google_login:{client_ip}"
     enforce_rate_limit(rate_key, settings.otp_request_limit, settings.otp_request_window_seconds)
 
-    try:
-        token_info = id_token.verify_oauth2_token(
-            payload.credential,
-            google_requests.Request(),
-            settings.google_client_id,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google credential") from exc
+    token_info = None
+    if payload.credential:
+        try:
+            token_info = id_token.verify_oauth2_token(
+                payload.credential,
+                google_requests.Request(),
+                settings.google_client_id,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google credential") from exc
+    elif payload.access_token:
+        try:
+            token_info_resp = httpx.get(
+                "https://www.googleapis.com/oauth2/v3/tokeninfo",
+                params={"access_token": payload.access_token},
+                timeout=10.0,
+            )
+            token_info_resp.raise_for_status()
+            token_info = token_info_resp.json()
+        except Exception as exc:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google access token") from exc
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="credential or access_token is required")
 
     issuer = token_info.get("iss")
-    if issuer not in {"accounts.google.com", "https://accounts.google.com"}:
+    if issuer and issuer not in {"accounts.google.com", "https://accounts.google.com"}:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google issuer")
 
     if not token_info.get("email_verified"):
