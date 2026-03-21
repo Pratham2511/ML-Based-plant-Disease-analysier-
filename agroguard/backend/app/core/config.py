@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     jwt_exp_minutes: int = 60
     jwt_cookie_name: str = "agroguard_token"
     cookie_secure: Optional[bool] = None
+    google_client_id: Optional[str] = None
 
     ml_service_url: str = "http://localhost:9000"
 

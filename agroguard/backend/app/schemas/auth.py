@@ -2,29 +2,8 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from typing import Optional
 
 
-class RegisterRequest(BaseModel):
-    full_name: Optional[str] = Field(default=None, min_length=2, max_length=120)
-    email: EmailStr
-    password: str = Field(min_length=8)
-    latitude: float
-    longitude: float
-
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=8)
-
-
-class LoginVerifyRequest(LoginRequest):
-    otp: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
-
-
-class ChangeEmailRequest(BaseModel):
-    email: EmailStr
-
-
-class ChangeEmailVerifyRequest(ChangeEmailRequest):
-    otp: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+class GoogleAuthRequest(BaseModel):
+    credential: str = Field(min_length=20)
 
 
 class UpdateLocationRequest(BaseModel):
@@ -36,15 +15,11 @@ class UpdateProfileRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=120)
 
 
-class ChangePasswordRequest(BaseModel):
-    current_password: str = Field(min_length=8)
-    new_password: str = Field(min_length=8)
-
-
 class UserOut(BaseModel):
     id: str
     full_name: Optional[str] = None
     email: EmailStr
+    picture_url: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
@@ -53,6 +28,7 @@ class UserOut(BaseModel):
 
 class AuthResponse(BaseModel):
     user: UserOut
+    access_token: str
 
 
 class SimpleStatusResponse(BaseModel):

@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     full_name TEXT,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
+    picture_url TEXT,
+    google_sub TEXT UNIQUE,
+    auth_provider TEXT NOT NULL DEFAULT 'google',
     latitude DOUBLE PRECISION,
     longitude DOUBLE PRECISION,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -11,8 +13,13 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT chk_longitude_range CHECK (longitude IS NULL OR (longitude >= -180 AND longitude <= 180))
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS picture_url TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider TEXT NOT NULL DEFAULT 'google';
+ALTER TABLE users DROP COLUMN IF EXISTS password_hash;
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users((LOWER(email)));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub) WHERE google_sub IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS otp_verification (
     id UUID PRIMARY KEY,

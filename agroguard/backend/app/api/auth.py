@@ -1,83 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 
 from app.api import deps
 from app.core.config import settings
 from app.models.user import User
 from app.schemas.auth import (
     AuthResponse,
-    ChangePasswordRequest,
-    ChangeEmailRequest,
-    ChangeEmailVerifyRequest,
-    LoginRequest,
-    LoginVerifyRequest,
-    RegisterRequest,
+    GoogleAuthRequest,
     SimpleStatusResponse,
     UpdateProfileRequest,
     UpdateLocationRequest,
     UserOut,
 )
-from app.services import otp as otp_service
 from app.utils.rate_limiter import enforce_rate_limit
-from app.utils.security import create_jwt, hash_password, verify_password, verify_otp
+from app.utils.security import create_jwt
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(payload: RegisterRequest, db: Session = Depends(deps.get_db)):
-    normalized_email = payload.email.strip().lower()
-    existing = db.query(User).filter(func.lower(User.email) == normalized_email).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    user = User(
-        full_name=payload.full_name,
-        email=normalized_email,
-        password_hash=hash_password(payload.password),
-        latitude=payload.latitude,
-        longitude=payload.longitude,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-
-
-@router.post("/login-request", response_model=SimpleStatusResponse)
-def login_request(payload: LoginRequest, request: Request, db: Session = Depends(deps.get_db)):
-    normalized_email = payload.email.strip().lower()
-    client_ip = request.client.host if request.client else "unknown"
-    key = f"otp_request:{client_ip}:{normalized_email}"
-    enforce_rate_limit(key, settings.otp_request_limit, settings.otp_request_window_seconds)
-
-    user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
-    if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-    otp = otp_service.generate_otp()
-    otp_service.store_otp(db, user.id, "login", otp)
-    otp_service.send_otp(user.email, otp)
-    return {"status": "otp_sent"}
-
-
-@router.post("/login-verify", response_model=AuthResponse)
-def login_verify(response: Response, payload: LoginVerifyRequest, request: Request, db: Session = Depends(deps.get_db)):
-    normalized_email = payload.email.strip().lower()
-    client_ip = request.client.host if request.client else "unknown"
-    key = f"otp_verify:{client_ip}:{normalized_email}"
-    enforce_rate_limit(key, settings.otp_verify_limit, settings.otp_verify_window_seconds)
-
-    user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
-    if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-    hashed = otp_service.fetch_otp(db, user.id, "login")
-    if not hashed or not verify_otp(payload.otp, hashed):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired OTP")
-
-    otp_service.consume_otp(db, user.id, "login")
-    token = create_jwt({"sub": str(user.id)})
+def _set_auth_cookie(response: Response, token: str) -> None:
     same_site = "none" if settings.cookie_secure else "lax"
     response.set_cookie(
         key=settings.jwt_cookie_name,
@@ -87,7 +31,70 @@ def login_verify(response: Response, payload: LoginVerifyRequest, request: Reque
         samesite=same_site,
         max_age=settings.jwt_exp_minutes * 60,
     )
-    return {"user": user}
+
+
+@router.post("/google", response_model=AuthResponse)
+def google_auth(payload: GoogleAuthRequest, request: Request, response: Response, db: Session = Depends(deps.get_db)):
+    if not settings.google_client_id:
+        raise HTTPException(status_code=500, detail="GOOGLE_CLIENT_ID is not configured")
+
+    client_ip = request.client.host if request.client else "unknown"
+    rate_key = f"google_login:{client_ip}"
+    enforce_rate_limit(rate_key, settings.otp_request_limit, settings.otp_request_window_seconds)
+
+    try:
+        token_info = id_token.verify_oauth2_token(
+            payload.credential,
+            google_requests.Request(),
+            settings.google_client_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google credential") from exc
+
+    issuer = token_info.get("iss")
+    if issuer not in {"accounts.google.com", "https://accounts.google.com"}:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google issuer")
+
+    if not token_info.get("email_verified"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Google email is not verified")
+
+    email = str(token_info.get("email", "")).strip().lower()
+    if not email:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Google account email is missing")
+
+    google_sub = str(token_info.get("sub", "")).strip()
+    full_name = str(token_info.get("name", "")).strip() or None
+    picture_url = str(token_info.get("picture", "")).strip() or None
+
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user and google_sub:
+        user = db.query(User).filter(User.google_sub == google_sub).first()
+
+    if not user:
+        user = User(
+            email=email,
+            full_name=full_name,
+            picture_url=picture_url,
+            google_sub=google_sub or None,
+            auth_provider="google",
+        )
+    else:
+        user.email = email
+        user.auth_provider = "google"
+        if google_sub:
+            user.google_sub = google_sub
+        if full_name:
+            user.full_name = full_name
+        if picture_url:
+            user.picture_url = picture_url
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token = create_jwt({"sub": str(user.id)})
+    _set_auth_cookie(response, token)
+    return {"user": user, "access_token": token}
 
 
 @router.post("/logout", response_model=SimpleStatusResponse)
@@ -114,74 +121,6 @@ def update_profile(
     db: Session = Depends(deps.get_db),
 ):
     current_user.full_name = payload.full_name.strip()
-    db.add(current_user)
-    db.commit()
-    db.refresh(current_user)
-    return current_user
-
-
-@router.post("/change-password", response_model=SimpleStatusResponse)
-def change_password(
-    payload: ChangePasswordRequest,
-    current_user: User = Depends(deps.get_current_user),
-    db: Session = Depends(deps.get_db),
-):
-    if not verify_password(payload.current_password, current_user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect")
-    if verify_password(payload.new_password, current_user.password_hash):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must be different")
-
-    current_user.password_hash = hash_password(payload.new_password)
-    db.add(current_user)
-    db.commit()
-    return {"status": "password_updated"}
-
-
-@router.post("/change-email-request", response_model=SimpleStatusResponse)
-def change_email_request(
-    payload: ChangeEmailRequest,
-    request: Request,
-    current_user: User = Depends(deps.get_current_user),
-    db: Session = Depends(deps.get_db),
-):
-    normalized_email = payload.email.strip().lower()
-    client_ip = request.client.host if request.client else "unknown"
-    key = f"email_change_request:{client_ip}:{current_user.id}"
-    enforce_rate_limit(key, settings.otp_request_limit, settings.otp_request_window_seconds)
-
-    if db.query(User).filter(func.lower(User.email) == normalized_email, User.id != current_user.id).first():
-        raise HTTPException(status_code=400, detail="Email already used")
-
-    purpose = f"email_change:{normalized_email}"
-    otp = otp_service.generate_otp()
-    otp_service.store_otp(db, current_user.id, purpose, otp)
-    otp_service.send_otp(normalized_email, otp)
-    return {"status": "otp_sent"}
-
-
-@router.post("/change-email-verify", response_model=UserOut)
-def change_email_verify(
-    payload: ChangeEmailVerifyRequest,
-    request: Request,
-    current_user: User = Depends(deps.get_current_user),
-    db: Session = Depends(deps.get_db),
-):
-    normalized_email = payload.email.strip().lower()
-    client_ip = request.client.host if request.client else "unknown"
-    key = f"email_change_verify:{client_ip}:{current_user.id}"
-    enforce_rate_limit(key, settings.otp_verify_limit, settings.otp_verify_window_seconds)
-
-    purpose = f"email_change:{normalized_email}"
-    hashed = otp_service.fetch_otp(db, current_user.id, purpose)
-    if not hashed or not verify_otp(payload.otp, hashed):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid OTP")
-
-    otp_service.consume_otp(db, current_user.id, purpose)
-    # require uniqueness
-    if db.query(User).filter(func.lower(User.email) == normalized_email, User.id != current_user.id).first():
-        raise HTTPException(status_code=400, detail="Email already used")
-
-    current_user.email = normalized_email
     db.add(current_user)
     db.commit()
     db.refresh(current_user)

@@ -11,7 +11,11 @@
     "icons:android": "node ./scripts/generate-android-icons.mjs"
   },
   "dependencies": {
+    "@capacitor/app": "^6.0.1",
+    "@capacitor/browser": "^6.0.1",
+    "@capacitor/core": "^6.1.2",
     "@hookform/resolvers": "^3.9.0",
+    "@react-oauth/google": "^0.12.1",
     "@zxing/library": "^0.20.0",
     "axios": "^1.6.5",
     "i18next": "^25.8.18",

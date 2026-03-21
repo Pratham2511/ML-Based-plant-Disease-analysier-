@@ -12,3 +12,4 @@ redis==5.0.1
 bcrypt==4.1.2
 python-multipart==0.0.6
 tensorflow-cpu==2.15.0
+google-auth==2.35.0
