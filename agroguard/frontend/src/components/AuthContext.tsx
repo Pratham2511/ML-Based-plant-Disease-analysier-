@@ -21,9 +21,49 @@ type AuthContextProps = {
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
+// Define global google object in case library scripts are still loading
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Initialize Web Google Identity popup
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) return;
+
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    const initWebAuth = () => {
+      window.google?.accounts.id.initialize({
+        client_id: clientId,
+        callback: (res: { credential?: string }) => {
+          if (res.credential) {
+            loginWithGoogleCredential(res.credential);
+          }
+        },
+      });
+    };
+
+    if (window.google) {
+      initWebAuth();
+    } else {
+      // Small timeout to allow script loading if needed, though wrapped in Provider it should be fine
+      setTimeout(initWebAuth, 1000);
+    }
+  }, []);
 
   const exchangeGoogleCredential = async (credential: string) => {
     const res = await api.post('/auth/google', { credential });

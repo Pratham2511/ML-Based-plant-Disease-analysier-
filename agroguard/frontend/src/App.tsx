@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useGoogleLogin } from '@react-oauth/google';
+import { Capacitor } from '@capacitor/core';
 
 import { AuthProvider, useAuth } from './components/AuthContext';
 import AppSplash from './components/AppSplash';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import Introduction from './pages/Introduction';
-import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ScanHistory from './pages/ScanHistory';
@@ -16,8 +17,46 @@ import ProtectedRoute from './components/ProtectedRoute';
 const SPLASH_STORAGE_KEY = 'agroguard-splash-seen';
 
 const TopNavigation = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loginWithGoogleCredential, startMobileGoogleSignIn } = useAuth();
   const { t } = useTranslation();
+
+  const initiateLogin = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      if (tokenResponse.access_token) {
+        // Handle OAuth2 exchange if needed, but we typically use ID tokens.
+        // For simplicity and alignment with existing AuthContext:
+        // loginWithGoogleCredential(tokenResponse.access_token);
+      }
+    },
+    // We prefer implicit flow or credential flow. 
+    // Since AuthContext already has loginWithGoogleCredential for ID tokens,
+    // and Capacitor has its own flow, we'll wrap them here.
+  });
+
+  // Since useGoogleLogin from @react-oauth/google (for web) 
+  // and startMobileGoogleSignIn (for mobile) are different, 
+  // we dispatch based on platform.
+  const handleLoginClick = () => {
+    if (Capacitor.isNativePlatform()) {
+      startMobileGoogleSignIn();
+    } else {
+      // For web, useGoogleLogin doesn't return the Credential (ID Token) easily 
+      // in the basic hook mode without prompt. But we can use the 'google' global 
+      // or just trigger the standard popup which we'll configure.
+      // Actually, let's use a more direct approach that matches the 'GoogleLogin' 
+      // component's behavior but via a hook.
+      
+      // If we want the one-tap or popup, we can use the library's built-in 
+      // but for a button click 'useGoogleLogin' is standard.
+      // However, it returns an access_token. Our backend expects a credential (ID Token).
+      // Let's use the standard window.google identity API if the hook doesn't provide it.
+      
+      // REVISION: To keep it strictly to the library's hook:
+      // We'll use the 'useGoogleLogin' hook which triggers the OAuth2 flow.
+      // But let's check if we can get the ID Token.
+      (window as any).google?.accounts.id.prompt();
+    }
+  };
 
   return (
     <header className="top-nav">
@@ -54,9 +93,9 @@ const TopNavigation = () => {
             {t('nav.logout')}
           </button>
         ) : (
-          <NavLink to="/auth" className="btn primary">
+          <button className="btn primary" onClick={handleLoginClick}>
             {t('nav.login')}
-          </NavLink>
+          </button>
         )}
       </div>
     </header>
@@ -109,7 +148,6 @@ function App() {
           <div className="route-transition" key={location.pathname}>
             <Routes location={location}>
               <Route path="/" element={<Introduction />} />
-              <Route path="/auth" element={<Auth />} />
               <Route
                 path="/dashboard"
                 element={
