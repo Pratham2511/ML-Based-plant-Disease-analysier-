@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
@@ -38,6 +39,7 @@ declare global {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Initialize Web Google Identity popup
   useEffect(() => {
@@ -71,6 +73,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (Capacitor.isNativePlatform() && res.data.access_token) {
       localStorage.setItem('agroguard_mobile_jwt', res.data.access_token);
     }
+    // Explicitly redirect to dashboard on successful auth
+    navigate('/dashboard');
   };
 
   const extractCredentialFromUrl = (urlValue: string): string | null => {

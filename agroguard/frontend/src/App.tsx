@@ -21,40 +21,19 @@ const TopNavigation = () => {
   const { t } = useTranslation();
 
   const initiateLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      if (tokenResponse.access_token) {
-        // Handle OAuth2 exchange if needed, but we typically use ID tokens.
-        // For simplicity and alignment with existing AuthContext:
-        // loginWithGoogleCredential(tokenResponse.access_token);
-      }
+    ux_mode: 'redirect',
+    onSuccess: (codeResponse) => {
+      // In redirect mode, the result is typically handled via a URL callback
+      // or at the top level, but the hook still needs a configuration.
     },
-    // We prefer implicit flow or credential flow. 
-    // Since AuthContext already has loginWithGoogleCredential for ID tokens,
-    // and Capacitor has its own flow, we'll wrap them here.
+    onError: (error) => console.error('Auth Error:', error),
   });
 
-  // Since useGoogleLogin from @react-oauth/google (for web) 
-  // and startMobileGoogleSignIn (for mobile) are different, 
-  // we dispatch based on platform.
   const handleLoginClick = () => {
     if (Capacitor.isNativePlatform()) {
       startMobileGoogleSignIn();
     } else {
-      // For web, useGoogleLogin doesn't return the Credential (ID Token) easily 
-      // in the basic hook mode without prompt. But we can use the 'google' global 
-      // or just trigger the standard popup which we'll configure.
-      // Actually, let's use a more direct approach that matches the 'GoogleLogin' 
-      // component's behavior but via a hook.
-      
-      // If we want the one-tap or popup, we can use the library's built-in 
-      // but for a button click 'useGoogleLogin' is standard.
-      // However, it returns an access_token. Our backend expects a credential (ID Token).
-      // Let's use the standard window.google identity API if the hook doesn't provide it.
-      
-      // REVISION: To keep it strictly to the library's hook:
-      // We'll use the 'useGoogleLogin' hook which triggers the OAuth2 flow.
-      // But let's check if we can get the ID Token.
-      (window as any).google?.accounts.id.prompt();
+      initiateLogin();
     }
   };
 

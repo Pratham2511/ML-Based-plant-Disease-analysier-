@@ -41,7 +41,6 @@ const Introduction = () => {
             <span className="pill">{t('intro.chips.aiDetection')}</span>
             <span className="pill">{t('intro.chips.medicineAuth')}</span>
             <span className="pill">{t('intro.chips.locationInsights')}</span>
-            <span className="pill">{t('intro.chips.secureLogin')}</span>
           </div>
         </div>
 
