@@ -14,6 +14,15 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/agroguard"
     redis_url: str = "redis://localhost:6379/0"
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value):
+        if not value:
+            return "postgresql+psycopg2://postgres:postgres@localhost:5432/agroguard"
+        if isinstance(value, str) and value.startswith("postgres://"):
+            return value.replace("postgres://", "postgresql://", 1)
+        return value
+
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
     jwt_exp_minutes: int = 60
