@@ -1,13 +1,18 @@
 import json
 import logging
 import traceback
+from functools import lru_cache
+from io import BytesIO
 from pathlib import Path
 
-import httpx
+import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from PIL import Image
+import tensorflow as tf
+from tensorflow.keras.models import load_model
 
 from app.api import area_intelligence, auth, health, medicine, scans
 from app.core.config import settings
@@ -25,6 +30,43 @@ MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "agroguard_max_
 DISEASE_DB_PATH = Path(__file__).resolve().parent.parent / "disease_database.json"
 LOW_CONFIDENCE_THRESHOLD = 0.20
 LOW_CONFIDENCE_MARGIN = 0.05
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+
+CLASSES = [
+    "bell_pepper_bacterial_spot",
+    "bell_pepper_healthy",
+    "potato_early_blight",
+    "potato_late_blight",
+    "potato_healthy",
+    "tomato_bacterial_spot",
+    "tomato_early_blight",
+    "tomato_late_blight",
+    "tomato_leaf_mold",
+    "tomato_septoria_leaf_spot",
+    "tomato_spider_mites_two_spotted_spider_mite",
+    "tomato_target_spot",
+    "tomato_yellow_leaf_curl_virus",
+    "tomato_mosaic_virus",
+    "tomato_healthy",
+]
+
+CLASS_TO_DB_KEY = {
+    "bell_pepper_bacterial_spot": "Pepper__bell___Bacterial_spot",
+    "bell_pepper_healthy": "Pepper__bell___healthy",
+    "potato_early_blight": "Potato___Early_blight",
+    "potato_late_blight": "Potato___Late_blight",
+    "potato_healthy": "Potato___healthy",
+    "tomato_bacterial_spot": "Tomato_Bacterial_spot",
+    "tomato_early_blight": "Tomato_Early_blight",
+    "tomato_late_blight": "Tomato_Late_blight",
+    "tomato_leaf_mold": "Tomato_Leaf_Mold",
+    "tomato_septoria_leaf_spot": "Tomato_Septoria_leaf_spot",
+    "tomato_spider_mites_two_spotted_spider_mite": "Tomato_Spider_mites_Two_spotted_spider_mite",
+    "tomato_target_spot": "Tomato__Target_Spot",
+    "tomato_yellow_leaf_curl_virus": "Tomato__Tomato_YellowLeaf__Curl_Virus",
+    "tomato_mosaic_virus": "Tomato__Tomato_mosaic_virus",
+    "tomato_healthy": "Tomato_healthy",
+}
 
 if DISEASE_DB_PATH.exists():
     with DISEASE_DB_PATH.open("r", encoding="utf-8") as f:
@@ -35,6 +77,81 @@ else:
 
 def clean_class_name(raw_class: str) -> str:
     return " ".join(raw_class.replace("___", "-").replace("_", " ").split())
+
+
+@lru_cache()
+def get_local_model():
+    if not MODEL_PATH.exists():
+        raise RuntimeError(f"Model file not found at {MODEL_PATH}")
+    return load_model(str(MODEL_PATH), compile=False)
+
+
+def normalize_prediction_vector(preds: np.ndarray) -> np.ndarray:
+    preds = np.asarray(preds, dtype=np.float32).reshape(-1)
+    if not np.all(np.isfinite(preds)):
+        raise ValueError("Model output contains non-finite values")
+
+    total = float(np.sum(preds))
+    if np.all(preds >= 0.0) and total > 0 and abs(total - 1.0) <= 1e-3:
+        return preds
+
+    shifted = preds - float(np.max(preds))
+    exp_preds = np.exp(shifted)
+    exp_sum = float(np.sum(exp_preds))
+    if exp_sum <= 0:
+        raise ValueError("Model output could not be normalized")
+    return exp_preds / exp_sum
+
+
+def run_inference_with_fallback(model, image_array: np.ndarray) -> tuple[np.ndarray, str]:
+    raw_input = np.expand_dims(image_array.copy(), axis=0)
+    mobilenet_input = np.expand_dims(tf.keras.applications.mobilenet_v2.preprocess_input(image_array.copy()), axis=0)
+    legacy_input = np.expand_dims(image_array / 255.0, axis=0)
+
+    candidate_inputs = [
+        ("mobilenet_v2", mobilenet_input),
+        ("legacy_0_1", legacy_input),
+        ("raw_0_255", raw_input),
+    ]
+
+    best_name = ""
+    best_preds: np.ndarray | None = None
+    best_max_prob = -1.0
+    all_preds: list[np.ndarray] = []
+
+    for name, candidate in candidate_inputs:
+        current = model.predict(candidate, verbose=0)[0]
+        normalized = normalize_prediction_vector(current)
+        all_preds.append(normalized)
+        current_max = float(np.max(normalized))
+        current_std = float(np.std(normalized))
+
+        if current_std > 1e-6:
+            return normalized, name
+
+        if current_max > best_max_prob:
+            best_name = name
+            best_preds = normalized
+            best_max_prob = current_max
+
+    if best_preds is None:
+        raise ValueError("Model inference failed for all preprocessing pipelines")
+
+    stacked = np.vstack(all_preds)
+    blended = normalize_prediction_vector(np.mean(stacked, axis=0))
+    return blended, "ensemble_fallback" if best_name else "unknown"
+
+
+def build_disease_data(class_name: str) -> dict:
+    db_key = CLASS_TO_DB_KEY.get(class_name, class_name)
+    entry = DISEASE_DATABASE.get(db_key, {})
+    return {
+        "disease_name": entry.get("disease_name") or clean_class_name(class_name),
+        "description": entry.get("description", ""),
+        "cause": entry.get("cause", ""),
+        "treatment": entry.get("treatment", ""),
+        "medicine": entry.get("medicine", "N/A"),
+    }
 
 if settings.environment == "production":
     app.add_middleware(HTTPSRedirectMiddleware)
@@ -59,6 +176,16 @@ app.include_router(medicine.router, prefix="/medicine", tags=["medicine"])
 app.include_router(area_intelligence.router, prefix="/area-intelligence", tags=["area-intelligence"])
 
 
+@app.on_event("startup")
+def warm_local_model() -> None:
+    try:
+        get_local_model()
+        logger.info("Local inference model loaded from %s", MODEL_PATH)
+    except Exception:
+        traceback.print_exc()
+        logger.exception("Failed to load local inference model from %s", MODEL_PATH)
+
+
 @app.post("/api/predict")
 async def predict(file: UploadFile = File(...)):
     if not file.content_type or not file.content_type.startswith("image/"):
@@ -68,62 +195,35 @@ async def predict(file: UploadFile = File(...)):
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Uploaded image is empty.")
 
-    ml_predict_url = f"{settings.ml_service_url.rstrip('/')}/predict"
+    if len(image_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Uploaded image is too large.")
 
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(45.0, connect=10.0)) as client:
-            resp = await client.post(
-                ml_predict_url,
-                files={"file": (file.filename or "leaf.jpg", image_bytes, file.content_type or "image/jpeg")},
-            )
+        img = Image.open(BytesIO(image_bytes)).convert("RGB").resize((224, 224))
+        image_array = np.array(img, dtype=np.float32)
+        model = get_local_model()
+        preds, selected_pipeline = run_inference_with_fallback(model, image_array)
 
-    except httpx.ConnectError as exc:
-        traceback.print_exc()
-        logger.exception("ML service connection failed for %s", ml_predict_url)
-        raise HTTPException(
-            status_code=502,
-            detail=f"Prediction failed: cannot connect to ML service at {ml_predict_url}",
-        ) from exc
-    except httpx.TimeoutException as exc:
-        traceback.print_exc()
-        logger.exception("ML service timeout for %s", ml_predict_url)
-        raise HTTPException(
-            status_code=504,
-            detail=f"Prediction failed: ML service timed out at {ml_predict_url}",
-        ) from exc
-    except Exception as exc:
-        traceback.print_exc()
-        logger.exception("Unexpected ML request error for %s", ml_predict_url)
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(exc)}") from exc
-
-    try:
-
-        if resp.status_code != 200:
-            logger.error("ML service returned non-200 status: %s body=%s", resp.status_code, resp.text[:300])
-            raise HTTPException(status_code=502, detail=f"ML service unavailable at {ml_predict_url}")
-
-        ml_payload = resp.json()
-        raw_class = str(ml_payload.get("disease_name", ""))
-        disease_name = clean_class_name(raw_class) if raw_class else "Uncertain prediction"
-
-        confidence_ratio = float(ml_payload.get("confidence", 0.0) or 0.0)
+        top3_idx = np.argsort(preds)[-3:][::-1]
+        top1_idx = int(top3_idx[0])
+        raw_class = CLASSES[top1_idx] if top1_idx < len(CLASSES) else f"class_{top1_idx}"
+        disease_name = clean_class_name(raw_class)
+        confidence_ratio = float(preds[top1_idx])
         confidence_percent = round(confidence_ratio * 100.0, 2)
 
-        top_predictions = []
-        for item in ml_payload.get("top_predictions", [])[:3]:
-            raw_top = str(item.get("disease_name", ""))
-            top_predictions.append(
-                {
-                    "raw_class": raw_top,
-                    "disease_name": clean_class_name(raw_top),
-                    "confidence": round(float(item.get("confidence", 0.0) or 0.0) * 100.0, 2),
-                }
-            )
+        top_predictions = [
+            {
+                "raw_class": CLASSES[int(i)] if int(i) < len(CLASSES) else f"class_{int(i)}",
+                "disease_name": clean_class_name(CLASSES[int(i)] if int(i) < len(CLASSES) else f"class_{int(i)}"),
+                "confidence": round(float(preds[int(i)]) * 100.0, 2),
+            }
+            for i in top3_idx
+        ]
 
         top1_ratio = confidence_ratio
         top2_ratio = 0.0
-        if len(ml_payload.get("top_predictions", [])) > 1:
-            top2_ratio = float(ml_payload["top_predictions"][1].get("confidence", 0.0) or 0.0)
+        if len(top3_idx) > 1:
+            top2_ratio = float(preds[int(top3_idx[1])])
         margin = top1_ratio - top2_ratio
 
         if top1_ratio < LOW_CONFIDENCE_THRESHOLD or margin < LOW_CONFIDENCE_MARGIN:
@@ -132,17 +232,11 @@ async def predict(file: UploadFile = File(...)):
                 "error_type": "LOW_CONFIDENCE",
                 "message": "The image is unclear. Please retake with better focus and lighting.",
                 "confidence": confidence_percent,
-                "debug_pipeline": ml_payload.get("debug_pipeline", "ml_service"),
+                "debug_pipeline": selected_pipeline,
                 "top_predictions": top_predictions,
             }
 
-        disease_data = {
-            "disease_name": disease_name,
-            "description": ml_payload.get("description", ""),
-            "cause": ml_payload.get("cause", ""),
-            "treatment": ml_payload.get("treatment", ""),
-            "medicine": (ml_payload.get("recommended_medicines") or ["N/A"])[0],
-        }
+        disease_data = build_disease_data(raw_class)
 
         return {
             "success": True,
@@ -150,13 +244,13 @@ async def predict(file: UploadFile = File(...)):
             "disease_name": disease_name,
             "confidence": confidence_percent,
             "disease_data": disease_data,
-            "debug_pipeline": ml_payload.get("debug_pipeline", "ml_service"),
+            "debug_pipeline": selected_pipeline,
             "top_predictions": top_predictions,
-            "model_warning": ml_payload.get("model_warning"),
+            "model_warning": "uniform_output" if float(np.std(preds)) <= 1e-6 else None,
         }
     except HTTPException:
         raise
     except Exception as exc:
         traceback.print_exc()
-        logger.exception("Prediction pipeline failed after ML response")
+        logger.exception("Local prediction pipeline failed")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(exc)}")
