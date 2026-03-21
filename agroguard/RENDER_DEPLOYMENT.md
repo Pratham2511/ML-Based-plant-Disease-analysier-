@@ -3,12 +3,13 @@
 This repo is now configured for Render Blueprint deployment via `render.yaml`.
 
 ## What deploys on Render
+- `agroguard-frontend` as a **Static Site** (public)
 - `agroguard-ml` as a **Private Service** (Docker, internal only)
 - `agroguard-redis` as **Managed Redis**
 - `agroguard-backend` as a **Web Service** (Docker, public API)
 - `agroguard-db` as **Managed PostgreSQL**
 
-Frontend can stay on Vercel (recommended with current setup) or be deployed separately as a static site.
+Everything is hosted on Render in this setup (frontend + backend + ML + data services).
 
 ## 1) Deploy using Blueprint
 1. Push this repository to GitHub.
@@ -33,13 +34,13 @@ These are marked `sync: false` and must be filled in Render dashboard:
 
 Notes:
 - `BACKEND_CORS_ORIGINS` should be JSON list format, for example:
-  - `["https://your-frontend-domain.vercel.app"]`
+  - `["https://agroguard-frontend.onrender.com"]`
 - `ALLOWED_HOSTS` should be JSON list, for example:
   - `["agroguard-backend.onrender.com"]`
 
-## 3) Frontend configuration
-Set frontend env:
-- `VITE_API_URL=https://agroguard-backend.onrender.com`
+## 3) Frontend configuration on Render
+- `VITE_API_URL` is wired automatically from the backend service URL in `render.yaml`.
+- `VITE_DEMO_ACCESS` defaults to `false`.
 
 ## 4) Verify live health checks
 - Backend: `GET /health`

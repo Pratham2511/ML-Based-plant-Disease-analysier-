@@ -3,7 +3,7 @@
 Production-grade, location-aware plant disease analyzer and batch medicine verification platform.
 
 ## Stack
-- Frontend: React + Vite (Vercel)
+- Frontend: React + Vite (Render Static Site)
 - API: FastAPI (Render), PostgreSQL, Redis
 - ML: TensorFlow MobileNetV2 inference service (Render private service)
 - Storage: Cloudflare R2 for images
@@ -40,11 +40,13 @@ uvicorn app.main:app --reload --port 9000
 ```
 
 ## Deployment targets
-- Frontend → Vercel using `npm run build`
+- Frontend → Render Static Site using `frontend` build (`npm install && npm run build`)
 - Backend → Render Docker using `backend/Dockerfile`
 - ML → Render private service using `ml-service/Dockerfile`
 - PostgreSQL/Redis → Render managed
 - R2 → Cloudflare bucket for images
+
+Use the Render Blueprint at `render.yaml` to provision frontend, backend, ML, Redis, and PostgreSQL together.
 
 ## Notes
 - OTP expires in 5 minutes, stored in Redis with DB fallback

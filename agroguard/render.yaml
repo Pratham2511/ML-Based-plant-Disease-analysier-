@@ -1,4 +1,18 @@
 services:
+  - type: static
+    name: agroguard-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: agroguard-backend
+          property: url
+      - key: VITE_DEMO_ACCESS
+        value: "false"
+
   - type: pserv
     name: agroguard-ml
     env: docker
