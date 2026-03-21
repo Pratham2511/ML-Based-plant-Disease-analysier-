@@ -14,6 +14,9 @@ from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
+tf.config.threading.set_inter_op_parallelism_threads(1)
+tf.config.threading.set_intra_op_parallelism_threads(1)
+
 from app.api import area_intelligence, auth, health, medicine, scans
 from app.core.config import settings
 from app.db import base  # noqa: F401
