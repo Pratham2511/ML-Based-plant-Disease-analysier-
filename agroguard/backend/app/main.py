@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 from pathlib import Path
 
 import httpx
@@ -67,15 +68,39 @@ async def predict(file: UploadFile = File(...)):
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Uploaded image is empty.")
 
+    ml_predict_url = f"{settings.ml_service_url.rstrip('/')}/predict"
+
     try:
-        async with httpx.AsyncClient(timeout=45) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(45.0, connect=10.0)) as client:
             resp = await client.post(
-                f"{settings.ml_service_url}/predict",
+                ml_predict_url,
                 files={"file": (file.filename or "leaf.jpg", image_bytes, file.content_type or "image/jpeg")},
             )
 
+    except httpx.ConnectError as exc:
+        traceback.print_exc()
+        logger.exception("ML service connection failed for %s", ml_predict_url)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Prediction failed: cannot connect to ML service at {ml_predict_url}",
+        ) from exc
+    except httpx.TimeoutException as exc:
+        traceback.print_exc()
+        logger.exception("ML service timeout for %s", ml_predict_url)
+        raise HTTPException(
+            status_code=504,
+            detail=f"Prediction failed: ML service timed out at {ml_predict_url}",
+        ) from exc
+    except Exception as exc:
+        traceback.print_exc()
+        logger.exception("Unexpected ML request error for %s", ml_predict_url)
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(exc)}") from exc
+
+    try:
+
         if resp.status_code != 200:
-            raise HTTPException(status_code=502, detail="ML service unavailable")
+            logger.error("ML service returned non-200 status: %s body=%s", resp.status_code, resp.text[:300])
+            raise HTTPException(status_code=502, detail=f"ML service unavailable at {ml_predict_url}")
 
         ml_payload = resp.json()
         raw_class = str(ml_payload.get("disease_name", ""))
@@ -129,5 +154,9 @@ async def predict(file: UploadFile = File(...)):
             "top_predictions": top_predictions,
             "model_warning": ml_payload.get("model_warning"),
         }
+    except HTTPException:
+        raise
     except Exception as exc:
+        traceback.print_exc()
+        logger.exception("Prediction pipeline failed after ML response")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(exc)}")
