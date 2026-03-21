@@ -19,6 +19,12 @@ const SPLASH_STORAGE_KEY = 'agroguard-splash-seen';
 const TopNavigation = () => {
   const { user, logout, startMobileGoogleSignIn } = useAuth();
   const { t } = useTranslation();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const initiateLogin = useGoogleLogin({
     ux_mode: 'redirect',
@@ -38,52 +44,120 @@ const TopNavigation = () => {
       } else {
         initiateLogin();
       }
+      setMobileMenuOpen(false);
     } catch (err: any) {
       alert(`Login Trigger Error: ${err.message}`);
     }
   };
 
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   return (
-    <header className="top-nav w-full max-w-[100vw]">
-      <NavLink to="/" className="brand-mark min-w-0">
-        <div className="brand-mark__glyph" aria-hidden>
-          <img src="/leaf.svg" alt="" />
-        </div>
-        <div>
-          <strong>AgroGuard</strong>
-          <small>{t('app.tagline')}</small>
-        </div>
-      </NavLink>
+    <>
+      <header className="top-nav w-full max-w-[100vw]">
+        <NavLink to="/" className="brand-mark min-w-0">
+          <div className="brand-mark__glyph" aria-hidden>
+            <img src="/leaf.svg" alt="" />
+          </div>
+          <div>
+            <strong>AgroGuard</strong>
+            <small>{t('app.tagline')}</small>
+          </div>
+        </NavLink>
 
-      <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
-        <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-          {t('nav.dashboard')}
-        </NavLink>
-        <NavLink to="/area-intelligence" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-          {t('nav.areaIntelligence')}
-        </NavLink>
-        <NavLink to="/history" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-          {t('nav.scanHistory')}
-        </NavLink>
-        <NavLink to="/profile" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-          {t('nav.accountSettings')}
-        </NavLink>
-      </nav>
+        <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
+          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+            {t('nav.dashboard')}
+          </NavLink>
+          <NavLink to="/area-intelligence" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+            {t('nav.areaIntelligence')}
+          </NavLink>
+          <NavLink to="/history" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+            {t('nav.scanHistory')}
+          </NavLink>
+          <NavLink to="/profile" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+            {t('nav.accountSettings')}
+          </NavLink>
+        </nav>
 
-      <div className="top-nav__actions max-w-full flex-shrink-0">
-        <LanguageSwitcher compactMobile />
-        <span className="session-indicator desktop-only">{user ? t('nav.sessionActive') : t('nav.loginRequired')}</span>
-        {user ? (
-          <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout}>
-            {t('nav.logout')}
-          </button>
-        ) : (
-          <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick}>
-            {t('nav.login')}
-          </button>
-        )}
-      </div>
-    </header>
+        <div className="top-nav__actions max-w-full flex-shrink-0">
+          <LanguageSwitcher />
+          <span className="session-indicator desktop-only">{user ? t('nav.sessionActive') : t('nav.loginRequired')}</span>
+          {user ? (
+            <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout}>
+              {t('nav.logout')}
+            </button>
+          ) : (
+            <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick}>
+              {t('nav.login')}
+            </button>
+          )}
+        </div>
+
+        <div className="top-nav__mobile-action">
+          {user ? (
+            <button
+              type="button"
+              className="top-nav__hamburger"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? '✕' : '☰'}
+            </button>
+          ) : (
+            <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick}>
+              {t('nav.login')}
+            </button>
+          )}
+        </div>
+      </header>
+
+      {user ? (
+        <>
+          <button
+            type="button"
+            className={`mobile-drawer-backdrop ${mobileMenuOpen ? 'open' : ''}`}
+            onClick={closeMobileMenu}
+            aria-label="Close menu backdrop"
+          />
+          <aside className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`} aria-hidden={!mobileMenuOpen}>
+            <div className="mobile-drawer__head">
+              <strong>AgroGuard</strong>
+              <button type="button" className="mobile-drawer__close" onClick={closeMobileMenu} aria-label="Close menu">
+                ✕
+              </button>
+            </div>
+            <nav className="mobile-drawer__links" aria-label={t('nav.primaryLabel')}>
+              <NavLink to="/dashboard" className="mobile-drawer__link" onClick={closeMobileMenu}>
+                {t('nav.dashboard')}
+              </NavLink>
+              <NavLink to="/area-intelligence" className="mobile-drawer__link" onClick={closeMobileMenu}>
+                {t('nav.areaIntelligence')}
+              </NavLink>
+              <NavLink to="/history" className="mobile-drawer__link" onClick={closeMobileMenu}>
+                {t('nav.scanHistory')}
+              </NavLink>
+              <NavLink to="/profile" className="mobile-drawer__link" onClick={closeMobileMenu}>
+                {t('nav.accountSettings')}
+              </NavLink>
+            </nav>
+            <div className="mobile-drawer__section">
+              <LanguageSwitcher />
+            </div>
+            <button
+              className="btn ghost mobile-drawer__logout"
+              onClick={() => {
+                logout();
+                closeMobileMenu();
+              }}
+            >
+              {t('nav.logout')}
+            </button>
+          </aside>
+        </>
+      ) : null}
+    </>
   );
 };
 
