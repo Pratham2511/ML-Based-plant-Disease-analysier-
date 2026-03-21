@@ -68,13 +68,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const exchangeGoogleCredential = async (credential: string) => {
-    const res = await api.post('/auth/google', { credential });
-    setUser(res.data.user);
-    if (Capacitor.isNativePlatform() && res.data.access_token) {
-      localStorage.setItem('agroguard_mobile_jwt', res.data.access_token);
+    try {
+      const res = await api.post('/auth/google', { credential });
+      setUser(res.data.user);
+      if (Capacitor.isNativePlatform() && res.data.access_token) {
+        localStorage.setItem('agroguard_mobile_jwt', res.data.access_token);
+      }
+      // Explicitly redirect to dashboard on successful auth
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      const errorMsg = err.response?.data?.detail || err.message || 'Authentication failed';
+      alert(`AgroGuard Auth Error: ${errorMsg}`);
+      throw err;
     }
-    // Explicitly redirect to dashboard on successful auth
-    navigate('/dashboard');
   };
 
   const extractCredentialFromUrl = (urlValue: string): string | null => {

@@ -130,6 +130,14 @@ a {
 
 @media (max-width: 768px) {
   .top-nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+  }
+  .top-nav__links {
+    display: none;
+  }
+  .desktop-only {
     display: none;
   }
 }

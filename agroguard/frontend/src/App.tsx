@@ -23,17 +23,23 @@ const TopNavigation = () => {
   const initiateLogin = useGoogleLogin({
     ux_mode: 'redirect',
     onSuccess: (codeResponse) => {
-      // In redirect mode, the result is typically handled via a URL callback
-      // or at the top level, but the hook still needs a configuration.
+      // Identity is handled via redirection and callback in the AuthProvider
     },
-    onError: (error) => console.error('Auth Error:', error),
+    onError: (error) => {
+      console.error('Auth Error:', error);
+      alert('Google Auth failed to initialize. Please check your internet connection and try again.');
+    },
   });
 
   const handleLoginClick = () => {
-    if (Capacitor.isNativePlatform()) {
-      startMobileGoogleSignIn();
-    } else {
-      initiateLogin();
+    try {
+      if (Capacitor.isNativePlatform()) {
+        startMobileGoogleSignIn();
+      } else {
+        initiateLogin();
+      }
+    } catch (err: any) {
+      alert(`Login Trigger Error: ${err.message}`);
     }
   };
 
@@ -66,7 +72,7 @@ const TopNavigation = () => {
 
       <div className="top-nav__actions">
         <LanguageSwitcher />
-        <span className="session-indicator">{user ? t('nav.sessionActive') : t('nav.loginRequired')}</span>
+        <span className="session-indicator desktop-only">{user ? t('nav.sessionActive') : t('nav.loginRequired')}</span>
         {user ? (
           <button className="btn ghost" onClick={logout}>
             {t('nav.logout')}
@@ -78,30 +84,6 @@ const TopNavigation = () => {
         )}
       </div>
     </header>
-  );
-};
-
-const MobileDock = () => {
-  const { t } = useTranslation();
-
-  return (
-    <nav className="mobile-dock" aria-label={t('nav.mobileQuickNavigation')}>
-      <NavLink to="/" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>{t('nav.home')}</span>
-      </NavLink>
-      <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>{t('nav.dashboard')}</span>
-      </NavLink>
-      <NavLink to="/area-intelligence" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>{t('nav.areaIntelligence')}</span>
-      </NavLink>
-      <NavLink to="/history" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>{t('nav.scanHistory')}</span>
-      </NavLink>
-      <NavLink to="/profile" className={({ isActive }) => (isActive ? 'dock-link active' : 'dock-link')}>
-        <span>{t('nav.accountSettings')}</span>
-      </NavLink>
-    </nav>
   );
 };
 
@@ -120,7 +102,7 @@ function App() {
 
   return (
     <AuthProvider>
-      <div className="app-shell">
+      <div className="app-shell" style={{ overflowX: 'hidden' }}>
         {showSplash && <AppSplash />}
         <TopNavigation />
         <main className="route-stage">
@@ -163,7 +145,6 @@ function App() {
             </Routes>
           </div>
         </main>
-        <MobileDock />
       </div>
     </AuthProvider>
   );
