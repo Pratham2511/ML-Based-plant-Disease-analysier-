@@ -16,6 +16,8 @@ Production-grade, location-aware plant disease analyzer and batch medicine verif
 - `.github/workflows/ci.yml` CI for build + static checks
 - `.github/workflows/render-keepalive.yml` scheduled health pings for free-tier cold-start mitigation
 - `DEPLOYMENT_PLAN.md` cloud deployment runbook for Vercel + Render + R2
+- `RENDER_DEPLOYMENT.md` step-by-step Render Blueprint deployment guide
+- `render.yaml` Render Blueprint definition for backend + ML + Redis + PostgreSQL
 
 ## Environment
 Create `.env` files from provided `.env.example` under each service. Key vars:

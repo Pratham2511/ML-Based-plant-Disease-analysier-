@@ -22,6 +22,15 @@ class Settings(BaseSettings):
 
     ml_service_url: str = "http://localhost:9000"
 
+    @field_validator("ml_service_url", mode="before")
+    @classmethod
+    def normalize_ml_service_url(cls, value):
+        if not value:
+            return "http://localhost:9000"
+        if isinstance(value, str) and not value.startswith(("http://", "https://")):
+            return f"http://{value}"
+        return value
+
     # OTP and rate-limiting
     otp_exp_minutes: int = 5
     otp_request_limit: int = 5

@@ -1,12 +1,14 @@
 import os
 from io import BytesIO
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 
 import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from PIL import Image
 import tensorflow as tf
+from transformers import pipeline
 
 CLASSES: List[str] = [
     "bell_pepper_bacterial_spot",
@@ -14,6 +16,7 @@ CLASSES: List[str] = [
     "potato_early_blight",
     "potato_late_blight",
     "potato_healthy",
+    "tomato_bacterial_spot",
     "tomato_early_blight",
     "tomato_late_blight",
     "tomato_leaf_mold",
@@ -55,6 +58,12 @@ DESCRIPTIONS = {
         "cause": "No disease symptoms detected.",
         "treatment": "Continue preventive monitoring.",
         "recommended_medicines": [],
+    },
+    "tomato_bacterial_spot": {
+        "description": "Small dark lesions on leaves and fruit with raised scabby spots.",
+        "cause": "Xanthomonas bacterial infection under warm, humid conditions.",
+        "treatment": "Use disease-free seed, avoid overhead irrigation, and apply bactericide.",
+        "recommended_medicines": ["Copper oxychloride", "Streptomycin sulfate"],
     },
     "tomato_early_blight": {
         "description": "Dark concentric spots with yellow halos on older leaves.",
@@ -117,12 +126,186 @@ MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 app = FastAPI(title="AgroGuard ML Service")
 
 
+HF_MODEL_ID = os.getenv("HF_MODEL_ID", "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification")
+
+
+def map_external_label_to_internal(label: str) -> str | None:
+    text = label.lower().replace("_", " ").replace("-", " ")
+
+    if "pepper" in text and "bacterial" in text:
+        return "bell_pepper_bacterial_spot"
+    if "pepper" in text and "healthy" in text:
+        return "bell_pepper_healthy"
+
+    if "potato" in text and "early" in text and "blight" in text:
+        return "potato_early_blight"
+    if "potato" in text and "late" in text and "blight" in text:
+        return "potato_late_blight"
+    if "potato" in text and "healthy" in text:
+        return "potato_healthy"
+
+    if "tomato" in text and "bacterial" in text:
+        return "tomato_bacterial_spot"
+    if "tomato" in text and "early" in text and "blight" in text:
+        return "tomato_early_blight"
+    if "tomato" in text and "late" in text and "blight" in text:
+        return "tomato_late_blight"
+    if "tomato" in text and "leaf" in text and "mold" in text:
+        return "tomato_leaf_mold"
+    if "tomato" in text and "septoria" in text:
+        return "tomato_septoria_leaf_spot"
+    if "tomato" in text and "spider" in text:
+        return "tomato_spider_mites_two_spotted_spider_mite"
+    if "tomato" in text and "target" in text and "spot" in text:
+        return "tomato_target_spot"
+    if "tomato" in text and "yellow" in text and "curl" in text:
+        return "tomato_yellow_leaf_curl_virus"
+    if "tomato" in text and "mosaic" in text:
+        return "tomato_mosaic_virus"
+    if "tomato" in text and "healthy" in text:
+        return "tomato_healthy"
+
+    return None
+
+
+@lru_cache()
+def load_hf_classifier():
+    return pipeline("image-classification", model=HF_MODEL_ID)
+
+
+def run_hf_inference(img: Image.Image):
+    try:
+        clf = load_hf_classifier()
+        raw = clf(img, top_k=15)
+    except Exception:
+        return None
+
+    score_by_class: dict[str, float] = {}
+    for item in raw:
+        label = str(item.get("label", ""))
+        mapped = map_external_label_to_internal(label)
+        if not mapped:
+            continue
+        score = float(item.get("score", 0.0))
+        score_by_class[mapped] = max(score_by_class.get(mapped, 0.0), score)
+
+    if not score_by_class:
+        return None
+
+    ranked = sorted(score_by_class.items(), key=lambda x: x[1], reverse=True)
+    total = sum(v for _, v in ranked) or 1.0
+    normalized_ranked = [(name, val / total) for name, val in ranked]
+
+    disease_name = normalized_ranked[0][0]
+    confidence = float(normalized_ranked[0][1])
+    meta = DESCRIPTIONS.get(disease_name, {"description": "", "cause": "", "treatment": "", "recommended_medicines": []})
+    top_predictions = [
+        {"disease_name": name, "confidence": float(score)}
+        for name, score in normalized_ranked[:3]
+    ]
+
+    return {
+        "disease_name": disease_name,
+        "confidence": confidence,
+        "crop_type": disease_name.split("_")[0],
+        "debug_pipeline": "hf_transformers",
+        "top_predictions": top_predictions,
+        **meta,
+    }
+
+
+def normalize_prediction_vector(preds: np.ndarray) -> np.ndarray:
+    preds = np.asarray(preds, dtype=np.float32)
+    if preds.ndim != 1:
+        preds = preds.reshape(-1)
+
+    if not np.all(np.isfinite(preds)):
+        raise ValueError("Model output contains non-finite values")
+
+    total = float(np.sum(preds))
+    if np.all(preds >= 0.0) and total > 0 and abs(total - 1.0) <= 1e-3:
+        return preds
+
+    shifted = preds - np.max(preds)
+    exp_preds = np.exp(shifted)
+    exp_sum = float(np.sum(exp_preds))
+    if exp_sum <= 0:
+        raise ValueError("Model output could not be normalized")
+    return exp_preds / exp_sum
+
+
+def run_inference_with_fallback(model, image_array: np.ndarray) -> tuple[np.ndarray, str]:
+    raw_input = np.expand_dims(image_array.copy(), axis=0)
+    mobilenet_input = np.expand_dims(tf.keras.applications.mobilenet_v2.preprocess_input(image_array.copy()), axis=0)
+    legacy_input = np.expand_dims(image_array / 255.0, axis=0)
+
+    candidate_inputs = [
+        ("mobilenet_v2", mobilenet_input),
+        ("legacy_0_1", legacy_input),
+        ("raw_0_255", raw_input),
+    ]
+
+    best_name = ""
+    best_preds: np.ndarray | None = None
+    best_max_prob = -1.0
+    all_preds: list[np.ndarray] = []
+
+    for name, candidate in candidate_inputs:
+        current = model.predict(candidate, verbose=0)[0]
+        normalized = normalize_prediction_vector(current)
+        all_preds.append(normalized)
+        current_max = float(np.max(normalized))
+        current_std = float(np.std(normalized))
+
+        if current_std > 1e-6:
+            return normalized, name
+
+        if current_max > best_max_prob:
+            best_name = name
+            best_preds = normalized
+            best_max_prob = current_max
+
+    if best_preds is None:
+        raise ValueError("Model inference failed for all preprocessing pipelines")
+
+    if all_preds:
+        stacked = np.vstack(all_preds)
+        blended = np.mean(stacked, axis=0)
+        blended = normalize_prediction_vector(blended)
+        return blended, "ensemble_fallback"
+
+    return best_preds, best_name
+
+
 @lru_cache()
 def load_model():
-    model_path = os.getenv("MODEL_PATH", "./model")
-    if not os.path.exists(model_path):
+    base_dir = Path(__file__).resolve().parent.parent
+    configured_path = os.getenv("MODEL_PATH")
+
+    candidate_paths = []
+    if configured_path:
+        candidate_paths.append(Path(configured_path))
+        candidate_paths.append(base_dir / configured_path)
+
+    # Fallbacks for local development where model is kept under backend/models.
+    candidate_paths.extend(
+        [
+            base_dir / "model",
+            base_dir / "../backend/models/agroguard_max_accuracy.keras",
+            base_dir / "../backend/models/agroguard_disease_model.keras",
+        ]
+    )
+
+    model_path = next((p.resolve() for p in candidate_paths if p.exists()), None)
+    if model_path is None:
         raise RuntimeError("Model not found")
-    return tf.keras.models.load_model(model_path)
+
+    try:
+        return tf.keras.models.load_model(str(model_path), compile=False)
+    except TypeError:
+        import tf_keras
+
+        return tf_keras.models.load_model(str(model_path), compile=False)
 
 
 @app.get("/health")
@@ -149,22 +332,40 @@ def predict(file: UploadFile = File(...)):
     except Exception as exc:
         raise HTTPException(status_code=400, detail="Invalid image payload") from exc
 
-    arr = tf.keras.applications.mobilenet_v2.preprocess_input(np.array(img))
-    arr = np.expand_dims(arr, axis=0)
+    hf_result = run_hf_inference(img)
+    if hf_result is not None:
+        return hf_result
+
+    image_array = np.array(img, dtype=np.float32)
     model = load_model()
-    preds = model.predict(arr, verbose=0)
-    idx = int(np.argmax(preds[0]))
-    confidence = float(preds[0][idx])
+    preds, selected_pipeline = run_inference_with_fallback(model, image_array)
+    top3_idx = np.argsort(preds)[-3:][::-1]
+    idx = int(top3_idx[0])
+    confidence = float(preds[idx])
     disease_name = CLASSES[idx]
     meta = DESCRIPTIONS.get(disease_name, {"description": "", "cause": "", "treatment": "", "recommended_medicines": []})
-    top3_idx = np.argsort(preds[0])[-3:][::-1]
-    top_predictions = [{"disease_name": CLASSES[i], "confidence": float(preds[0][i])} for i in top3_idx]
+    top_predictions = [{"disease_name": CLASSES[int(i)], "confidence": float(preds[int(i)])} for i in top3_idx]
+
+    if float(np.std(preds)) <= 1e-6:
+        return {
+            "disease_name": "uncertain_prediction",
+            "confidence": 0.0,
+            "crop_type": "unknown",
+            "debug_pipeline": selected_pipeline,
+            "top_predictions": top_predictions,
+            "description": "Model output is uniform across all classes for this image.",
+            "cause": "Model artifact appears untrained or exported incorrectly.",
+            "treatment": "Retrain or re-export the model; current artifact cannot distinguish diseases.",
+            "recommended_medicines": [],
+            "model_warning": "uniform_output",
+        }
 
     crop_type = disease_name.split("_")[0]
     return {
         "disease_name": disease_name,
         "confidence": confidence,
         "crop_type": crop_type,
+        "debug_pipeline": selected_pipeline,
         "top_predictions": top_predictions,
         **meta,
     }

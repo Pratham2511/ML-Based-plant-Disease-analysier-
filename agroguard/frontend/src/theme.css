@@ -418,6 +418,35 @@ a {
   gap: 10px;
 }
 
+.low-confidence-card {
+  margin-top: 12px;
+  padding: 16px;
+  border-left: 4px solid #fbbf24;
+  border-radius: 8px;
+  background: #fffbeb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.low-confidence-header {
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.low-confidence-title {
+  color: #92400e;
+}
+
+.low-confidence-text {
+  color: #92400e;
+  margin-bottom: 8px;
+}
+
+.low-confidence-list {
+  color: #92400e;
+  margin-bottom: 12px;
+  padding-left: 18px;
+}
+
 .hero-visual {
   min-height: 320px;
   border-radius: var(--radius-lg);

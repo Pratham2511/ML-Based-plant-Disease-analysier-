@@ -17,6 +17,20 @@ type PredictionResult = {
   recommended_medicines: string[];
 };
 
+type RejectionResult = {
+  success: false;
+  error_type: 'LOW_CONFIDENCE';
+  message?: string;
+};
+
+type DiseaseDataPayload = {
+  disease_name?: string;
+  description?: string;
+  cause?: string;
+  treatment?: string;
+  medicine?: string;
+};
+
 type BatchVerificationResult = {
   batch_code: string;
   is_valid: boolean;
@@ -57,6 +71,8 @@ const Dashboard = () => {
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [historyItems, setHistoryItems] = useState<HistoryInsight[]>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showPredictionModal, setShowPredictionModal] = useState(false);
+  const [rejectionResult, setRejectionResult] = useState<RejectionResult | null>(null);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -74,18 +90,21 @@ const Dashboard = () => {
     setShowOnboarding(!completed);
   }, []);
 
-  useEffect(() => {
+  const refreshHistoryItems = async () => {
     setLoadingInsights(true);
-    api
-      .get('/scans')
-      .then((res) => {
-        const items = (res.data.items || []) as HistoryInsight[];
-        setHistoryItems(items);
-      })
-      .catch(() => {
-        setHistoryItems([]);
-      })
-      .finally(() => setLoadingInsights(false));
+    try {
+      const res = await api.get('/scans');
+      const items = (res.data.items || []) as HistoryInsight[];
+      setHistoryItems(items);
+    } catch {
+      // Keep local fallback insights when auth-based history is unavailable.
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshHistoryItems();
   }, []);
 
   const dismissOnboarding = () => {
@@ -158,20 +177,68 @@ const Dashboard = () => {
     setLoadingPrediction(true);
     setError('');
     setPrediction(null);
+    setRejectionResult(null);
 
     const form = new FormData();
     form.append('file', selectedFile);
     try {
-      const res = await api.post('/scans/analyze', form, {
+      const res = await api.post('/api/predict', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setPrediction(res.data.result);
+
+      const payload = res.data || {};
+
+      if (payload?.success === false && payload?.error_type === 'LOW_CONFIDENCE') {
+        setRejectionResult({
+          success: false,
+          error_type: 'LOW_CONFIDENCE',
+          message: payload?.message || 'The image is unclear. Please retake with better focus and lighting.',
+        });
+        setStatus(t('dashboard.status.predictionComplete'));
+        return;
+      }
+
+      const diseaseData = (payload.disease_data || {}) as DiseaseDataPayload;
+      const medicines = diseaseData.medicine ? [diseaseData.medicine] : [];
+      setPrediction({
+        disease_name: diseaseData.disease_name || payload.disease_name || payload.raw_class || t('dashboard.notAvailable'),
+        confidence: Number(payload.confidence || 0) / 100,
+        description: diseaseData.description || '',
+        cause: diseaseData.cause || '',
+        treatment: diseaseData.treatment || '',
+        recommended_medicines: medicines,
+      });
+      setShowPredictionModal(true);
+
+      const nowIso = new Date().toISOString();
+      const diseaseForTrend = (payload.disease_name || payload.raw_class || t('dashboard.notAvailable')).replaceAll(' ', '_');
+      const confidenceForTrend = Number(payload.confidence || 0) / 100;
+
+      setHistoryItems((prev) => [
+        {
+          id: `local-${nowIso}`,
+          disease_name: diseaseForTrend,
+          confidence: confidenceForTrend,
+          timestamp: nowIso,
+        },
+        ...prev,
+      ]);
+
+      // Try to sync from backend history when user is authenticated.
+      refreshHistoryItems();
       setStatus(t('dashboard.status.predictionComplete'));
     } catch (err: any) {
       setError(err?.response?.data?.detail || t('dashboard.errors.predictionFailed'));
     } finally {
       setLoadingPrediction(false);
     }
+  };
+
+  const retakePhoto = () => {
+    setSelectedFile(null);
+    setPrediction(null);
+    setShowPredictionModal(false);
+    setRejectionResult(null);
   };
 
   const verifyBatch = async () => {
@@ -362,46 +429,27 @@ const Dashboard = () => {
 
             {loadingPrediction && <LeafLoader variant="panel" label={t('dashboard.analyzer.loadingPrediction')} />}
 
-            {prediction && (
-              <div className="result-panel">
-                <div className="result-panel__heading">
-                  <strong>{prediction.disease_name.replaceAll('_', ' ')}</strong>
-                  <span className="pill">
-                    {t('dashboard.analyzer.confidence', {
-                      value: formatLocalizedNumber(prediction.confidence * 100, language, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }),
-                    })}
-                  </span>
+            {rejectionResult && rejectionResult.error_type === 'LOW_CONFIDENCE' && (
+              <div className="low-confidence-card">
+                <div className="inline-row low-confidence-header">
+                  <strong className="low-confidence-title">Unclear Image Detected</strong>
                 </div>
-
-                <div className="table-like">
-                  <span className="label-muted">{t('dashboard.analyzer.description')}</span>
-                  <span>{localizeAgricultureText(prediction.description || t('dashboard.analyzer.noDescription'), language)}</span>
-                  <span className="label-muted">{t('dashboard.analyzer.cause')}</span>
-                  <span>{localizeAgricultureText(prediction.cause || t('dashboard.analyzer.noCause'), language)}</span>
-                  <span className="label-muted">{t('dashboard.analyzer.treatment')}</span>
-                  <span>{localizeAgricultureText(prediction.treatment || t('dashboard.analyzer.noTreatment'), language)}</span>
-                </div>
-
-                <div className="pill-row">
-                  {(prediction.recommended_medicines || []).length > 0 ? (
-                    prediction.recommended_medicines.map((medicine) => (
-                      <span className="pill" key={medicine}>
-                        {localizeAgricultureText(medicine, language)}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="pill">{t('dashboard.analyzer.noMedicine')}</span>
-                  )}
-                </div>
-
-                <ReadAloudButton
-                  text={analyzerNarration}
-                  labelKey="dashboard.readTreatmentAdvice"
-                />
+                <p className="low-confidence-text">
+                  {rejectionResult.message || "The AI couldn't clearly analyze this leaf."}
+                </p>
+                <ul className="low-confidence-list">
+                  <li>The leaf is in sharp focus.</li>
+                  <li>There is good daylight or bright lighting.</li>
+                  <li>The leaf fills the center of the frame.</li>
+                </ul>
+                <button className="btn outline" onClick={retakePhoto}>Retake Photo</button>
               </div>
+            )}
+
+            {prediction && (
+              <button className="btn outline" onClick={() => setShowPredictionModal(true)}>
+                {t('dashboard.readTreatmentAdvice')}
+              </button>
             )}
           </div>
         </article>
@@ -454,6 +502,61 @@ const Dashboard = () => {
           </div>
         </article>
       </section>
+
+      {showPredictionModal && prediction && (
+        <div className="crop-modal-overlay" role="dialog" aria-modal="true" aria-label={t('dashboard.analyzer.title')}>
+          <div className="crop-modal card analyzer-modal">
+            <div className="crop-modal__header">
+              <div>
+                <p className="subtitle">{t('dashboard.analyzer.title')}</p>
+                <h2>🌿 {prediction.disease_name.replaceAll('_', ' ')}</h2>
+              </div>
+              <div className="inline-row">
+                <button type="button" className="btn ghost btn--compact" onClick={() => setShowPredictionModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div className="result-panel">
+              <div className="result-panel__heading">
+                <strong>📊 {t('dashboard.analyzer.confidence', {
+                  value: formatLocalizedNumber(prediction.confidence * 100, language, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }),
+                })}</strong>
+              </div>
+
+              <div className="table-like">
+                <span className="label-muted">🧾 {t('dashboard.analyzer.description')}</span>
+                <span>{localizeAgricultureText(prediction.description || t('dashboard.analyzer.noDescription'), language)}</span>
+                <span className="label-muted">🧫 {t('dashboard.analyzer.cause')}</span>
+                <span>{localizeAgricultureText(prediction.cause || t('dashboard.analyzer.noCause'), language)}</span>
+                <span className="label-muted">💊 {t('dashboard.analyzer.treatment')}</span>
+                <span>{localizeAgricultureText(prediction.treatment || t('dashboard.analyzer.noTreatment'), language)}</span>
+              </div>
+
+              <div className="pill-row">
+                {(prediction.recommended_medicines || []).length > 0 ? (
+                  prediction.recommended_medicines.map((medicine) => (
+                    <span className="pill" key={medicine}>
+                      💚 {localizeAgricultureText(medicine, language)}
+                    </span>
+                  ))
+                ) : (
+                  <span className="pill">🧪 {t('dashboard.analyzer.noMedicine')}</span>
+                )}
+              </div>
+
+              <ReadAloudButton
+                text={analyzerNarration}
+                labelKey="dashboard.readTreatmentAdvice"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && <p className="form-error">{error}</p>}
       {status && <p className="panel-muted">{t('dashboard.systemStatus')}: {status}</p>}
