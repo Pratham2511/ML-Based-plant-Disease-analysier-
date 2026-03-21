@@ -1796,7 +1796,7 @@ a {
 @media (max-width: 1080px) {
   .top-nav {
     grid-template-columns: auto 1fr;
-    flex-wrap: nowrap;
+    grid-template-areas:
       'brand actions'
       'links links';
   }
