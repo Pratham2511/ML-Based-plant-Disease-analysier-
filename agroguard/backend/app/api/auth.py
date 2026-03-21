@@ -22,13 +22,13 @@ router = APIRouter()
 
 
 def _set_auth_cookie(response: Response, token: str) -> None:
-    same_site = "none" if settings.cookie_secure else "lax"
+    # Set secure and samesite="none" for cross-domain cookie support (Hugging Face <-> Vercel)
     response.set_cookie(
         key=settings.jwt_cookie_name,
         value=token,
         httponly=True,
-        secure=settings.cookie_secure,
-        samesite=same_site,
+        secure=True,
+        samesite="none",
         max_age=settings.jwt_exp_minutes * 60,
     )
 

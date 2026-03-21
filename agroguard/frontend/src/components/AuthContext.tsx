@@ -111,7 +111,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (active) {
           setUser(res.data);
         }
-      } catch {
+      } catch (err: any) {
+        // Log error only in development and non-401 cases
+        if (import.meta.env.DEV && (err.response?.status !== 401)) {
+          console.debug('Session restoration skipped:', err.message);
+        }
         if (active) {
           setUser(null);
         }
