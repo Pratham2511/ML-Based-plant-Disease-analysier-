@@ -26,7 +26,7 @@
 See [db/schema.sql](db/schema.sql) for normalized schema.
 
 ## Environment
-See [.env.example](.env.example). Ensure ML service URL points to private Render service.
+See [.env.example](.env.example). Ensure `ML_SERVICE_URL` points to your active inference endpoint.
 
 ## Run
 ```bash

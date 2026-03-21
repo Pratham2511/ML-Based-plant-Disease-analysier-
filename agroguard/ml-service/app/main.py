@@ -1,4 +1,3 @@
-import os
 from io import BytesIO
 from functools import lru_cache
 from pathlib import Path
@@ -8,7 +7,6 @@ import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from PIL import Image
 import tensorflow as tf
-from transformers import pipeline
 
 CLASSES: List[str] = [
     "bell_pepper_bacterial_spot",
@@ -124,94 +122,6 @@ DESCRIPTIONS = {
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 app = FastAPI(title="AgroGuard ML Service")
-
-
-HF_MODEL_ID = os.getenv("HF_MODEL_ID", "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification")
-
-
-def map_external_label_to_internal(label: str) -> str | None:
-    text = label.lower().replace("_", " ").replace("-", " ")
-
-    if "pepper" in text and "bacterial" in text:
-        return "bell_pepper_bacterial_spot"
-    if "pepper" in text and "healthy" in text:
-        return "bell_pepper_healthy"
-
-    if "potato" in text and "early" in text and "blight" in text:
-        return "potato_early_blight"
-    if "potato" in text and "late" in text and "blight" in text:
-        return "potato_late_blight"
-    if "potato" in text and "healthy" in text:
-        return "potato_healthy"
-
-    if "tomato" in text and "bacterial" in text:
-        return "tomato_bacterial_spot"
-    if "tomato" in text and "early" in text and "blight" in text:
-        return "tomato_early_blight"
-    if "tomato" in text and "late" in text and "blight" in text:
-        return "tomato_late_blight"
-    if "tomato" in text and "leaf" in text and "mold" in text:
-        return "tomato_leaf_mold"
-    if "tomato" in text and "septoria" in text:
-        return "tomato_septoria_leaf_spot"
-    if "tomato" in text and "spider" in text:
-        return "tomato_spider_mites_two_spotted_spider_mite"
-    if "tomato" in text and "target" in text and "spot" in text:
-        return "tomato_target_spot"
-    if "tomato" in text and "yellow" in text and "curl" in text:
-        return "tomato_yellow_leaf_curl_virus"
-    if "tomato" in text and "mosaic" in text:
-        return "tomato_mosaic_virus"
-    if "tomato" in text and "healthy" in text:
-        return "tomato_healthy"
-
-    return None
-
-
-@lru_cache()
-def load_hf_classifier():
-    return pipeline("image-classification", model=HF_MODEL_ID)
-
-
-def run_hf_inference(img: Image.Image):
-    try:
-        clf = load_hf_classifier()
-        raw = clf(img, top_k=15)
-    except Exception:
-        return None
-
-    score_by_class: dict[str, float] = {}
-    for item in raw:
-        label = str(item.get("label", ""))
-        mapped = map_external_label_to_internal(label)
-        if not mapped:
-            continue
-        score = float(item.get("score", 0.0))
-        score_by_class[mapped] = max(score_by_class.get(mapped, 0.0), score)
-
-    if not score_by_class:
-        return None
-
-    ranked = sorted(score_by_class.items(), key=lambda x: x[1], reverse=True)
-    total = sum(v for _, v in ranked) or 1.0
-    normalized_ranked = [(name, val / total) for name, val in ranked]
-
-    disease_name = normalized_ranked[0][0]
-    confidence = float(normalized_ranked[0][1])
-    meta = DESCRIPTIONS.get(disease_name, {"description": "", "cause": "", "treatment": "", "recommended_medicines": []})
-    top_predictions = [
-        {"disease_name": name, "confidence": float(score)}
-        for name, score in normalized_ranked[:3]
-    ]
-
-    return {
-        "disease_name": disease_name,
-        "confidence": confidence,
-        "crop_type": disease_name.split("_")[0],
-        "debug_pipeline": "hf_transformers",
-        "top_predictions": top_predictions,
-        **meta,
-    }
 
 
 def normalize_prediction_vector(preds: np.ndarray) -> np.ndarray:
@@ -331,10 +241,6 @@ def predict(file: UploadFile = File(...)):
         img = Image.open(BytesIO(image_bytes)).convert("RGB").resize((224, 224))
     except Exception as exc:
         raise HTTPException(status_code=400, detail="Invalid image payload") from exc
-
-    hf_result = run_hf_inference(img)
-    if hf_result is not None:
-        return hf_result
 
     image_array = np.array(img, dtype=np.float32)
     model = load_model()

@@ -1,16 +1,16 @@
-# AgroGuard Deployment Plan (Vercel + Render + Cloudflare R2)
+# AgroGuard Deployment Plan (Vercel + Hugging Face Spaces + Cloudflare R2)
 
 ## 1) Architecture
 - Frontend: Vite React app on Vercel
-- Backend: FastAPI container on Render Web Service
-- ML Inference: FastAPI + TensorFlow container on Render Private Service
-- Data: Render PostgreSQL + Render Redis
+- Backend: FastAPI container on Hugging Face Spaces (Docker)
+- ML Inference: TensorFlow MobileNetV2 (single Keras model pipeline)
+- Data: Managed PostgreSQL + Managed Redis
 - Storage: Cloudflare R2 (S3-compatible)
 
 ## 2) Service Wiring
-- Frontend `VITE_API_URL` -> Render backend public URL
-- Backend `ML_SERVICE_URL` -> private Render ML URL (internal network)
-- Backend connects to Render PostgreSQL and Redis via internal URLs
+- Frontend `VITE_API_URL` -> Hugging Face Spaces backend URL
+- Backend `ML_SERVICE_URL` -> ML inference URL (same service or dedicated endpoint)
+- Backend connects to managed PostgreSQL and Redis via connection URLs
 - Backend uploads images to Cloudflare R2 and stores URL in DB
 
 ## 3) Backend Required Env
@@ -22,7 +22,7 @@
 - `JWT_EXP_MINUTES=60`
 - `COOKIE_SECURE=true`
 - `BACKEND_CORS_ORIGINS=["https://<your-vercel-domain>"]`
-- `ALLOWED_HOSTS=["<your-render-domain>"]`
+- `ALLOWED_HOSTS=["<your-hf-space-domain>"]`
 - `ML_SERVICE_URL=<private-ml-url>`
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE`
 - SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`
@@ -31,11 +31,11 @@
 - `MODEL_PATH=/app/model`
 - `TF_CPP_MIN_LOG_LEVEL=2`
 
-## 5) Render Setup
-- Backend build from `backend/Dockerfile`
-- ML build from `ml-service/Dockerfile`
-- Attach managed PostgreSQL and Redis to backend
-- Keep ML service private, only backend should call it
+## 5) Hugging Face Spaces Setup
+- Build backend from `backend/Dockerfile`
+- Build ML service from `ml-service/Dockerfile` if deployed separately
+- Set all environment variables in Space Secrets
+- Restrict CORS/allowed hosts to your Vercel and Space domains
 
 ## 6) Database Bootstrap
 - Run `backend/db/schema.sql`
@@ -43,10 +43,8 @@
 - Generate `medicine_batches` per production batch (100 bottles per code)
 
 ## 7) Cold Start Mitigation
-- Use `.github/workflows/render-keepalive.yml`
-- Add GitHub secrets:
-  - `BACKEND_HEALTH_URL`
-  - `ML_HEALTH_URL`
+- Prefer Space hardware that avoids aggressive sleep for production endpoints
+- Keep model warm by running startup health checks during deployment
 
 ## 8) CI/CD
 - Existing workflow `.github/workflows/ci.yml` builds frontend and static-checks Python services

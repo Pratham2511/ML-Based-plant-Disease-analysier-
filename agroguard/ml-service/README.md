@@ -1,8 +1,9 @@
 # AgroGuard ML Service
 
 - TensorFlow MobileNetV2 transfer learning on PlantVillage (Tomato, Potato, Bell Pepper)
+- Inference is served only from the custom Keras model (single TensorFlow pipeline)
 - Provides `/health` and `/predict` endpoints
-- Model loads once on startup; keep weights small for Render free tier
+- Model loads once on startup for low-latency predictions
 
 ## Train
 ```

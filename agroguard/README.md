@@ -3,9 +3,9 @@
 Production-grade, location-aware plant disease analyzer and batch medicine verification platform.
 
 ## Stack
-- Frontend: React + Vite (Render Static Site)
-- API: FastAPI (Render), PostgreSQL, Redis
-- ML: TensorFlow MobileNetV2 inference service (Render private service)
+- Frontend: React + Vite (Vercel)
+- API: FastAPI (Hugging Face Spaces), PostgreSQL, Redis
+- ML: TensorFlow MobileNetV2 inference service
 - Storage: Cloudflare R2 for images
 - CI/CD: GitHub Actions
 
@@ -14,10 +14,7 @@ Production-grade, location-aware plant disease analyzer and batch medicine verif
 - `backend/` FastAPI API, JWT HttpOnly cookies, bcrypt, Redis OTP, PostgreSQL models
 - `ml-service/` TensorFlow inference microservice and training pipeline
 - `.github/workflows/ci.yml` CI for build + static checks
-- `.github/workflows/render-keepalive.yml` scheduled health pings for free-tier cold-start mitigation
-- `DEPLOYMENT_PLAN.md` cloud deployment runbook for Vercel + Render + R2
-- `RENDER_DEPLOYMENT.md` step-by-step Render Blueprint deployment guide
-- `render.yaml` Render Blueprint definition for backend + ML + Redis + PostgreSQL
+- `DEPLOYMENT_PLAN.md` cloud deployment runbook for Vercel + Hugging Face Spaces + R2
 
 ## Environment
 Create `.env` files from provided `.env.example` under each service. Key vars:
@@ -40,13 +37,11 @@ uvicorn app.main:app --reload --port 9000
 ```
 
 ## Deployment targets
-- Frontend → Render Static Site using `frontend` build (`npm install && npm run build`)
-- Backend → Render Docker using `backend/Dockerfile`
-- ML → Render private service using `ml-service/Dockerfile`
-- PostgreSQL/Redis → Render managed
+- Frontend → Vercel static deployment from `frontend` build (`npm install && npm run build`)
+- Backend → Hugging Face Spaces (Docker) using `backend/Dockerfile`
+- ML service → Hugging Face Spaces (Docker) using `ml-service/Dockerfile` or backend-local endpoint
+- PostgreSQL/Redis → managed services of choice
 - R2 → Cloudflare bucket for images
-
-Use the Render Blueprint at `render.yaml` to provision frontend, backend, ML, Redis, and PostgreSQL together.
 
 ## Notes
 - OTP expires in 5 minutes, stored in Redis with DB fallback
