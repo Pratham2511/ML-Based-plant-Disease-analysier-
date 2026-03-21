@@ -429,9 +429,6 @@ a {
     display: none;
   }
 }
-  background: rgba(247, 252, 243, 0.92);
-  box-shadow: var(--shadow-hard);
-}
 
 .hero-content {
   display: grid;
