@@ -43,12 +43,12 @@ const TopNavigation = () => {
         await loginWithGoogleAccessToken(tokenResponse.access_token);
       } catch (err: any) {
         const message = err.response?.data?.detail || err.message || 'Google login handoff failed';
-        alert(`AgroGuard Auth Error: ${message}`);
+        alert(`${t('auth.errors.authErrorTitle')}: ${message}`);
       }
     },
     onError: (error) => {
       console.error('Auth Error:', error);
-      alert('Google Auth failed to initialize. Please check your internet connection and try again.');
+      alert(t('auth.errors.googleAuthInitFailed'));
     },
   });
 
@@ -61,7 +61,7 @@ const TopNavigation = () => {
       }
       setMobileMenuOpen(false);
     } catch (err: any) {
-      alert(`Login Trigger Error: ${err.message}`);
+      alert(`${t('auth.errors.loginTriggerError')}: ${err.message}`);
     }
   };
 
@@ -107,7 +107,7 @@ const TopNavigation = () => {
                 type="button"
                 className="top-nav__hamburger"
                 onClick={() => setMobileMenuOpen((open) => !open)}
-                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-label={mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
               >
                 {mobileMenuOpen ? '✕' : '☰'}
               </button>
@@ -116,7 +116,7 @@ const TopNavigation = () => {
                 {loading ? (
                   <>
                     <span className="btn__spinner" aria-hidden />
-                    <span className="btn__mobile-loading-text">Loading...</span>
+                    <span className="btn__mobile-loading-text">{t('common.loading')}</span>
                   </>
                 ) : (
                   t('nav.login')
@@ -148,12 +148,12 @@ const TopNavigation = () => {
             type="button"
             className={`mobile-drawer-backdrop ${mobileMenuOpen ? 'open' : ''}`}
             onClick={closeMobileMenu}
-            aria-label="Close menu backdrop"
+            aria-label={t('nav.closeMenuBackdrop')}
           />
           <aside className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
             <div className="mobile-drawer__head">
               <strong>AgroGuard</strong>
-              <button type="button" className="mobile-drawer__close" onClick={closeMobileMenu} aria-label="Close menu">
+              <button type="button" className="mobile-drawer__close" onClick={closeMobileMenu} aria-label={t('nav.closeMenu')}>
                 ✕
               </button>
             </div>

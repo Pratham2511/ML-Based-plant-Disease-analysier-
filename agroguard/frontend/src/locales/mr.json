@@ -16,6 +16,9 @@
     "logout": "लॉगआउट",
     "sessionActive": "सेशन सुरू",
     "loginRequired": "लॉगिन आवश्यक",
+    "openMenu": "मेनू उघडा",
+    "closeMenu": "मेनू बंद करा",
+    "closeMenuBackdrop": "मेनू पार्श्वभूमी बंद करा",
     "primaryLabel": "मुख्य नेव्हिगेशन",
     "mobileQuickNavigation": "मोबाईल क्विक नेव्हिगेशन"
   },
@@ -133,7 +136,10 @@
       "otpSendFailed": "OTP पाठवता आला नाही.",
       "invalidOtp": "चुकीचा OTP. पुन्हा प्रयत्न करा.",
       "otpResendFailed": "OTP पुन्हा पाठवता आला नाही.",
-      "gpsFailed": "GPS समन्वय मिळवता आला नाही."
+      "gpsFailed": "GPS समन्वय मिळवता आला नाही.",
+      "authErrorTitle": "AgroGuard ऑथ त्रुटी",
+      "googleAuthInitFailed": "Google Auth सुरू करता आला नाही. कृपया इंटरनेट कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.",
+      "loginTriggerError": "लॉगिन ट्रिगर त्रुटी"
     },
     "validation": {
       "email": "वैध ईमेल पत्ता टाका.",
@@ -174,6 +180,7 @@
     "analyzer": {
       "title": "वनस्पती रोग विश्लेषक",
       "lead": "पानाचा स्पष्ट फोटो अपलोड करा आणि AI आधारित रोग निदान व उपचार मार्गदर्शन मिळवा.",
+      "supportedCropsNote": "सध्या समर्थन: टोमॅटो, बटाटा आणि ढोबळी मिरची.",
       "healthCheck": "हेल्थ चेक",
       "uploadAria": "वनस्पती पानाचा फोटो अपलोड करा",
       "selectedFile": "निवडलेली फाईल: {{name}}",
@@ -189,6 +196,12 @@
       "noCause": "कारण उपलब्ध नाही.",
       "noTreatment": "उपचार उपलब्ध नाही.",
       "noMedicine": "औषध शिफारस उपलब्ध नाही"
+    },
+    "warning": {
+      "ariaLabel": "भाकीत चेतावणी",
+      "title": "प्रतिमा ओळखता आली नाही",
+      "tryAgain": "पुन्हा प्रयत्न करा",
+      "defaultMessage": "प्रतिमा ओळखली गेली नाही. कृपया पानाचा स्पष्ट, जवळून फोटो अपलोड करा."
     },
     "batch": {
       "title": "औषध सत्यता पडताळणी",
@@ -243,6 +256,10 @@
     "userId": "वापरकर्ता आयडी",
     "displayName": "नाव",
     "account": "ईमेल",
+    "authProvider": "ऑथ: Google OAuth",
+    "authProviderNarration": "साइन-इन पद्धत: फक्त Google OAuth",
+    "googleAccountTitle": "Google खाते",
+    "googleAccountDesc": "ईमेल आणि प्रमाणीकरण Google द्वारे व्यवस्थापित केले जाते आणि येथे संपादित करता येत नाही.",
     "readAccountSummary": "खाते सारांश ऐका",
     "readChecklist": "चेकलिस्ट ऐका",
     "profileDetailsTitle": "प्रोफाइल आणि ईमेल सेटिंग्ज",

@@ -13,17 +13,33 @@ const DEFAULT_CROP_IMAGE = '/plant-images/wheat.jpg';
 
 const CROP_IMAGE_BY_NAME: Array<{ match: RegExp; image: string }> = [
   { match: /tomato/i, image: '/plant-images/tomato.jpg' },
-  { match: /onion/i, image: '/plant-images/onion.jpg' },
-  { match: /soybean/i, image: '/plant-images/soybean.jpg' },
+  { match: /onion/i, image: '/plant-images/oninon.jpg' },
+  { match: /soybean/i, image: '/plant-images/soyabeen.jpg' },
   { match: /cotton/i, image: '/plant-images/cotton.jpg' },
   { match: /sugarcane/i, image: '/plant-images/sugarcane.jpg' },
   { match: /wheat/i, image: '/plant-images/wheat.jpg' },
-  { match: /turmeric/i, image: '/plant-images/turmeric.jpg' },
+  { match: /turmeric/i, image: '/plant-images/tumehric%20.jpg' },
   { match: /mustard/i, image: '/plant-images/mustard.jpg' },
-  { match: /pigeon\s*pea|tur/i, image: '/plant-images/pigeon-pea.jpg' },
+  { match: /pigeon\s*pea|tur/i, image: '/plant-images/piegoan-pea.jpg' },
   { match: /sorghum|jowar/i, image: '/plant-images/jowar.jpg' },
   { match: /chickpea/i, image: '/plant-images/chickpea.jpg' },
   { match: /bajra|pearl\s*millet/i, image: '/plant-images/bajra.jpg' },
+  { match: /potato/i, image: '/plant-images/Potato.jpg' },
+  { match: /rice/i, image: '/plant-images/Rice.jpg' },
+  { match: /maize/i, image: '/plant-images/Maize.jpg' },
+  { match: /groundnut/i, image: '/plant-images/Groundnut.jpg' },
+  { match: /sunflower/i, image: '/plant-images/Sunflower.jpg' },
+  { match: /green\s*gram|moong/i, image: '/plant-images/Green%20Gram.jpg' },
+  { match: /black\s*gram|urad/i, image: '/plant-images/Black%20Gram.jpg' },
+  { match: /chili/i, image: '/plant-images/Chili.jpg' },
+  { match: /garlic/i, image: '/plant-images/Garlic.jpg' },
+  { match: /ginger/i, image: '/plant-images/Ginger.jpg' },
+  { match: /banana/i, image: '/plant-images/Banana.jpg' },
+  { match: /papaya/i, image: '/plant-images/Papaya.jpg' },
+  { match: /mango/i, image: '/plant-images/Mango.jpg' },
+  { match: /guava/i, image: '/plant-images/Guava.jpg' },
+  { match: /pomegranate/i, image: '/plant-images/Pomegranate.jpg' },
+  { match: /grapes/i, image: '/plant-images/Grapes.jpg' },
 ];
 
 const FIELD_ICONS = {
@@ -36,6 +52,9 @@ const FIELD_ICONS = {
 } as const;
 
 const resolveCropImage = (cropName: string, imageUrl?: string) => {
+  if (typeof imageUrl === 'string' && imageUrl.trim()) {
+    return imageUrl;
+  }
   const mappedImage = CROP_IMAGE_BY_NAME.find((entry) => entry.match.test(cropName))?.image;
   return mappedImage || DEFAULT_CROP_IMAGE;
 };

@@ -48,13 +48,13 @@ const Profile = () => {
     t('profile.heroTitle'),
     `${t('profile.displayName')}: ${displayName}`,
     `${t('profile.account')}: ${user?.email || t('dashboard.notAvailable')}`,
-    'Sign-in method: Google OAuth only',
+    t('profile.authProviderNarration'),
   ].join(' ');
 
   const checklistNarration = [
     `${t('profile.checklist.profileTitle')}: ${t('profile.checklist.profileDesc')}`,
     `${t('profile.checklist.sessionCookieTitle')}: ${t('profile.checklist.sessionCookieDesc')}`,
-    'Google identity is managed by your Google account.',
+    t('profile.googleAccountDesc'),
   ].join(' ');
 
   return (
@@ -67,7 +67,7 @@ const Profile = () => {
           <span className="pill">{t('profile.userId')}: {user?.id || t('common.unknown')}</span>
           <span className="pill">{t('profile.displayName')}: {displayName}</span>
           <span className="pill">{t('profile.account')}: {user?.email || t('dashboard.notAvailable')}</span>
-          <span className="pill">Auth: Google OAuth</span>
+          <span className="pill">{t('profile.authProvider')}</span>
         </div>
         <ReadAloudButton text={accountNarration} labelKey="profile.readAccountSummary" />
       </section>
@@ -107,8 +107,8 @@ const Profile = () => {
             <span>{t('profile.checklist.sessionCookieDesc')}</span>
           </div>
           <div className="checklist-item">
-            <strong>Google Account</strong>
-            <span>Email and authentication are managed by Google and cannot be edited here.</span>
+            <strong>{t('profile.googleAccountTitle')}</strong>
+            <span>{t('profile.googleAccountDesc')}</span>
           </div>
         </div>
       </section>

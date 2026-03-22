@@ -51,6 +51,30 @@ html[lang='hi'] body {
   line-height: 1.5;
 }
 
+html[lang='mr'] .headline,
+html[lang='hi'] .headline,
+html[lang='mr'] .subtitle,
+html[lang='hi'] .subtitle,
+html[lang='mr'] .btn,
+html[lang='hi'] .btn,
+html[lang='mr'] .field-label,
+html[lang='hi'] .field-label,
+html[lang='mr'] .nav-link,
+html[lang='hi'] .nav-link,
+html[lang='mr'] .pill,
+html[lang='hi'] .pill,
+html[lang='mr'] .label-muted,
+html[lang='hi'] .label-muted,
+html[lang='mr'] .lang-switcher__btn,
+html[lang='hi'] .lang-switcher__btn,
+html[lang='mr'] .panel-muted,
+html[lang='hi'] .panel-muted,
+html[lang='mr'] .lead,
+html[lang='hi'] .lead {
+  font-family: 'Noto Sans Devanagari', 'Manrope', 'Segoe UI', sans-serif;
+  line-height: 1.5;
+}
+
 a {
   color: inherit;
   text-decoration: none;

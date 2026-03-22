@@ -194,7 +194,7 @@ const Dashboard = () => {
         setWarningMessage(
           warningPayload.error ||
             warningPayload.message ||
-            'Image not recognized. Please upload a clear, close-up picture of a plant leaf.'
+            t('dashboard.warning.defaultMessage')
         );
         setShowWarningModal(true);
         setStatus(t('dashboard.status.predictionComplete'));
@@ -426,7 +426,7 @@ const Dashboard = () => {
           </div>
 
           <div className="panel-card__body">
-            <p className="scan-support-note">Currently supporting: Tomato, Potato, and Bell Pepper.</p>
+            <p className="scan-support-note">{t('dashboard.analyzer.supportedCropsNote')}</p>
             <input
               className="input"
               type="file"
@@ -508,7 +508,7 @@ const Dashboard = () => {
               </div>
               <div className="inline-row">
                 <button type="button" className="btn ghost btn--compact" onClick={() => setShowPredictionModal(false)}>
-                  Close
+                  {t('common.close')}
                 </button>
               </div>
             </div>
@@ -554,16 +554,16 @@ const Dashboard = () => {
       )}
 
       {showWarningModal && (
-        <div className="crop-modal-overlay" role="dialog" aria-modal="true" aria-label="Warning">
+        <div className="crop-modal-overlay" role="dialog" aria-modal="true" aria-label={t('dashboard.warning.ariaLabel')}>
           <div className="crop-modal card analyzer-modal">
             <div className="crop-modal__header">
               <div>
                 <p className="subtitle">{t('dashboard.analyzer.title')}</p>
-                <h2>⚠️ Image Not Recognized</h2>
+                <h2>⚠️ {t('dashboard.warning.title')}</h2>
               </div>
               <div className="inline-row">
                 <button type="button" className="btn ghost btn--compact" onClick={closeWarningModal}>
-                  Close
+                  {t('common.close')}
                 </button>
               </div>
             </div>
@@ -572,7 +572,7 @@ const Dashboard = () => {
               <p className="lead">{warningMessage}</p>
               <div className="inline-row">
                 <button type="button" className="btn outline" onClick={closeWarningModal}>
-                  Try Again
+                  {t('dashboard.warning.tryAgain')}
                 </button>
               </div>
             </div>

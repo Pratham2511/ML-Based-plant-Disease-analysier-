@@ -1,9 +1,14 @@
+import { useTranslation } from 'react-i18next';
+
 type LeafLoaderProps = {
   label?: string;
   variant?: 'inline' | 'panel' | 'fullscreen';
 };
 
-const LeafLoader = ({ label = 'Loading...', variant = 'inline' }: LeafLoaderProps) => {
+const LeafLoader = ({ label, variant = 'inline' }: LeafLoaderProps) => {
+  const { t } = useTranslation();
+  const resolvedLabel = label || t('common.loading');
+
   return (
     <div className={`leaf-loader leaf-loader--${variant}`} role="status" aria-live="polite">
       <div className="corners" aria-hidden>
@@ -12,7 +17,7 @@ const LeafLoader = ({ label = 'Loading...', variant = 'inline' }: LeafLoaderProp
         <div className="corner corner--3" />
         <div className="corner corner--4" />
       </div>
-      <p className="leaf-loader__label">{label}</p>
+      <p className="leaf-loader__label">{resolvedLabel}</p>
     </div>
   );
 };

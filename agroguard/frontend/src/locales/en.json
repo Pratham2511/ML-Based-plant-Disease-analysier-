@@ -16,6 +16,9 @@
     "logout": "Logout",
     "sessionActive": "Session Active",
     "loginRequired": "Login Required",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "closeMenuBackdrop": "Close menu backdrop",
     "primaryLabel": "Primary navigation",
     "mobileQuickNavigation": "Mobile quick navigation"
   },
@@ -133,7 +136,10 @@
       "otpSendFailed": "Unable to send OTP.",
       "invalidOtp": "Invalid OTP. Please try again.",
       "otpResendFailed": "Unable to resend OTP.",
-      "gpsFailed": "Unable to capture GPS coordinates."
+      "gpsFailed": "Unable to capture GPS coordinates.",
+      "authErrorTitle": "AgroGuard Auth Error",
+      "googleAuthInitFailed": "Google Auth failed to initialize. Please check your internet connection and try again.",
+      "loginTriggerError": "Login Trigger Error"
     },
     "validation": {
       "email": "Please enter a valid email address.",
@@ -174,6 +180,7 @@
     "analyzer": {
       "title": "Plant Disease Analyzer",
       "lead": "Upload a clear leaf image to detect disease using AI and view cause and treatment guidance.",
+      "supportedCropsNote": "Currently supporting: Tomato, Potato, and Bell Pepper.",
       "healthCheck": "Health Check",
       "uploadAria": "Upload plant leaf image",
       "selectedFile": "Selected file: {{name}}",
@@ -189,6 +196,12 @@
       "noCause": "No cause available.",
       "noTreatment": "No treatment available.",
       "noMedicine": "No medicine recommendation provided"
+    },
+    "warning": {
+      "ariaLabel": "Prediction warning",
+      "title": "Image Not Recognized",
+      "tryAgain": "Try Again",
+      "defaultMessage": "Image not recognized. Please upload a clear, close-up picture of a plant leaf."
     },
     "batch": {
       "title": "Medicine Authenticity Verification",
@@ -243,6 +256,10 @@
     "userId": "User ID",
     "displayName": "Name",
     "account": "Email",
+    "authProvider": "Auth: Google OAuth",
+    "authProviderNarration": "Sign-in method: Google OAuth only",
+    "googleAccountTitle": "Google Account",
+    "googleAccountDesc": "Email and authentication are managed by Google and cannot be edited here.",
     "readAccountSummary": "Read account summary",
     "readChecklist": "Read checklist",
     "profileDetailsTitle": "Profile and Email Settings",

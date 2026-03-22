@@ -49,3 +49,26 @@ uvicorn app.main:app --reload --port 9000
 - Batch verification uses unique, non-public batch codes per 100-unit batch
 - ML model loads once at startup; keep weights lightweight (MobileNetV2)
 - API rate limiting is enabled for OTP and batch verification flows
+
+## Recent updates (March 2026)
+- Local disease inference is now integrated in backend prediction flow with lazy model loading for better runtime stability.
+- V2.0 prediction safety logic is active:
+	- dedicated non-leaf/garbage class rejection
+	- confidence gating for unclear or out-of-scope images
+	- clear warning response contract for frontend UX handling
+- Successful authenticated predictions now persist to scan history and return history metadata in API response.
+- Mobile-first dashboard and top navigation polish completed:
+	- sticky/floating navbar behavior
+	- centered branding with compact controls on small screens
+	- improved loading-state behavior for narrow devices
+	- drawer and action layout cleanup for Android budget-width screens
+- Localization expanded:
+	- hardcoded English strings in key flows replaced with i18n keys
+	- warning modals, auth alerts, and profile/auth labels localized
+	- Marathi/Hindi typography normalized to prevent layout breaks
+- Area Intelligence crop cards now use local crop image assets from `frontend/public/plant-images` instead of remote image URLs.
+
+## Data and security guidance
+- Keep all secrets in environment files (`.env`) and deployment secret stores only.
+- Do not hardcode credentials, tokens, private keys, or bucket secrets in code or docs.
+- Public README intentionally lists variable names and architecture, not secret values.

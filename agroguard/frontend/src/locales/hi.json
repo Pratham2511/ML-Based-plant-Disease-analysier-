@@ -16,6 +16,9 @@
     "logout": "लॉगआउट",
     "sessionActive": "सेशन सक्रिय",
     "loginRequired": "लॉगिन आवश्यक",
+    "openMenu": "मेनू खोलें",
+    "closeMenu": "मेनू बंद करें",
+    "closeMenuBackdrop": "मेनू बैकड्रॉप बंद करें",
     "primaryLabel": "मुख्य नेविगेशन",
     "mobileQuickNavigation": "मोबाइल क्विक नेविगेशन"
   },
@@ -133,7 +136,10 @@
       "otpSendFailed": "OTP भेजा नहीं जा सका।",
       "invalidOtp": "अमान्य OTP। कृपया पुनः प्रयास करें।",
       "otpResendFailed": "OTP पुनः नहीं भेजा जा सका।",
-      "gpsFailed": "GPS निर्देशांक प्राप्त नहीं हो सके।"
+      "gpsFailed": "GPS निर्देशांक प्राप्त नहीं हो सके।",
+      "authErrorTitle": "AgroGuard ऑथ त्रुटि",
+      "googleAuthInitFailed": "Google Auth प्रारंभ नहीं हो सका। कृपया इंटरनेट कनेक्शन जांचें और फिर प्रयास करें।",
+      "loginTriggerError": "लॉगिन ट्रिगर त्रुटि"
     },
     "validation": {
       "email": "कृपया वैध ईमेल पता दर्ज करें।",
@@ -174,6 +180,7 @@
     "analyzer": {
       "title": "पौधा रोग विश्लेषक",
       "lead": "पत्ती की स्पष्ट छवि अपलोड करें और AI आधारित रोग पहचान व उपचार मार्गदर्शन प्राप्त करें।",
+      "supportedCropsNote": "वर्तमान में समर्थित: टमाटर, आलू और बेल पेपर।",
       "healthCheck": "हेल्थ चेक",
       "uploadAria": "पौधे की पत्ती की छवि अपलोड करें",
       "selectedFile": "चयनित फ़ाइल: {{name}}",
@@ -189,6 +196,12 @@
       "noCause": "कारण उपलब्ध नहीं है।",
       "noTreatment": "उपचार उपलब्ध नहीं है।",
       "noMedicine": "दवा अनुशंसा उपलब्ध नहीं"
+    },
+    "warning": {
+      "ariaLabel": "प्रेडिक्शन चेतावनी",
+      "title": "छवि पहचानी नहीं गई",
+      "tryAgain": "फिर से प्रयास करें",
+      "defaultMessage": "छवि पहचानी नहीं गई। कृपया पौधे की पत्ती की स्पष्ट, नज़दीकी तस्वीर अपलोड करें।"
     },
     "batch": {
       "title": "दवा प्रामाणिकता सत्यापन",
@@ -243,6 +256,10 @@
     "userId": "यूज़र आईडी",
     "displayName": "नाम",
     "account": "ईमेल",
+    "authProvider": "ऑथ: Google OAuth",
+    "authProviderNarration": "साइन-इन तरीका: केवल Google OAuth",
+    "googleAccountTitle": "Google खाता",
+    "googleAccountDesc": "ईमेल और प्रमाणीकरण Google द्वारा प्रबंधित हैं और इन्हें यहां संपादित नहीं किया जा सकता।",
     "readAccountSummary": "अकाउंट सारांश सुनें",
     "readChecklist": "चेकलिस्ट सुनें",
     "profileDetailsTitle": "प्रोफाइल और ईमेल सेटिंग्स",

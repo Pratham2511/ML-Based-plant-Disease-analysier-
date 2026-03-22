@@ -236,7 +236,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Tomato",
         "scientific_name": "Solanum lycopersicum",
-        "crop_image": "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/tomato.jpg",
         "soil_type": "Loamy Soil",
         "temperature_range": "18-27 C",
         "rainfall_requirement": "600-800 mm",
@@ -258,7 +258,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Onion",
         "scientific_name": "Allium cepa",
-        "crop_image": "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/oninon.jpg",
         "soil_type": "Sandy Loam",
         "temperature_range": "13-24 C",
         "rainfall_requirement": "500-700 mm",
@@ -280,7 +280,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Potato",
         "scientific_name": "Solanum tuberosum",
-        "crop_image": "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Potato.jpg",
         "soil_type": "Sandy Loam",
         "temperature_range": "15-22 C",
         "rainfall_requirement": "500-700 mm",
@@ -302,7 +302,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Soybean",
         "scientific_name": "Glycine max",
-        "crop_image": "https://images.unsplash.com/photo-1607690424560-35d967d6ad7d?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/soyabeen.jpg",
         "soil_type": "Black Cotton Soil",
         "temperature_range": "20-30 C",
         "rainfall_requirement": "450-700 mm",
@@ -324,7 +324,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Cotton",
         "scientific_name": "Gossypium hirsutum",
-        "crop_image": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/cotton.jpg",
         "soil_type": "Black Cotton Soil",
         "temperature_range": "21-30 C",
         "rainfall_requirement": "700-1300 mm",
@@ -346,7 +346,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Sugarcane",
         "scientific_name": "Saccharum officinarum",
-        "crop_image": "https://images.unsplash.com/photo-1530023367847-a683933f4172?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/sugarcane.jpg",
         "soil_type": "Loamy Soil",
         "temperature_range": "20-35 C",
         "rainfall_requirement": "1000-1500 mm",
@@ -368,7 +368,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Wheat",
         "scientific_name": "Triticum aestivum",
-        "crop_image": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/wheat.jpg",
         "soil_type": "Alluvial Loam Soil",
         "temperature_range": "15-25 C",
         "rainfall_requirement": "450-650 mm",
@@ -390,7 +390,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Rice",
         "scientific_name": "Oryza sativa",
-        "crop_image": "https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Rice.jpg",
         "soil_type": "Clay Loam",
         "temperature_range": "20-35 C",
         "rainfall_requirement": "1200-1500 mm",
@@ -412,7 +412,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Maize",
         "scientific_name": "Zea mays",
-        "crop_image": "https://images.unsplash.com/photo-1615485925600-97e55c1b9b49?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Maize.jpg",
         "soil_type": "Well-drained Loam",
         "temperature_range": "18-32 C",
         "rainfall_requirement": "500-800 mm",
@@ -434,7 +434,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Chickpea",
         "scientific_name": "Cicer arietinum",
-        "crop_image": "https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/chickpea.jpg",
         "soil_type": "Clay Loam",
         "temperature_range": "15-30 C",
         "rainfall_requirement": "400-600 mm",
@@ -456,7 +456,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Pigeon Pea (Tur)",
         "scientific_name": "Cajanus cajan",
-        "crop_image": "https://images.unsplash.com/photo-1587049633312-6d7f8db15bf7?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/piegoan-pea.jpg",
         "soil_type": "Black Cotton Soil",
         "temperature_range": "20-35 C",
         "rainfall_requirement": "600-1000 mm",
@@ -478,7 +478,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Groundnut",
         "scientific_name": "Arachis hypogaea",
-        "crop_image": "https://images.unsplash.com/photo-1610725664285-7c57e6eeac3f?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Groundnut.jpg",
         "soil_type": "Sandy Loam",
         "temperature_range": "20-30 C",
         "rainfall_requirement": "500-1000 mm",
@@ -500,7 +500,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Sunflower",
         "scientific_name": "Helianthus annuus",
-        "crop_image": "https://images.unsplash.com/photo-1470509037663-253afd7f0f51?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Sunflower.jpg",
         "soil_type": "Well-drained Loam",
         "temperature_range": "18-30 C",
         "rainfall_requirement": "500-700 mm",
@@ -522,7 +522,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Mustard",
         "scientific_name": "Brassica juncea",
-        "crop_image": "https://images.unsplash.com/photo-1459423560941-ba9f1f23c7ef?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/mustard.jpg",
         "soil_type": "Loamy Soil",
         "temperature_range": "10-25 C",
         "rainfall_requirement": "350-500 mm",
@@ -544,7 +544,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Sorghum (Jowar)",
         "scientific_name": "Sorghum bicolor",
-        "crop_image": "https://images.unsplash.com/photo-1535916707207-35f97e715e1f?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/jowar.jpg",
         "soil_type": "Black Cotton Soil",
         "temperature_range": "25-32 C",
         "rainfall_requirement": "400-700 mm",
@@ -566,7 +566,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Pearl Millet (Bajra)",
         "scientific_name": "Pennisetum glaucum",
-        "crop_image": "https://images.unsplash.com/photo-1615486363975-1c5f2e1f9080?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/bajra.jpg",
         "soil_type": "Sandy Loam",
         "temperature_range": "25-35 C",
         "rainfall_requirement": "300-600 mm",
@@ -588,7 +588,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Green Gram (Moong)",
         "scientific_name": "Vigna radiata",
-        "crop_image": "https://images.unsplash.com/photo-1548778052-311f4bc2b502?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Green%20Gram.jpg",
         "soil_type": "Loamy Soil",
         "temperature_range": "25-35 C",
         "rainfall_requirement": "400-600 mm",
@@ -610,7 +610,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Black Gram (Urad)",
         "scientific_name": "Vigna mungo",
-        "crop_image": "https://images.unsplash.com/photo-1533658925625-5f77fce28c03?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Black%20Gram.jpg",
         "soil_type": "Clay Loam",
         "temperature_range": "25-35 C",
         "rainfall_requirement": "450-650 mm",
@@ -632,7 +632,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Chili",
         "scientific_name": "Capsicum annuum",
-        "crop_image": "https://images.unsplash.com/photo-1515532575456-9d5f85a8f1ad?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Chili.jpg",
         "soil_type": "Well-drained Loam",
         "temperature_range": "20-30 C",
         "rainfall_requirement": "600-900 mm",
@@ -654,7 +654,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Garlic",
         "scientific_name": "Allium sativum",
-        "crop_image": "https://images.unsplash.com/photo-1615485925162-9f4f3f50a2f7?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Garlic.jpg",
         "soil_type": "Sandy Loam",
         "temperature_range": "12-24 C",
         "rainfall_requirement": "500-700 mm",
@@ -676,7 +676,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Ginger",
         "scientific_name": "Zingiber officinale",
-        "crop_image": "https://images.unsplash.com/photo-1603903631628-4b8f3690d2b2?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Ginger.jpg",
         "soil_type": "Loamy Soil",
         "temperature_range": "20-30 C",
         "rainfall_requirement": "1000-1500 mm",
@@ -698,7 +698,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Turmeric",
         "scientific_name": "Curcuma longa",
-        "crop_image": "https://images.unsplash.com/photo-1615486363507-762f44b6a421?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/tumehric%20.jpg",
         "soil_type": "Loamy Soil",
         "temperature_range": "20-35 C",
         "rainfall_requirement": "1000-1500 mm",
@@ -720,7 +720,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Banana",
         "scientific_name": "Musa paradisiaca",
-        "crop_image": "https://images.unsplash.com/photo-1574226516831-e1dff420e43e?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Banana.jpg",
         "soil_type": "Rich Loam Soil",
         "temperature_range": "20-35 C",
         "rainfall_requirement": "1000-2000 mm",
@@ -742,7 +742,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Papaya",
         "scientific_name": "Carica papaya",
-        "crop_image": "https://images.unsplash.com/photo-1617112848923-cc2234396f02?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Papaya.jpg",
         "soil_type": "Well-drained Loam",
         "temperature_range": "22-35 C",
         "rainfall_requirement": "900-1200 mm",
@@ -764,7 +764,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Mango",
         "scientific_name": "Mangifera indica",
-        "crop_image": "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Mango.jpg",
         "soil_type": "Loamy Soil",
         "temperature_range": "24-30 C",
         "rainfall_requirement": "750-2500 mm",
@@ -786,7 +786,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Guava",
         "scientific_name": "Psidium guajava",
-        "crop_image": "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Guava.jpg",
         "soil_type": "Sandy Loam",
         "temperature_range": "20-35 C",
         "rainfall_requirement": "900-1200 mm",
@@ -808,7 +808,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Pomegranate",
         "scientific_name": "Punica granatum",
-        "crop_image": "https://images.unsplash.com/photo-1519096845289-95806ee03a1a?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Pomegranate.jpg",
         "soil_type": "Black Cotton Soil",
         "temperature_range": "25-38 C",
         "rainfall_requirement": "500-800 mm",
@@ -830,7 +830,7 @@ CROP_CATALOG: List[Dict[str, Any]] = [
     {
         "crop_name": "Grapes",
         "scientific_name": "Vitis vinifera",
-        "crop_image": "https://images.unsplash.com/photo-1537640538966-79f369143f8f?auto=format&fit=crop&w=900&q=80",
+        "crop_image": "/plant-images/Grapes.jpg",
         "soil_type": "Well-drained Black Soil",
         "temperature_range": "15-35 C",
         "rainfall_requirement": "600-900 mm",
