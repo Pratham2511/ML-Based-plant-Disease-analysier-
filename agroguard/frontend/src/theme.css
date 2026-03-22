@@ -2072,3 +2072,15 @@ a {
     gap: 6px;
   }
 }
+
+@media (max-width: 340px) {
+  .top-nav__mobile-login {
+    min-width: 42px;
+    padding-inline: 10px;
+    gap: 0;
+  }
+
+  .top-nav__mobile-login .btn__mobile-loading-text {
+    display: none;
+  }
+}
