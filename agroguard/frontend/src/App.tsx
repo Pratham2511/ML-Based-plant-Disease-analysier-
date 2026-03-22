@@ -21,10 +21,18 @@ const TopNavigation = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 2);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const initiateLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -61,7 +69,7 @@ const TopNavigation = () => {
 
   return (
     <>
-      <header className="top-nav w-full max-w-[100vw]">
+      <header className={`top-nav w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="top-nav__left">
           <LanguageSwitcher compact />
         </div>
@@ -105,7 +113,14 @@ const TopNavigation = () => {
               </button>
             ) : (
               <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick} disabled={loading}>
-                {loading ? t('auth.restoringSession') : t('nav.login')}
+                {loading ? (
+                  <>
+                    <span className="btn__spinner" aria-hidden />
+                    <span className="btn__mobile-loading-text">Loading...</span>
+                  </>
+                ) : (
+                  t('nav.login')
+                )}
               </button>
             )}
           </div>
