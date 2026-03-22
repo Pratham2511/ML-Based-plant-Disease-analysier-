@@ -62,6 +62,10 @@ const TopNavigation = () => {
   return (
     <>
       <header className="top-nav w-full max-w-[100vw]">
+        <div className="top-nav__left">
+          <LanguageSwitcher compact />
+        </div>
+
         <NavLink to="/" className="brand-mark min-w-0">
           <div className="brand-mark__glyph" aria-hidden>
             <img src="/leaf.svg" alt="" />
@@ -71,6 +75,41 @@ const TopNavigation = () => {
             <small>{t('app.tagline')}</small>
           </div>
         </NavLink>
+
+        <div className="top-nav__right max-w-full flex-shrink-0">
+          <span className="session-indicator desktop-only">
+            {loading ? t('auth.restoringSession') : user ? t('nav.sessionActive') : t('nav.loginRequired')}
+          </span>
+
+          <div className="top-nav__desktop-action">
+            {user ? (
+              <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout} disabled={loading}>
+                {loading ? t('auth.restoringSession') : t('nav.logout')}
+              </button>
+            ) : (
+              <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick} disabled={loading}>
+                {loading ? t('auth.restoringSession') : t('nav.login')}
+              </button>
+            )}
+          </div>
+
+          <div className="top-nav__mobile-action">
+            {user ? (
+              <button
+                type="button"
+                className="top-nav__hamburger"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              >
+                {mobileMenuOpen ? '✕' : '☰'}
+              </button>
+            ) : (
+              <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick} disabled={loading}>
+                {loading ? t('auth.restoringSession') : t('nav.login')}
+              </button>
+            )}
+          </div>
+        </div>
 
         <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
@@ -86,39 +125,6 @@ const TopNavigation = () => {
             {t('nav.accountSettings')}
           </NavLink>
         </nav>
-
-        <div className="top-nav__actions max-w-full flex-shrink-0">
-          <LanguageSwitcher />
-          <span className="session-indicator desktop-only">
-            {loading ? t('auth.restoringSession') : user ? t('nav.sessionActive') : t('nav.loginRequired')}
-          </span>
-          {user ? (
-            <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout} disabled={loading}>
-              {loading ? t('auth.restoringSession') : t('nav.logout')}
-            </button>
-          ) : (
-            <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick} disabled={loading}>
-              {loading ? t('auth.restoringSession') : t('nav.login')}
-            </button>
-          )}
-        </div>
-
-        <div className="top-nav__mobile-action">
-          {user ? (
-            <button
-              type="button"
-              className="top-nav__hamburger"
-              onClick={() => setMobileMenuOpen((open) => !open)}
-              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-            >
-              {mobileMenuOpen ? '✕' : '☰'}
-            </button>
-          ) : (
-            <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick} disabled={loading}>
-              {loading ? t('auth.restoringSession') : t('nav.login')}
-            </button>
-          )}
-        </div>
       </header>
 
       {user ? (
@@ -150,9 +156,6 @@ const TopNavigation = () => {
                 {t('nav.accountSettings')}
               </NavLink>
             </nav>
-            <div className="mobile-drawer__section">
-              <LanguageSwitcher />
-            </div>
             <button
               className="btn ghost mobile-drawer__logout"
               onClick={async () => {

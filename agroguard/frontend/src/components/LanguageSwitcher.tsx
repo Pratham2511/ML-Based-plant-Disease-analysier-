@@ -6,11 +6,11 @@ const LANGUAGE_OPTIONS = [
   { code: 'hi', labelKey: 'language.hindi' },
 ];
 
-const LanguageSwitcher = ({ compactMobile = false }: { compactMobile?: boolean }) => {
+const LanguageSwitcher = ({ compact = false }: { compact?: boolean }) => {
   const { i18n, t } = useTranslation();
 
   return (
-    <div className={`lang-switcher ${compactMobile ? 'lang-switcher--compact-mobile' : ''}`} role="group" aria-label={t('language.label')}>
+    <div className={`lang-switcher ${compact ? 'lang-switcher--compact' : ''}`} role="group" aria-label={t('language.label')}>
       <span className="lang-switcher__label">{t('language.label')}</span>
       <div className="lang-switcher__options">
         {LANGUAGE_OPTIONS.map((option) => (
@@ -19,8 +19,9 @@ const LanguageSwitcher = ({ compactMobile = false }: { compactMobile?: boolean }
             type="button"
             className={`lang-switcher__btn text-xs px-2 py-1 md:px-[7px] md:py-[6px] md:text-[0.76rem] ${i18n.language.startsWith(option.code) ? 'active' : ''}`}
             onClick={() => i18n.changeLanguage(option.code)}
+            aria-label={t(option.labelKey)}
           >
-            {t(option.labelKey)}
+            {compact ? option.code.toUpperCase() : t(option.labelKey)}
           </button>
         ))}
       </div>
