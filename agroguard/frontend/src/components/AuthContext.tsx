@@ -18,7 +18,7 @@ type AuthContextProps = {
   loginWithGoogleCredential: (credential: string) => Promise<void>;
   loginWithGoogleAccessToken: (accessToken: string) => Promise<void>;
   startMobileGoogleSignIn: () => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -215,11 +215,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const logout = () => {
-    api.post('/auth/logout').catch(() => {
-      // Local cleanup is still required even if API call fails.
-    });
+  const logout = async () => {
+    setLoading(true);
     setUser(null);
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // Local cleanup is still required even if API call fails.
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

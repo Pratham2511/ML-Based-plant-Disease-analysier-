@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap');
 
 :root {
   --color-primary: #2e7d32;
@@ -44,6 +44,13 @@ body {
   overflow-x: hidden;
 }
 
+html[lang='mr'] body,
+html[lang='hi'] body {
+  font-family: 'Noto Sans Devanagari', 'Manrope', 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -55,6 +62,10 @@ a {
   padding: 20px 20px calc(84px + env(safe-area-inset-bottom));
   width: 100%;
   box-sizing: border-box;
+}
+
+.app-shell--safe {
+  overflow-x: hidden;
 }
 
 .route-stage {
@@ -1411,6 +1422,17 @@ a {
   gap: 10px;
 }
 
+.scan-support-note {
+  margin: 0;
+  border: 1px solid rgba(46, 125, 50, 0.22);
+  border-radius: 10px;
+  background: rgba(129, 199, 132, 0.12);
+  color: #1f5d2c;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 12px;
+}
+
 .result-panel {
   border-radius: 14px;
   border: 1px solid rgba(46, 125, 50, 0.2);
@@ -1845,7 +1867,7 @@ a {
   }
 
   .top-nav__mobile-action {
-    display: flex;
+    display: none;
     align-items: center;
     margin-left: auto;
     flex-shrink: 0;
@@ -1959,12 +1981,49 @@ a {
 
 @media (max-width: 760px) {
 
+  .top-nav__actions {
+    display: none;
+  }
+
+  .top-nav__mobile-action {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
   .mobile-dock {
     display: grid;
   }
 
   .btn {
     width: 100%;
+  }
+
+  .top-nav .btn,
+  .top-nav__mobile-action .btn,
+  .mobile-drawer .btn,
+  .inline-row .read-aloud-btn {
+    width: auto;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .kpi-tile strong,
+  .analytics-tile strong,
+  .lead,
+  .panel-muted,
+  .verification-banner span,
+  .table-like span {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .scan-support-note {
+    font-size: 0.88rem;
+    line-height: 1.45;
   }
 
   .inline-row {

@@ -426,6 +426,7 @@ const Dashboard = () => {
           </div>
 
           <div className="panel-card__body">
+            <p className="scan-support-note">Currently supporting: Tomato, Potato, and Bell Pepper.</p>
             <input
               className="input"
               type="file"

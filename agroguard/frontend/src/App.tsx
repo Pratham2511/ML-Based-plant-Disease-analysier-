@@ -17,7 +17,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 const SPLASH_STORAGE_KEY = 'agroguard-splash-seen';
 
 const TopNavigation = () => {
-  const { user, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
+  const { user, loading, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -89,14 +89,16 @@ const TopNavigation = () => {
 
         <div className="top-nav__actions max-w-full flex-shrink-0">
           <LanguageSwitcher />
-          <span className="session-indicator desktop-only">{user ? t('nav.sessionActive') : t('nav.loginRequired')}</span>
+          <span className="session-indicator desktop-only">
+            {loading ? t('auth.restoringSession') : user ? t('nav.sessionActive') : t('nav.loginRequired')}
+          </span>
           {user ? (
-            <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout}>
-              {t('nav.logout')}
+            <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout} disabled={loading}>
+              {loading ? t('auth.restoringSession') : t('nav.logout')}
             </button>
           ) : (
-            <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick}>
-              {t('nav.login')}
+            <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick} disabled={loading}>
+              {loading ? t('auth.restoringSession') : t('nav.login')}
             </button>
           )}
         </div>
@@ -108,13 +110,12 @@ const TopNavigation = () => {
               className="top-nav__hamburger"
               onClick={() => setMobileMenuOpen((open) => !open)}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? '✕' : '☰'}
             </button>
           ) : (
-            <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick}>
-              {t('nav.login')}
+            <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick} disabled={loading}>
+              {loading ? t('auth.restoringSession') : t('nav.login')}
             </button>
           )}
         </div>
@@ -128,7 +129,7 @@ const TopNavigation = () => {
             onClick={closeMobileMenu}
             aria-label="Close menu backdrop"
           />
-          <aside className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`} aria-hidden={!mobileMenuOpen}>
+          <aside className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
             <div className="mobile-drawer__head">
               <strong>AgroGuard</strong>
               <button type="button" className="mobile-drawer__close" onClick={closeMobileMenu} aria-label="Close menu">
@@ -154,12 +155,13 @@ const TopNavigation = () => {
             </div>
             <button
               className="btn ghost mobile-drawer__logout"
-              onClick={() => {
-                logout();
+              onClick={async () => {
+                await logout();
                 closeMobileMenu();
               }}
+              disabled={loading}
             >
-              {t('nav.logout')}
+              {loading ? t('auth.restoringSession') : t('nav.logout')}
             </button>
           </aside>
         </>
@@ -183,7 +185,7 @@ function App() {
 
   return (
     <AuthProvider>
-      <div className="app-shell" style={{ overflowX: 'hidden' }}>
+      <div className="app-shell app-shell--safe">
         {showSplash && <AppSplash />}
         <TopNavigation />
         <main className="route-stage">

@@ -31,3 +31,21 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
+
+
+def get_optional_current_user(request: Request, db: Session = Depends(get_db)) -> User | None:
+    token = request.cookies.get(settings.jwt_cookie_name)
+    if not token:
+        return None
+
+    try:
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        user_id = payload.get("sub")
+        token_type = payload.get("typ")
+        if token_type != "access":
+            return None
+    except jwt.PyJWTError:
+        return None
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return user
