@@ -27,6 +27,7 @@ MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "agroguard_max_
 DISEASE_DB_PATH = Path(__file__).resolve().parent.parent / "disease_database.json"
 LOW_CONFIDENCE_THRESHOLD = 0.20
 LOW_CONFIDENCE_MARGIN = 0.05
+RECOGNITION_THRESHOLD = 0.80
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 model = None
 tf_runtime = None
@@ -218,7 +219,14 @@ async def predict(file: UploadFile = File(...)):
         raw_class = CLASSES[top1_idx] if top1_idx < len(CLASSES) else f"class_{top1_idx}"
         disease_name = clean_class_name(raw_class)
         confidence_ratio = float(preds[top1_idx])
+        max_confidence = confidence_ratio
         confidence_percent = round(confidence_ratio * 100.0, 2)
+
+        if max_confidence < RECOGNITION_THRESHOLD:
+            return {
+                "recognized": False,
+                "message": "Image not recognized as a supported plant leaf. Please try again with a clear leaf photo.",
+            }
 
         top_predictions = [
             {

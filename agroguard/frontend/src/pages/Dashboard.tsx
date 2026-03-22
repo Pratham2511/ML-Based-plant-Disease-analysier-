@@ -23,6 +23,11 @@ type RejectionResult = {
   message?: string;
 };
 
+type NotRecognizedResult = {
+  recognized: false;
+  message: string;
+};
+
 type DiseaseDataPayload = {
   disease_name?: string;
   description?: string;
@@ -73,7 +78,7 @@ const Dashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showPredictionModal, setShowPredictionModal] = useState(false);
   const [rejectionResult, setRejectionResult] = useState<RejectionResult | null>(null);
-
+  const [notRecognizedResult, setNotRecognizedResult] = useState<NotRecognizedResult | null>(null);
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -178,6 +183,7 @@ const Dashboard = () => {
     setError('');
     setPrediction(null);
     setRejectionResult(null);
+    setNotRecognizedResult(null);
 
     const form = new FormData();
     form.append('file', selectedFile);
@@ -187,6 +193,16 @@ const Dashboard = () => {
       });
 
       const payload = res.data || {};
+
+      if (payload?.recognized === false) {
+        setNotRecognizedResult({
+          recognized: false,
+          message:
+            payload?.message || 'Image not recognized as a supported plant leaf. Please try again with a clear leaf photo.',
+        });
+        setStatus(t('dashboard.status.predictionComplete'));
+        return;
+      }
 
       if (payload?.success === false && payload?.error_type === 'LOW_CONFIDENCE') {
         setRejectionResult({
@@ -239,6 +255,7 @@ const Dashboard = () => {
     setPrediction(null);
     setShowPredictionModal(false);
     setRejectionResult(null);
+    setNotRecognizedResult(null);
   };
 
   const verifyBatch = async () => {
