@@ -27,7 +27,8 @@ MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "agroguard_max_
 DISEASE_DB_PATH = Path(__file__).resolve().parent.parent / "disease_database.json"
 LOW_CONFIDENCE_THRESHOLD = 0.20
 LOW_CONFIDENCE_MARGIN = 0.05
-RECOGNITION_THRESHOLD = 0.80
+RECOGNITION_THRESHOLD = 0.60
+NON_LEAF_CLASS_INDEX = 15
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 model = None
 tf_runtime = None
@@ -48,6 +49,7 @@ CLASSES = [
     "tomato_yellow_leaf_curl_virus",
     "tomato_mosaic_virus",
     "tomato_healthy",
+    "garbage_not_leaf",
 ]
 
 CLASS_TO_DB_KEY = {
@@ -222,10 +224,10 @@ async def predict(file: UploadFile = File(...)):
         max_confidence = confidence_ratio
         confidence_percent = round(confidence_ratio * 100.0, 2)
 
-        if max_confidence < RECOGNITION_THRESHOLD:
+        if top1_idx == NON_LEAF_CLASS_INDEX or max_confidence < RECOGNITION_THRESHOLD:
             return {
-                "recognized": False,
-                "message": "Image not recognized as a supported plant leaf. Please try again with a clear leaf photo.",
+                "success": False,
+                "error": "Image not recognized. Please upload a clear, close-up picture of a plant leaf.",
             }
 
         top_predictions = [

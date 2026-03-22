@@ -17,15 +17,10 @@ type PredictionResult = {
   recommended_medicines: string[];
 };
 
-type RejectionResult = {
+type WarningResult = {
   success: false;
-  error_type: 'LOW_CONFIDENCE';
+  error?: string;
   message?: string;
-};
-
-type NotRecognizedResult = {
-  recognized: false;
-  message: string;
 };
 
 type DiseaseDataPayload = {
@@ -77,8 +72,8 @@ const Dashboard = () => {
   const [historyItems, setHistoryItems] = useState<HistoryInsight[]>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showPredictionModal, setShowPredictionModal] = useState(false);
-  const [rejectionResult, setRejectionResult] = useState<RejectionResult | null>(null);
-  const [notRecognizedResult, setNotRecognizedResult] = useState<NotRecognizedResult | null>(null);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warningMessage, setWarningMessage] = useState('');
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -182,8 +177,8 @@ const Dashboard = () => {
     setLoadingPrediction(true);
     setError('');
     setPrediction(null);
-    setRejectionResult(null);
-    setNotRecognizedResult(null);
+    setShowWarningModal(false);
+    setWarningMessage('');
 
     const form = new FormData();
     form.append('file', selectedFile);
@@ -194,22 +189,14 @@ const Dashboard = () => {
 
       const payload = res.data || {};
 
-      if (payload?.recognized === false) {
-        setNotRecognizedResult({
-          recognized: false,
-          message:
-            payload?.message || 'Image not recognized as a supported plant leaf. Please try again with a clear leaf photo.',
-        });
-        setStatus(t('dashboard.status.predictionComplete'));
-        return;
-      }
-
-      if (payload?.success === false && payload?.error_type === 'LOW_CONFIDENCE') {
-        setRejectionResult({
-          success: false,
-          error_type: 'LOW_CONFIDENCE',
-          message: payload?.message || 'The image is unclear. Please retake with better focus and lighting.',
-        });
+      if (payload?.success === false) {
+        const warningPayload = payload as WarningResult;
+        setWarningMessage(
+          warningPayload.error ||
+            warningPayload.message ||
+            'Image not recognized. Please upload a clear, close-up picture of a plant leaf.'
+        );
+        setShowWarningModal(true);
         setStatus(t('dashboard.status.predictionComplete'));
         return;
       }
@@ -254,8 +241,15 @@ const Dashboard = () => {
     setSelectedFile(null);
     setPrediction(null);
     setShowPredictionModal(false);
-    setRejectionResult(null);
-    setNotRecognizedResult(null);
+    setShowWarningModal(false);
+    setWarningMessage('');
+  };
+
+  const closeWarningModal = () => {
+    setShowWarningModal(false);
+    setWarningMessage('');
+    setSelectedFile(null);
+    setPrediction(null);
   };
 
   const verifyBatch = async () => {
@@ -446,23 +440,6 @@ const Dashboard = () => {
 
             {loadingPrediction && <LeafLoader variant="panel" label={t('dashboard.analyzer.loadingPrediction')} />}
 
-            {rejectionResult && rejectionResult.error_type === 'LOW_CONFIDENCE' && (
-              <div className="low-confidence-card">
-                <div className="inline-row low-confidence-header">
-                  <strong className="low-confidence-title">Unclear Image Detected</strong>
-                </div>
-                <p className="low-confidence-text">
-                  {rejectionResult.message || "The AI couldn't clearly analyze this leaf."}
-                </p>
-                <ul className="low-confidence-list">
-                  <li>The leaf is in sharp focus.</li>
-                  <li>There is good daylight or bright lighting.</li>
-                  <li>The leaf fills the center of the frame.</li>
-                </ul>
-                <button className="btn outline" onClick={retakePhoto}>Retake Photo</button>
-              </div>
-            )}
-
             {prediction && (
               <button className="btn outline" onClick={() => setShowPredictionModal(true)}>
                 {t('dashboard.readTreatmentAdvice')}
@@ -570,6 +547,33 @@ const Dashboard = () => {
                 text={analyzerNarration}
                 labelKey="dashboard.readTreatmentAdvice"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWarningModal && (
+        <div className="crop-modal-overlay" role="dialog" aria-modal="true" aria-label="Warning">
+          <div className="crop-modal card analyzer-modal">
+            <div className="crop-modal__header">
+              <div>
+                <p className="subtitle">{t('dashboard.analyzer.title')}</p>
+                <h2>⚠️ Image Not Recognized</h2>
+              </div>
+              <div className="inline-row">
+                <button type="button" className="btn ghost btn--compact" onClick={closeWarningModal}>
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div className="result-panel">
+              <p className="lead">{warningMessage}</p>
+              <div className="inline-row">
+                <button type="button" className="btn outline" onClick={closeWarningModal}>
+                  Try Again
+                </button>
+              </div>
             </div>
           </div>
         </div>
