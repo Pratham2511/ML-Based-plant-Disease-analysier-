@@ -18,7 +18,7 @@ const CROP_IMAGE_BY_NAME: Array<{ match: RegExp; image: string }> = [
   { match: /cotton/i, image: '/plant-images/cotton.jpg' },
   { match: /sugarcane/i, image: '/plant-images/sugarcane.jpg' },
   { match: /wheat/i, image: '/plant-images/wheat.jpg' },
-  { match: /turmeric/i, image: '/plant-images/tumehric%20.jpg' },
+  { match: /turmeric/i, image: '/plant-images/turmeric.jpg' },
   { match: /mustard/i, image: '/plant-images/mustard.jpg' },
   { match: /pigeon\s*pea|tur/i, image: '/plant-images/piegoan-pea.jpg' },
   { match: /sorghum|jowar/i, image: '/plant-images/jowar.jpg' },
@@ -29,8 +29,8 @@ const CROP_IMAGE_BY_NAME: Array<{ match: RegExp; image: string }> = [
   { match: /maize/i, image: '/plant-images/Maize.jpg' },
   { match: /groundnut/i, image: '/plant-images/Groundnut.jpg' },
   { match: /sunflower/i, image: '/plant-images/Sunflower.jpg' },
-  { match: /green\s*gram|moong/i, image: '/plant-images/Green%20Gram.jpg' },
-  { match: /black\s*gram|urad/i, image: '/plant-images/Black%20Gram.jpg' },
+  { match: /green\s*gram|moong/i, image: '/plant-images/Green Gram.jpg' },
+  { match: /black\s*gram|urad/i, image: '/plant-images/Black Gram.jpg' },
   { match: /chili/i, image: '/plant-images/Chili.jpg' },
   { match: /garlic/i, image: '/plant-images/Garlic.jpg' },
   { match: /ginger/i, image: '/plant-images/Ginger.jpg' },
@@ -52,8 +52,8 @@ const FIELD_ICONS = {
 } as const;
 
 const resolveCropImage = (cropName: string, imageUrl?: string) => {
-  if (typeof imageUrl === 'string' && imageUrl.trim()) {
-    return imageUrl;
+  if (typeof imageUrl === 'string' && imageUrl.trim().startsWith('/plant-images/')) {
+    return imageUrl.trim();
   }
   const mappedImage = CROP_IMAGE_BY_NAME.find((entry) => entry.match.test(cropName))?.image;
   return mappedImage || DEFAULT_CROP_IMAGE;

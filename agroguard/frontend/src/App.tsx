@@ -92,11 +92,11 @@ const TopNavigation = () => {
           <div className="top-nav__desktop-action">
             {user ? (
               <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout} disabled={loading}>
-                {loading ? t('auth.restoringSession') : t('nav.logout')}
+                {t('nav.logout')}
               </button>
             ) : (
               <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick} disabled={loading}>
-                {loading ? t('auth.restoringSession') : t('nav.login')}
+                {t('nav.login')}
               </button>
             )}
           </div>
