@@ -423,6 +423,16 @@
     }
   },
   "diseases": {
+    "early_blight": "Early Blight",
+    "late_blight": "Late Blight",
+    "bacterial_spot": "Bacterial Spot",
+    "leaf_mold": "Leaf Mold",
+    "septoria_leaf_spot": "Septoria Leaf Spot",
+    "spider_mites": "Spider Mites",
+    "target_spot": "Target Spot",
+    "yellow_leaf_curl_virus": "Yellow Leaf Curl Virus",
+    "mosaic_virus": "Mosaic Virus",
+    "healthy": "Healthy",
     "bell_pepper_bacterial_spot": "Bell Pepper Bacterial Spot",
     "bell_pepper_healthy": "Bell Pepper Healthy",
     "potato_early_blight": "Potato Early Blight",
@@ -439,5 +449,62 @@
     "tomato_mosaic_virus": "Tomato Mosaic Virus",
     "tomato_healthy": "Tomato Healthy",
     "garbage_not_leaf": "Not a leaf image"
+  },
+  "mlAdvice": {
+    "early_blight": {
+      "description": "Early blight appears as dark concentric lesions and quickly weakens leaf health.",
+      "cause": "It is commonly triggered by fungal pressure in warm, humid field conditions.",
+      "treatment": "Remove infected foliage, improve airflow, and apply a recommended protective fungicide."
+    },
+    "late_blight": {
+      "description": "Late blight causes water-soaked patches and can spread rapidly across plants.",
+      "cause": "Cool, moist weather and prolonged leaf wetness favor this fungal-like infection.",
+      "treatment": "Isolate affected plants and use targeted blight-control fungicides with interval spraying."
+    },
+    "bacterial_spot": {
+      "description": "Bacterial spot creates dark angular lesions that reduce leaf function and vigor.",
+      "cause": "It often spreads through splashing water, contaminated tools, and infected seedlings.",
+      "treatment": "Avoid overhead irrigation, maintain sanitation, and use copper-based bactericide support."
+    },
+    "leaf_mold": {
+      "description": "Leaf mold forms yellow patches on top of leaves and fungal growth on the underside.",
+      "cause": "High humidity and poor ventilation in dense canopies increase disease pressure.",
+      "treatment": "Improve ventilation, prune crowded leaves, and apply suitable fungicide protection."
+    },
+    "septoria_leaf_spot": {
+      "description": "Septoria causes multiple small circular lesions that lead to early defoliation.",
+      "cause": "Persistent moisture and infected residue in soil help spores spread quickly.",
+      "treatment": "Remove infected leaves, rotate crops, and apply labeled fungicides at proper intervals."
+    },
+    "spider_mites": {
+      "description": "Spider mite damage shows stippling, bronzing, and webbing on affected leaves.",
+      "cause": "Hot, dry conditions and plant stress support rapid mite population growth.",
+      "treatment": "Wash leaf undersides, use recommended miticides, and maintain balanced field moisture."
+    },
+    "target_spot": {
+      "description": "Target spot creates concentric lesions that expand and reduce photosynthetic area.",
+      "cause": "Disease pressure increases with humid weather and dense plant spacing.",
+      "treatment": "Improve spacing and airflow, remove infected foliage, and spray preventive fungicides."
+    },
+    "yellow_leaf_curl_virus": {
+      "description": "Leaf curl virus stunts growth and causes upward curling with yellowing foliage.",
+      "cause": "The virus is mainly transmitted by whiteflies feeding across infected plants.",
+      "treatment": "Control whiteflies early, remove infected plants, and use tolerant seed varieties."
+    },
+    "mosaic_virus": {
+      "description": "Mosaic virus produces mottled, distorted leaves and overall yield decline.",
+      "cause": "It can spread through sap contact, tools, and infected planting material.",
+      "treatment": "Use clean tools, rogue infected plants, and follow strict field hygiene practices."
+    },
+    "healthy": {
+      "description": "The leaf appears healthy with no visible disease lesions in this scan.",
+      "cause": "Plant condition is currently stable under observed visual markers.",
+      "treatment": "Continue preventive care, balanced nutrition, and routine scouting."
+    },
+    "garbage_not_leaf": {
+      "description": "The uploaded image is not a clear plant leaf sample.",
+      "cause": "The model could not detect valid crop leaf patterns in the image.",
+      "treatment": "Retake the photo in daylight with one focused leaf filling most of the frame."
+    }
   }
 }

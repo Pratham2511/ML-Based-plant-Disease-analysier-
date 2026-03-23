@@ -7,8 +7,10 @@ import LeafLoader from '../components/LeafLoader';
 import MiniTrend from '../components/MiniTrend';
 import ReadAloudButton from '../components/ReadAloudButton';
 import { formatLocalizedNumber, localizeAgricultureText } from '../utils/localization';
+import { localizeModelAdvice, localizeModelClassLabel, resolveModelClassKey } from '../utils/mlLocalization';
 
 type PredictionResult = {
+  class_key: string | null;
   disease_name: string;
   confidence: number;
   description: string;
@@ -52,13 +54,6 @@ type HistoryInsight = {
 };
 
 const ONBOARDING_KEY = 'shetvaidya-onboarding-complete';
-
-const normalizeDiseaseKey = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
 
 const Dashboard = () => {
   const { t, i18n } = useTranslation();
@@ -211,7 +206,9 @@ const Dashboard = () => {
 
       const diseaseData = (payload.disease_data || {}) as DiseaseDataPayload;
       const medicines = diseaseData.medicine ? [diseaseData.medicine] : [];
+      const classKey = resolveModelClassKey(payload.raw_class, diseaseData.disease_name, payload.disease_name);
       setPrediction({
+        class_key: classKey,
         disease_name: diseaseData.disease_name || payload.disease_name || payload.raw_class || t('dashboard.notAvailable'),
         confidence: Number(payload.confidence || 0) / 100,
         description: diseaseData.description || '',
@@ -281,13 +278,16 @@ const Dashboard = () => {
     }
   };
 
-  const topDiseaseLabel = insights.topDisease ? insights.topDisease.replaceAll('_', ' ') : t('dashboard.notAvailable');
   const localizeDiseaseName = (value: string) => {
-    const diseaseKey = normalizeDiseaseKey(value);
-    return t(`diseases.${diseaseKey}`, {
-      defaultValue: localizeAgricultureText(value.replaceAll('_', ' '), language),
-    });
+    const classKey = resolveModelClassKey(value);
+    return localizeModelClassLabel(t, classKey, localizeAgricultureText(value.replaceAll('_', ' '), language));
   };
+
+  const localizeAdviceField = (
+    classKey: string | null,
+    field: 'description' | 'cause' | 'treatment',
+    fallbackText: string
+  ) => localizeModelAdvice(t, classKey, field, localizeAgricultureText(fallbackText, language));
 
   const localizedTopDiseaseLabel = insights.topDisease
     ? localizeDiseaseName(insights.topDisease)
@@ -317,9 +317,9 @@ const Dashboard = () => {
             maximumFractionDigits: 2,
           }),
         })}`,
-        `${t('dashboard.analyzer.description')}: ${localizeAgricultureText(prediction.description || t('dashboard.analyzer.noDescription'), language)}`,
-        `${t('dashboard.analyzer.cause')}: ${localizeAgricultureText(prediction.cause || t('dashboard.analyzer.noCause'), language)}`,
-        `${t('dashboard.analyzer.treatment')}: ${localizeAgricultureText(prediction.treatment || t('dashboard.analyzer.noTreatment'), language)}`,
+        `${t('dashboard.analyzer.description')}: ${localizeAdviceField(prediction.class_key, 'description', prediction.description || t('dashboard.analyzer.noDescription'))}`,
+        `${t('dashboard.analyzer.cause')}: ${localizeAdviceField(prediction.class_key, 'cause', prediction.cause || t('dashboard.analyzer.noCause'))}`,
+        `${t('dashboard.analyzer.treatment')}: ${localizeAdviceField(prediction.class_key, 'treatment', prediction.treatment || t('dashboard.analyzer.noTreatment'))}`,
         `${t('dashboard.analyzer.recommendedMedicines')}: ${(prediction.recommended_medicines || []).map((medicine) => localizeAgricultureText(medicine, language)).join(', ') || t('dashboard.analyzer.noMedicine')}`,
       ].join('. ')
     : '';
@@ -547,11 +547,11 @@ const Dashboard = () => {
                 <span className="label-muted">🟢 {t('dashboard.analyzer.status')}</span>
                 <span>{t('dashboard.analyzer.statusDetected')}</span>
                 <span className="label-muted">🧾 {t('dashboard.analyzer.description')}</span>
-                <span>{localizeAgricultureText(prediction.description || t('dashboard.analyzer.noDescription'), language)}</span>
+                <span>{localizeAdviceField(prediction.class_key, 'description', prediction.description || t('dashboard.analyzer.noDescription'))}</span>
                 <span className="label-muted">🧫 {t('dashboard.analyzer.cause')}</span>
-                <span>{localizeAgricultureText(prediction.cause || t('dashboard.analyzer.noCause'), language)}</span>
+                <span>{localizeAdviceField(prediction.class_key, 'cause', prediction.cause || t('dashboard.analyzer.noCause'))}</span>
                 <span className="label-muted">💊 {t('dashboard.analyzer.treatment')}</span>
-                <span>{localizeAgricultureText(prediction.treatment || t('dashboard.analyzer.noTreatment'), language)}</span>
+                <span>{localizeAdviceField(prediction.class_key, 'treatment', prediction.treatment || t('dashboard.analyzer.noTreatment'))}</span>
               </div>
 
               <div className="pill-row">

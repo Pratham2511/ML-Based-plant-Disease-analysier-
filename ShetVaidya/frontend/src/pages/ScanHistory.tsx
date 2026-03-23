@@ -5,8 +5,10 @@ import api from '../lib/api';
 import LeafLoader from '../components/LeafLoader';
 import ReadAloudButton from '../components/ReadAloudButton';
 import { formatLocalizedDateTime, formatLocalizedNumber, localizeAgricultureText, localizeNumericText } from '../utils/localization';
+import { localizeModelAdvice, localizeModelClassLabel, resolveModelClassKey } from '../utils/mlLocalization';
 
 type PredictionSummary = {
+  raw_class?: string;
   disease_name: string;
   confidence: number;
 };
@@ -18,6 +20,7 @@ type HistoryItem = {
   image_url: string;
   timestamp: string;
   analysis_json?: {
+    raw_class?: string;
     description?: string;
     cause?: string;
     treatment?: string;
@@ -79,6 +82,20 @@ const ScanHistory = () => {
     localizeNumericText(t('history.totalScans', { count: filteredItems.length }), language),
     `${t('history.averageConfidence')}: ${formatLocalizedNumber(averageConfidence * 100, language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`,
   ].join(' ');
+
+  const localizeDisease = (rawDisease: string, rawClass?: string) => {
+    const classKey = resolveModelClassKey(rawClass, rawDisease);
+    return localizeModelClassLabel(t, classKey, localizeAgricultureText(rawDisease.replaceAll('_', ' '), language));
+  };
+
+  const localizeAdvice = (
+    item: HistoryItem,
+    field: 'description' | 'cause' | 'treatment',
+    fallbackValue: string
+  ) => {
+    const classKey = resolveModelClassKey(item.analysis_json?.raw_class, item.disease_name);
+    return localizeModelAdvice(t, classKey, field, localizeAgricultureText(fallbackValue, language));
+  };
 
   return (
     <div className="history-layout">
@@ -142,7 +159,7 @@ const ScanHistory = () => {
           {filteredItems.map((item) => (
             <article className="history-card" key={item.id}>
               <div className="history-card__header">
-                <strong>{item.disease_name.replaceAll('_', ' ')}</strong>
+                <strong>{localizeDisease(item.disease_name, item.analysis_json?.raw_class)}</strong>
                 <span className="pill">{formatLocalizedNumber(item.confidence * 100, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
               </div>
 
@@ -158,7 +175,7 @@ const ScanHistory = () => {
               {item.analysis_json?.description && (
                 <div className="history-description">
                   <span className="label-muted">{t('history.description')}:</span>
-                  <span>{localizeAgricultureText(item.analysis_json.description, language)}</span>
+                  <span>{localizeAdvice(item, 'description', item.analysis_json.description)}</span>
                 </div>
               )}
 
@@ -168,11 +185,11 @@ const ScanHistory = () => {
                 </button>
                 <ReadAloudButton
                   text={[
-                    `${item.disease_name.replaceAll('_', ' ')}`,
+                    `${localizeDisease(item.disease_name, item.analysis_json?.raw_class)}`,
                     `${t('history.capturedAt')}: ${formatLocalizedDateTime(item.timestamp, language)}`,
-                    `${t('history.cause')}: ${localizeAgricultureText(item.analysis_json?.cause || t('dashboard.notAvailable'), language)}`,
-                    `${t('history.treatment')}: ${localizeAgricultureText(item.analysis_json?.treatment || t('dashboard.notAvailable'), language)}`,
-                    `${t('history.description')}: ${localizeAgricultureText(item.analysis_json?.description || t('dashboard.notAvailable'), language)}`,
+                    `${t('history.cause')}: ${localizeAdvice(item, 'cause', item.analysis_json?.cause || t('dashboard.notAvailable'))}`,
+                    `${t('history.treatment')}: ${localizeAdvice(item, 'treatment', item.analysis_json?.treatment || t('dashboard.notAvailable'))}`,
+                    `${t('history.description')}: ${localizeAdvice(item, 'description', item.analysis_json?.description || t('dashboard.notAvailable'))}`,
                     `${t('dashboard.analyzer.recommendedMedicines')}: ${(item.analysis_json?.recommended_medicines || []).map((medicine) => localizeAgricultureText(medicine, language)).join(', ') || t('history.noMedicineRecommendations')}`,
                   ].join('. ')}
                   labelKey="history.readEntry"
@@ -183,11 +200,11 @@ const ScanHistory = () => {
                 <div className="history-details-panel">
                   <div className="table-like">
                     <span className="label-muted">{t('history.cause')}</span>
-                    <span>{localizeAgricultureText(item.analysis_json?.cause || t('dashboard.notAvailable'), language)}</span>
+                    <span>{localizeAdvice(item, 'cause', item.analysis_json?.cause || t('dashboard.notAvailable'))}</span>
                     <span className="label-muted">{t('history.treatment')}</span>
-                    <span>{localizeAgricultureText(item.analysis_json?.treatment || t('dashboard.notAvailable'), language)}</span>
+                    <span>{localizeAdvice(item, 'treatment', item.analysis_json?.treatment || t('dashboard.notAvailable'))}</span>
                     <span className="label-muted">{t('history.description')}</span>
-                    <span>{localizeAgricultureText(item.analysis_json?.description || t('dashboard.notAvailable'), language)}</span>
+                    <span>{localizeAdvice(item, 'description', item.analysis_json?.description || t('dashboard.notAvailable'))}</span>
                   </div>
 
                   <div className="pill-row">
@@ -207,7 +224,7 @@ const ScanHistory = () => {
                       <span className="label-muted">{t('history.topPredictions')}</span>
                       {(item.analysis_json?.top_predictions || []).map((prediction) => (
                         <span className="pill" key={`${item.id}-${prediction.disease_name}`}>
-                          {prediction.disease_name.replaceAll('_', ' ')} {formatLocalizedNumber(prediction.confidence * 100, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                          {localizeDisease(prediction.disease_name, prediction.raw_class)} {formatLocalizedNumber(prediction.confidence * 100, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                         </span>
                       ))}
                     </div>
