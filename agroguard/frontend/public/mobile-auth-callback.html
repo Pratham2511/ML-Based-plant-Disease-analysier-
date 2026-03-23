@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AgroGuard Mobile Auth</title>
+    <title>ShetVaidya Mobile Auth</title>
   </head>
   <body>
     <p>Completing secure sign-in...</p>
@@ -18,7 +18,7 @@
           return;
         }
 
-        const deepLink = `agroguard://login-callback#credential=${encodeURIComponent(credential)}`;
+        const deepLink = `shetvaidya://login-callback#credential=${encodeURIComponent(credential)}`;
         window.location.replace(deepLink);
       })();
     </script>

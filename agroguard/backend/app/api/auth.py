@@ -1,13 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 import httpx
-from sqlalchemy import func
-from sqlalchemy.orm import Session
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 
 from app.api import deps
 from app.core.config import settings
-from app.models.user import User
 from app.schemas.auth import (
     AuthResponse,
     GoogleAuthRequest,
@@ -34,14 +31,25 @@ def _set_auth_cookie(response: Response, token: str) -> None:
     )
 
 
+def _claims_to_user(payload: dict) -> UserOut:
+    return UserOut(
+        id=str(payload.get("sub")),
+        email=str(payload.get("email", "")).strip().lower(),
+        full_name=payload.get("full_name"),
+        picture_url=payload.get("picture_url"),
+        latitude=payload.get("latitude"),
+        longitude=payload.get("longitude"),
+    )
+
+
 @router.post("/google", response_model=AuthResponse)
-def google_auth(payload: GoogleAuthRequest, request: Request, response: Response, db: Session = Depends(deps.get_db)):
+def google_auth(payload: GoogleAuthRequest, request: Request, response: Response):
     if not settings.google_client_id:
         raise HTTPException(status_code=500, detail="GOOGLE_CLIENT_ID is not configured")
 
     client_ip = request.client.host if request.client else "unknown"
     rate_key = f"google_login:{client_ip}"
-    enforce_rate_limit(rate_key, settings.otp_request_limit, settings.otp_request_window_seconds)
+    enforce_rate_limit(rate_key, settings.auth_request_limit, settings.auth_request_window_seconds)
 
     token_info = None
     if payload.credential:
@@ -82,35 +90,17 @@ def google_auth(payload: GoogleAuthRequest, request: Request, response: Response
     full_name = str(token_info.get("name", "")).strip() or None
     picture_url = str(token_info.get("picture", "")).strip() or None
 
-    user = db.query(User).filter(func.lower(User.email) == email).first()
-    if not user and google_sub:
-        user = db.query(User).filter(User.google_sub == google_sub).first()
-
-    if not user:
-        user = User(
-            email=email,
-            full_name=full_name,
-            picture_url=picture_url,
-            google_sub=google_sub or None,
-            auth_provider="google",
-        )
-    else:
-        user.email = email
-        user.auth_provider = "google"
-        if google_sub:
-            user.google_sub = google_sub
-        if full_name:
-            user.full_name = full_name
-        if picture_url:
-            user.picture_url = picture_url
-
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    token = create_jwt({"sub": str(user.id)})
+    subject = google_sub or email
+    token_payload = {
+        "sub": subject,
+        "email": email,
+        "full_name": full_name,
+        "picture_url": picture_url,
+        "auth_provider": "google",
+    }
+    token = create_jwt(token_payload)
     _set_auth_cookie(response, token)
-    return {"user": user, "access_token": token}
+    return {"user": _claims_to_user(token_payload), "access_token": token}
 
 
 @router.post("/logout", response_model=SimpleStatusResponse)
@@ -126,32 +116,45 @@ def logout(response: Response):
 
 
 @router.get("/me", response_model=UserOut)
-def me(current_user: User = Depends(deps.get_current_user)):
+def me(current_user: deps.TokenUser = Depends(deps.get_current_user)):
     return current_user
 
 
 @router.post("/profile", response_model=UserOut)
 def update_profile(
     payload: UpdateProfileRequest,
-    current_user: User = Depends(deps.get_current_user),
-    db: Session = Depends(deps.get_db),
+    response: Response,
+    current_user: deps.TokenUser = Depends(deps.get_current_user),
 ):
-    current_user.full_name = payload.full_name.strip()
-    db.add(current_user)
-    db.commit()
-    db.refresh(current_user)
-    return current_user
+    token_payload = {
+        "sub": current_user.id,
+        "email": current_user.email,
+        "full_name": payload.full_name.strip(),
+        "picture_url": current_user.picture_url,
+        "latitude": current_user.latitude,
+        "longitude": current_user.longitude,
+        "auth_provider": "google",
+    }
+    token = create_jwt(token_payload)
+    _set_auth_cookie(response, token)
+    return _claims_to_user(token_payload)
 
 
 @router.post("/location", response_model=UserOut)
 def update_location(
     payload: UpdateLocationRequest,
-    current_user: User = Depends(deps.get_current_user),
-    db: Session = Depends(deps.get_db),
+    response: Response,
+    current_user: deps.TokenUser = Depends(deps.get_current_user),
 ):
-    current_user.latitude = payload.latitude
-    current_user.longitude = payload.longitude
-    db.add(current_user)
-    db.commit()
-    db.refresh(current_user)
-    return current_user
+    token_payload = {
+        "sub": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "picture_url": current_user.picture_url,
+        "latitude": payload.latitude,
+        "longitude": payload.longitude,
+        "auth_provider": "google",
+    }
+    token = create_jwt(token_payload)
+    _set_auth_cookie(response, token)
+    return _claims_to_user(token_payload)

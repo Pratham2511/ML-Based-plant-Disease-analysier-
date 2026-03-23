@@ -72,15 +72,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const res = await api.post('/auth/google', payload);
       setUser(res.data.user);
-      if (Capacitor.isNativePlatform() && res.data.access_token) {
-        localStorage.setItem('agroguard_mobile_jwt', res.data.access_token);
-      }
       // Explicitly redirect to dashboard on successful auth
       navigate('/dashboard');
     } catch (err: any) {
       console.error('Login error:', err);
       const errorMsg = err.response?.data?.detail || err.message || 'Authentication failed';
-      alert(`AgroGuard Auth Error: ${errorMsg}`);
+      alert(`ShetVaidya Auth Error: ${errorMsg}`);
       throw err;
     }
   };
@@ -143,7 +140,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const registerListener = async () => {
       listener = await CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
-        if (!url.startsWith('agroguard://login-callback')) {
+        if (!url.startsWith('shetvaidya://login-callback')) {
           return;
         }
         const credential = extractCredentialFromUrl(url);

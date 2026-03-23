@@ -51,7 +51,7 @@ type HistoryInsight = {
   timestamp: string;
 };
 
-const ONBOARDING_KEY = 'agroguard-onboarding-complete';
+const ONBOARDING_KEY = 'shetvaidya-onboarding-complete';
 
 const Dashboard = () => {
   const { t, i18n } = useTranslation();

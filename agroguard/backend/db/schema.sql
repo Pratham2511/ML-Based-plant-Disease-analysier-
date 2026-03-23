@@ -1,49 +1,3 @@
--- Core tables
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY,
-    full_name TEXT,
-    email TEXT UNIQUE NOT NULL,
-    picture_url TEXT,
-    google_sub TEXT UNIQUE,
-    auth_provider TEXT NOT NULL DEFAULT 'google',
-    latitude DOUBLE PRECISION,
-    longitude DOUBLE PRECISION,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    CONSTRAINT chk_latitude_range CHECK (latitude IS NULL OR (latitude >= -90 AND latitude <= 90)),
-    CONSTRAINT chk_longitude_range CHECK (longitude IS NULL OR (longitude >= -180 AND longitude <= 180))
-);
-ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name TEXT;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS picture_url TEXT;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub TEXT;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider TEXT NOT NULL DEFAULT 'google';
-ALTER TABLE users DROP COLUMN IF EXISTS password_hash;
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users((LOWER(email)));
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub) WHERE google_sub IS NOT NULL;
-
-CREATE TABLE IF NOT EXISTS otp_verification (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    otp_hash TEXT NOT NULL,
-    purpose TEXT NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-CREATE INDEX IF NOT EXISTS idx_otp_user ON otp_verification(user_id);
-CREATE INDEX IF NOT EXISTS idx_otp_user_purpose ON otp_verification(user_id, purpose);
-CREATE INDEX IF NOT EXISTS idx_otp_expires_at ON otp_verification(expires_at);
-
-CREATE TABLE IF NOT EXISTS diseases (
-    id UUID PRIMARY KEY,
-    name TEXT NOT NULL,
-    crop_type TEXT NOT NULL,
-    description TEXT NOT NULL,
-    cause TEXT NOT NULL,
-    treatment TEXT NOT NULL,
-    recommended_medicines JSONB NOT NULL DEFAULT '[]',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
 CREATE TABLE IF NOT EXISTS medicines (
     id UUID PRIMARY KEY,
     brand_name TEXT NOT NULL,
@@ -70,7 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_batches_medicine_id ON medicine_batches(medicine_
 
 CREATE TABLE IF NOT EXISTS scan_history (
     id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
     disease_name TEXT NOT NULL,
     confidence DOUBLE PRECISION NOT NULL,
     image_url TEXT NOT NULL,
@@ -97,20 +51,3 @@ CREATE TABLE IF NOT EXISTS soil_reports (
 );
 CREATE INDEX IF NOT EXISTS idx_soil_reports_state ON soil_reports(state);
 CREATE INDEX IF NOT EXISTS idx_soil_reports_district ON soil_reports(district);
-
-CREATE TABLE IF NOT EXISTS crop_recommendations (
-    id UUID PRIMARY KEY,
-    crop_name TEXT NOT NULL UNIQUE,
-    soil_type TEXT NOT NULL,
-    temperature_range TEXT NOT NULL,
-    rainfall_requirement TEXT NOT NULL,
-    water_requirement TEXT NOT NULL,
-    growing_season TEXT NOT NULL,
-    growth_duration TEXT NOT NULL,
-    seed_rate TEXT NOT NULL,
-    fertilizer_recommendation TEXT NOT NULL,
-    disease_risk TEXT NOT NULL,
-    market_demand TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-CREATE INDEX IF NOT EXISTS idx_crop_recommendations_name ON crop_recommendations(crop_name);

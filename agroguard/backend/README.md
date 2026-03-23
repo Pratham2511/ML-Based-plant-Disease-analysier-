@@ -1,4 +1,4 @@
-# AgroGuard API
+# ShetVaidya API
 
 ## Endpoints
 - `GET /health` – liveness

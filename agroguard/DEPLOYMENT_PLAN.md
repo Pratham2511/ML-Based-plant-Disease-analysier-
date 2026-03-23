@@ -1,4 +1,4 @@
-# AgroGuard Deployment Plan (Vercel + Hugging Face Spaces + Cloudflare R2)
+# ShetVaidya Deployment Plan (Vercel + Hugging Face Spaces + Cloudflare R2)
 
 ## 1) Architecture
 - Frontend: Vite React app on Vercel

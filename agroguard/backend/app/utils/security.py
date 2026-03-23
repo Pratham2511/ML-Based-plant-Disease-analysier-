@@ -16,16 +16,6 @@ def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
-def hash_otp(otp: str) -> str:
-    return bcrypt.hashpw(otp.encode(), bcrypt.gensalt()).decode()
-
-
-def verify_otp(otp: str, hashed: str) -> bool:
-    if not otp or not hashed:
-        return False
-    return bcrypt.checkpw(otp.encode(), hashed.encode())
-
-
 def create_jwt(payload: dict) -> str:
     to_encode = payload.copy()
     now = datetime.utcnow()
@@ -33,3 +23,12 @@ def create_jwt(payload: dict) -> str:
     to_encode["exp"] = now + timedelta(minutes=settings.jwt_exp_minutes)
     to_encode.setdefault("typ", "access")
     return jwt.encode(to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def verify_token(token: str) -> dict:
+    payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    if payload.get("typ") != "access":
+        raise jwt.PyJWTError("Invalid token type")
+    if not payload.get("sub"):
+        raise jwt.PyJWTError("Missing subject")
+    return payload

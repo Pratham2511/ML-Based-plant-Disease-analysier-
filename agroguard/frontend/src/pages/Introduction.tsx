@@ -21,6 +21,7 @@ const Introduction = () => {
         <div className="hero-content">
           <p className="subtitle">{t('intro.subtitle')}</p>
           <h1 className="headline">{t('intro.title')}</h1>
+          <p className="lead">शेतवैद्य — पिकाचं दुखणं ओळखणारा.</p>
           <p className="lead">
             {t('intro.leadOne')}
           </p>
@@ -64,7 +65,7 @@ const Introduction = () => {
               className="landing-video"
               style={{ width: '100%', borderRadius: '16px', display: 'block' }}
             >
-              <source src="/agroguard_landing.webm" type="video/webm" />
+              <source src="/shetvaidya_landing.webm" type="video/webm" />
               Your browser does not support the video tag.
             </video>
           </div>
@@ -76,7 +77,7 @@ const Introduction = () => {
             <p className="lead" style={{ marginBottom: '12px' }}>
               {t(
                 'intro.videoLeadOne',
-                'Early field signs are easy to miss during routine rounds. AgroGuard helps you act before infection spreads across the plot.'
+                'Early field signs are easy to miss during routine rounds. ShetVaidya helps you act before infection spreads across the plot.'
               )}
             </p>
             <p className="lead" style={{ marginBottom: '16px' }}>

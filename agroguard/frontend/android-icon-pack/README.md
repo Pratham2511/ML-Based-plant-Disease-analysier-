@@ -1,6 +1,6 @@
-# Android Studio Icon Pack (AgroGuard)
+# Android Studio Icon Pack (ShetVaidya)
 
-This folder contains a copy-ready Android launcher icon resource pack generated from the AgroGuard leaf identity.
+This folder contains a copy-ready Android launcher icon resource pack generated from the ShetVaidya leaf identity.
 
 ## Generate resources
 

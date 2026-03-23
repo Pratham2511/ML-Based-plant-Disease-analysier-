@@ -180,8 +180,14 @@ a {
   grid-area: left;
   display: flex;
   align-items: center;
+  gap: 10px;
   justify-self: start;
   min-width: 0;
+}
+
+.desktop-only-inline {
+  display: inline-flex;
+  align-items: center;
 }
 
 .brand-mark {
@@ -190,6 +196,22 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+
+.brand-mark--desktop {
+  text-decoration: none;
+}
+
+.brand-lockup-desktop {
+  display: block;
+  height: 48px;
+  width: auto;
+}
+
+.brand-lockup-mobile {
+  display: none;
+  height: 36px;
+  width: auto;
 }
 
 .brand-mark strong {
@@ -1990,6 +2012,18 @@ a {
     min-width: 0;
     gap: 6px;
     max-width: 126px;
+  }
+
+  .brand-mark--desktop {
+    display: none;
+  }
+
+  .brand-lockup-mobile {
+    display: block;
+  }
+
+  .desktop-only-inline {
+    display: none;
   }
 
   .brand-mark small {

@@ -14,15 +14,8 @@ from sqlalchemy.orm import Session
 
 from app.api import area_intelligence, auth, deps, health, medicine, scans
 from app.core.config import settings
-from app.db import base  # noqa: F401
-from app.db.base_class import Base
-from app.db.session import engine
 from app.models.scan_history import ScanHistory
-from app.models.user import User
 from app.utils.storage import upload_to_r2
-
-# For bootstrap only; production should use Alembic migrations.
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.app_name)
 logger = logging.getLogger("agroguard.inference")
@@ -186,7 +179,7 @@ app.include_router(area_intelligence.router, prefix="/area-intelligence", tags=[
 @app.post("/api/predict")
 async def predict(
     file: UploadFile = File(...),
-    current_user: User | None = Depends(deps.get_optional_current_user),
+    current_user: deps.TokenUser | None = Depends(deps.get_optional_current_user),
     db: Session = Depends(deps.get_db),
 ):
     if not file.content_type or not file.content_type.startswith("image/"):

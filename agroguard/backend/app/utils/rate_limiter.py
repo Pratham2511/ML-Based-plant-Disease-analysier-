@@ -5,12 +5,21 @@ import time
 from typing import Dict, Tuple
 
 from fastapi import HTTPException, status
+import redis
 
-from app.services.otp import get_redis
+from app.core.config import settings
 
 # Local fallback keeps app usable when Redis is unavailable in local/dev.
 _local_counter: Dict[str, Tuple[int, float]] = {}
 _local_lock = threading.Lock()
+_redis_client: redis.Redis | None = None
+
+
+def get_redis() -> redis.Redis:
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
+    return _redis_client
 
 
 def _in_memory_limit(key: str, limit: int, window_seconds: int) -> None:

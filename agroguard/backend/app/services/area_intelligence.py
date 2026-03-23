@@ -985,7 +985,7 @@ async def reverse_geocode_district(latitude: float, longitude: float) -> Optiona
         "zoom": 10,
     }
     headers = {
-        "User-Agent": "AgroGuard-AreaIntelligence/1.0",
+        "User-Agent": "ShetVaidya-AreaIntelligence/1.0",
     }
 
     try:

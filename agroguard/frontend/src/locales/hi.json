@@ -1,8 +1,8 @@
 {
   "app": {
-    "brandName": "AgroGuard",
-    "tagline": "प्लांट इंटेलिजेंस सूट",
-    "iconAlt": "AgroGuard ऐप आइकन",
+    "brandName": "ShetVaidya",
+    "tagline": "शेतवैद्य — पिकाचं दुखणं ओळखणारा.",
+    "iconAlt": "ShetVaidya ऐप आइकन",
     "splashInitializing": "आपका फसल इंटेलिजेंस कार्यक्षेत्र शुरू हो रहा है",
     "splashBooting": "मुख्य सेवाएं शुरू हो रही हैं"
   },
@@ -40,7 +40,7 @@
   "intro": {
     "subtitle": "AI फसल सुरक्षा प्लेटफॉर्म",
     "title": "स्मार्ट पौधा रोग पहचान और सलाह",
-    "leadOne": "AgroGuard AI आधारित निदान से फसलों में रोग जोखिम जल्दी पहचानने में मदद करता है।",
+    "leadOne": "ShetVaidya AI आधारित निदान से फसलों में रोग जोखिम जल्दी पहचानने में मदद करता है।",
     "leadTwo": "रोग ट्रेंड मॉनिटर करें, दवा की प्रामाणिकता जांचें और जिला-आधारित सलाह एक ही जगह पाएं।",
     "primaryAction": "डैशबोर्ड खोलें",
     "secondaryAction": "विश्लेषण शुरू करें",
@@ -55,7 +55,7 @@
     "liveMonitoring": "लाइव फील्ड मॉनिटरिंग",
     "fieldRisk": "फील्ड रिस्क इंडेक्स: मध्यम",
     "lastScan": "पिछला स्कैन कॉन्फिडेंस: {{value}}%",
-    "whyTitle": "AgroGuard क्यों",
+    "whyTitle": "ShetVaidya क्यों",
     "whyPill": "वास्तविक खेती के लिए डिज़ाइन",
     "features": {
       "aiTitle": "सेकंडों में रोग पहचान",
@@ -137,7 +137,7 @@
       "invalidOtp": "अमान्य OTP। कृपया पुनः प्रयास करें।",
       "otpResendFailed": "OTP पुनः नहीं भेजा जा सका।",
       "gpsFailed": "GPS निर्देशांक प्राप्त नहीं हो सके।",
-      "authErrorTitle": "AgroGuard ऑथ त्रुटि",
+      "authErrorTitle": "ShetVaidya ऑथ त्रुटि",
       "googleAuthInitFailed": "Google Auth प्रारंभ नहीं हो सका। कृपया इंटरनेट कनेक्शन जांचें और फिर प्रयास करें।",
       "loginTriggerError": "लॉगिन ट्रिगर त्रुटि"
     },
@@ -223,7 +223,7 @@
     },
     "onboarding": {
       "subtitle": "त्वरित परिचय",
-      "title": "आपके AgroGuard डैशबोर्ड में स्वागत है",
+      "title": "आपके ShetVaidya डैशबोर्ड में स्वागत है",
       "lead": "दैनिक मॉनिटरिंग से पहले हर मॉड्यूल समझें।",
       "step1Title": "1. पौधा रोग विश्लेषक",
       "step1Desc": "पत्ती की स्पष्ट छवि अपलोड करें और उपचार मार्गदर्शन देखें।",

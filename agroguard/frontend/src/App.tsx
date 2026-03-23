@@ -14,7 +14,7 @@ import ScanHistory from './pages/ScanHistory';
 import AreaIntelligence from './pages/AreaIntelligence';
 import ProtectedRoute from './components/ProtectedRoute';
 
-const SPLASH_STORAGE_KEY = 'agroguard-splash-seen';
+const SPLASH_STORAGE_KEY = 'shetvaidya-splash-seen';
 
 const TopNavigation = () => {
   const { user, loading, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
@@ -71,17 +71,14 @@ const TopNavigation = () => {
     <>
       <header className={`top-nav w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="top-nav__left">
-          <LanguageSwitcher compact />
+          <img src="/assets/shetvaidya-navbar-mobile.svg" alt="ShetVaidya" height={36} className="brand-lockup-mobile" />
+          <div className="desktop-only-inline">
+            <LanguageSwitcher compact />
+          </div>
         </div>
 
-        <NavLink to="/" className="brand-mark min-w-0">
-          <div className="brand-mark__glyph" aria-hidden>
-            <img src="/leaf.svg" alt="" />
-          </div>
-          <div>
-            <strong>AgroGuard</strong>
-            <small>{t('app.tagline')}</small>
-          </div>
+        <NavLink to="/" className="brand-mark brand-mark--desktop min-w-0" aria-label="ShetVaidya">
+          <img src="/assets/shetvaidya-navbar-desktop.svg" alt="ShetVaidya" height={48} className="brand-lockup-desktop" />
         </NavLink>
 
         <div className="top-nav__right max-w-full flex-shrink-0">
@@ -152,7 +149,7 @@ const TopNavigation = () => {
           />
           <aside className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
             <div className="mobile-drawer__head">
-              <strong>AgroGuard</strong>
+              <strong>ShetVaidya</strong>
               <button type="button" className="mobile-drawer__close" onClick={closeMobileMenu} aria-label={t('nav.closeMenu')}>
                 ✕
               </button>

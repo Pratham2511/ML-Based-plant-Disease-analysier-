@@ -4,21 +4,24 @@ from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+APP_NAME = "ShetVaidya"
+
+
 class Settings(BaseSettings):
-    app_name: str = "AgroGuard API"
+    app_name: str = APP_NAME
     backend_cors_origins: List[AnyHttpUrl] = []
     allowed_hosts: List[str] = ["*"]
 
     environment: str = "development"
 
-    database_url: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/agroguard"
+    database_url: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/shetvaidya"
     redis_url: str = "redis://localhost:6379/0"
 
     @field_validator("database_url", mode="before")
     @classmethod
     def normalize_database_url(cls, value):
         if not value:
-            return "postgresql+psycopg2://postgres:postgres@localhost:5432/agroguard"
+            return "postgresql+psycopg2://postgres:postgres@localhost:5432/shetvaidya"
         if isinstance(value, str) and value.startswith("postgres://"):
             return value.replace("postgres://", "postgresql://", 1)
         return value
@@ -26,7 +29,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
     jwt_exp_minutes: int = 60
-    jwt_cookie_name: str = "agroguard_token"
+    jwt_cookie_name: str = "shetvaidya_token"
     cookie_secure: Optional[bool] = None
     google_client_id: Optional[str] = None
 
@@ -41,12 +44,9 @@ class Settings(BaseSettings):
             return f"http://{value}"
         return value
 
-    # OTP and rate-limiting
-    otp_exp_minutes: int = 5
-    otp_request_limit: int = 5
-    otp_request_window_seconds: int = 900
-    otp_verify_limit: int = 10
-    otp_verify_window_seconds: int = 900
+    # Auth and API rate-limiting
+    auth_request_limit: int = 5
+    auth_request_window_seconds: int = 900
     medicine_verify_limit: int = 30
     medicine_verify_window_seconds: int = 60
 

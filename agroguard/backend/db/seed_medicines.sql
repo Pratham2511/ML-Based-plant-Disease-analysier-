@@ -1,4 +1,4 @@
--- Sample normalized medicine catalog for AgroGuard.
+-- Sample normalized medicine catalog for ShetVaidya.
 -- Extend this list to include your full domain-approved medicine inventory.
 
 INSERT INTO medicines (id, brand_name, company, active_ingredient, concentration, crop_type, disease_category)

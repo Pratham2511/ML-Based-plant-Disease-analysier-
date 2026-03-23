@@ -5,7 +5,7 @@ import en from './locales/en.json';
 import hi from './locales/hi.json';
 import mr from './locales/mr.json';
 
-const STORAGE_KEY = 'agroguard-lang';
+const STORAGE_KEY = 'shetvaidya-lang';
 
 const getInitialLanguage = () => {
   try {

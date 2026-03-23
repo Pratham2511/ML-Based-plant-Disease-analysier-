@@ -121,7 +121,7 @@ DESCRIPTIONS = {
 
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
-app = FastAPI(title="AgroGuard ML Service")
+app = FastAPI(title="ShetVaidya ML Service")
 
 
 def normalize_prediction_vector(preds: np.ndarray) -> np.ndarray:

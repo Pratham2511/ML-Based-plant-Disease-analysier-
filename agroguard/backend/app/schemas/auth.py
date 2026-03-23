@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from typing import Optional
-from uuid import UUID
 
 
 class GoogleAuthRequest(BaseModel):
@@ -18,7 +17,7 @@ class UpdateProfileRequest(BaseModel):
 
 
 class UserOut(BaseModel):
-    id: UUID
+    id: str
     full_name: Optional[str] = None
     email: EmailStr
     picture_url: Optional[str] = None

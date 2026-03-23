@@ -1,5 +1,5 @@
 """
-Training pipeline for AgroGuard using PlantVillage dataset filtered for Tomato, Potato, Bell Pepper.
+Training pipeline for ShetVaidya using PlantVillage dataset filtered for Tomato, Potato, Bell Pepper.
 Assumes dataset layout: data/train/<class_name>/*.jpg and data/val/<class_name>/*.jpg
 """
 import json

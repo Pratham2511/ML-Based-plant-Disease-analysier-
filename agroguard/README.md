@@ -1,6 +1,8 @@
-# AgroGuard
+# ShetVaidya (शेतवैद्य)
 
-Production-grade, location-aware plant disease analyzer and batch medicine verification platform.
+शेतवैद्य — पिकाचं दुखणं ओळखणारा.
+
+Production-grade, location-aware AI crop disease analyzer and medicine verification platform.
 
 ## Stack
 - Frontend: React + Vite (Vercel)
@@ -10,8 +12,8 @@ Production-grade, location-aware plant disease analyzer and batch medicine verif
 - CI/CD: GitHub Actions
 
 ## Structure
-- `frontend/` React app with router, protected routes, OTP flow, ZXing barcode scan
-- `backend/` FastAPI API, JWT HttpOnly cookies, bcrypt, Redis OTP, PostgreSQL models
+- `frontend/` React app with router, protected routes, Google OAuth login, ZXing barcode scan
+- `backend/` FastAPI API, JWT HttpOnly cookies, Google token verification, scan and medicine APIs
 - `ml-service/` TensorFlow inference microservice and training pipeline
 - `.github/workflows/ci.yml` CI for build + static checks
 - `DEPLOYMENT_PLAN.md` cloud deployment runbook for Vercel + Hugging Face Spaces + R2
@@ -44,11 +46,16 @@ uvicorn app.main:app --reload --port 9000
 - R2 → Cloudflare bucket for images
 
 ## Notes
-- OTP expires in 5 minutes, stored in Redis with DB fallback
+- Authentication is Google-login first and session-cookie based
 - Image uploads limited to 5MB and validated by MIME type
 - Batch verification uses unique, non-public batch codes per 100-unit batch
 - ML model loads once at startup; keep weights lightweight (MobileNetV2)
-- API rate limiting is enabled for OTP and batch verification flows
+- API rate limiting is enabled for auth and batch verification flows
+
+## Rebrand checklist
+- Google OAuth consent screen display name should be set to `ShetVaidya` in Google Cloud Console.
+- Supabase project should be renamed to `ShetVaidya-DB`.
+- Frontend metadata title is `ShetVaidya - AI Plant Doctor`.
 
 ## Recent updates (March 2026)
 - Local disease inference is now integrated in backend prediction flow with lazy model loading for better runtime stability.

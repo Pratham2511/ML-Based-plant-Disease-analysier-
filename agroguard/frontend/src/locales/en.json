@@ -1,8 +1,8 @@
 {
   "app": {
-    "brandName": "AgroGuard",
-    "tagline": "Plant Intelligence Suite",
-    "iconAlt": "AgroGuard app icon",
+    "brandName": "ShetVaidya",
+    "tagline": "शेतवैद्य — पिकाचं दुखणं ओळखणारा.",
+    "iconAlt": "ShetVaidya app icon",
     "splashInitializing": "Initializing your crop intelligence workspace",
     "splashBooting": "Booting core services"
   },
@@ -40,7 +40,7 @@
   "intro": {
     "subtitle": "AI Crop Defense Platform",
     "title": "Smart Plant Disease Detection and Advisory",
-    "leadOne": "AgroGuard helps you identify crop disease risk quickly using AI-powered diagnosis and treatment recommendations.",
+    "leadOne": "ShetVaidya helps you identify crop disease risk quickly using AI-powered diagnosis and treatment recommendations.",
     "leadTwo": "Monitor disease trends, verify medicine authenticity, and access district-level advisories in one workflow.",
     "primaryAction": "Open Dashboard",
     "secondaryAction": "Start Analysis",
@@ -55,7 +55,7 @@
     "liveMonitoring": "Live Field Monitoring",
     "fieldRisk": "Field Risk Index: Moderate",
     "lastScan": "Last scan confidence: {{value}}%",
-    "whyTitle": "Why AgroGuard",
+    "whyTitle": "Why ShetVaidya",
     "whyPill": "Designed for real farms",
     "features": {
       "aiTitle": "Disease Detection in Seconds",
@@ -137,7 +137,7 @@
       "invalidOtp": "Invalid OTP. Please try again.",
       "otpResendFailed": "Unable to resend OTP.",
       "gpsFailed": "Unable to capture GPS coordinates.",
-      "authErrorTitle": "AgroGuard Auth Error",
+      "authErrorTitle": "ShetVaidya Auth Error",
       "googleAuthInitFailed": "Google Auth failed to initialize. Please check your internet connection and try again.",
       "loginTriggerError": "Login Trigger Error"
     },
@@ -223,7 +223,7 @@
     },
     "onboarding": {
       "subtitle": "Quick Orientation",
-      "title": "Welcome to your AgroGuard dashboard",
+      "title": "Welcome to your ShetVaidya dashboard",
       "lead": "Understand each module before you begin daily monitoring.",
       "step1Title": "1. Plant Disease Analyzer",
       "step1Desc": "Upload a clear leaf image to detect disease and view treatment guidance.",

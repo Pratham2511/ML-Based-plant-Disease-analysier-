@@ -1,8 +1,8 @@
 {
   "app": {
-    "brandName": "AgroGuard",
-    "tagline": "प्लांट इंटेलिजन्स सूट",
-    "iconAlt": "AgroGuard अॅप आयकॉन",
+    "brandName": "ShetVaidya",
+    "tagline": "शेतवैद्य — पिकाचं दुखणं ओळखणारा.",
+    "iconAlt": "ShetVaidya अॅप आयकॉन",
     "splashInitializing": "आपले पीक इंटेलिजन्स कार्यक्षेत्र सुरू होत आहे",
     "splashBooting": "मुख्य सेवा सुरू होत आहेत"
   },
@@ -40,7 +40,7 @@
   "intro": {
     "subtitle": "AI पीक संरक्षण प्लॅटफॉर्म",
     "title": "स्मार्ट वनस्पती रोग शोध आणि सल्ला",
-    "leadOne": "AgroGuard AI आधारित निदानाद्वारे पिकांतील रोग जोखीम पटकन ओळखण्यास मदत करते.",
+    "leadOne": "ShetVaidya AI आधारित निदानाद्वारे पिकांतील रोग जोखीम पटकन ओळखण्यास मदत करते.",
     "leadTwo": "रोग ट्रेंड मॉनिटर करा, औषध सत्यता तपासा आणि जिल्हानिहाय सल्ले एका ठिकाणी मिळवा.",
     "primaryAction": "डॅशबोर्ड उघडा",
     "secondaryAction": "विश्लेषण सुरू करा",
@@ -55,7 +55,7 @@
     "liveMonitoring": "लाईव्ह फील्ड मॉनिटरिंग",
     "fieldRisk": "फील्ड रिस्क इंडेक्स: मध्यम",
     "lastScan": "शेवटचा स्कॅन कॉन्फिडन्स: {{value}}%",
-    "whyTitle": "AgroGuard का",
+    "whyTitle": "ShetVaidya का",
     "whyPill": "प्रत्यक्ष शेतीसाठी डिझाइन",
     "features": {
       "aiTitle": "काही सेकंदात रोग शोध",
@@ -137,7 +137,7 @@
       "invalidOtp": "चुकीचा OTP. पुन्हा प्रयत्न करा.",
       "otpResendFailed": "OTP पुन्हा पाठवता आला नाही.",
       "gpsFailed": "GPS समन्वय मिळवता आला नाही.",
-      "authErrorTitle": "AgroGuard ऑथ त्रुटी",
+      "authErrorTitle": "ShetVaidya ऑथ त्रुटी",
       "googleAuthInitFailed": "Google Auth सुरू करता आला नाही. कृपया इंटरनेट कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.",
       "loginTriggerError": "लॉगिन ट्रिगर त्रुटी"
     },
@@ -223,7 +223,7 @@
     },
     "onboarding": {
       "subtitle": "जलद ओळख",
-      "title": "आपल्या AgroGuard डॅशबोर्डमध्ये स्वागत",
+      "title": "आपल्या ShetVaidya डॅशबोर्डमध्ये स्वागत",
       "lead": "दैनंदिन मॉनिटरिंगपूर्वी प्रत्येक मॉड्यूल समजून घ्या.",
       "step1Title": "1. वनस्पती रोग विश्लेषक",
       "step1Desc": "पानाचा स्पष्ट फोटो अपलोड करा आणि उपचार मार्गदर्शन मिळवा.",

@@ -1,4 +1,4 @@
-# AgroGuard ML Service
+# ShetVaidya ML Service
 
 - TensorFlow MobileNetV2 transfer learning on PlantVillage (Tomato, Potato, Bell Pepper)
 - Inference is served only from the custom Keras model (single TensorFlow pipeline)

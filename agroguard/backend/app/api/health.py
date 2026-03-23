@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.db.session import engine
-from app.services.otp import get_redis
+from app.utils.rate_limiter import get_redis
 
 router = APIRouter()
 
