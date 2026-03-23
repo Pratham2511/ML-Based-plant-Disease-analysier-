@@ -40,6 +40,7 @@
   "intro": {
     "subtitle": "AI Crop Defense Platform",
     "title": "Smart Plant Disease Detection and Advisory",
+    "tagline": "शेतवैद्य — पिकाचं दुखणं ओळखणारा.",
     "leadOne": "ShetVaidya helps you identify crop disease risk quickly using AI-powered diagnosis and treatment recommendations.",
     "leadTwo": "Monitor disease trends, verify medicine authenticity, and access district-level advisories in one workflow.",
     "primaryAction": "Open Dashboard",
@@ -75,7 +76,11 @@
       "advisorsTitle": "Field Advisors",
       "advisorsDesc": "Deliver location-aware, data-supported crop guidance to farming communities."
     },
-    "closingTitle": "Move from reactive treatment to proactive crop health management"
+    "closingTitle": "Move from reactive treatment to proactive crop health management",
+    "videoHeadline": "Disease Spreads Faster Than You Think.",
+    "videoLeadOne": "Early field signs are easy to miss during routine rounds. ShetVaidya helps you act before infection spreads across the plot.",
+    "videoLeadTwo": "Use AI crop checks, medicine verification, and district intelligence together to make faster, more confident farm decisions.",
+    "videoAction": "Start Crop Check"
   },
   "auth": {
     "subtitle": "Secure Farmer Access",
@@ -187,6 +192,9 @@
       "analyzeLeaf": "Analyze Leaf",
       "loadingPrediction": "Analyzing plant disease",
       "confidence": "Confidence {{value}}%",
+      "diseaseName": "Disease",
+      "status": "Status",
+      "statusDetected": "Detected",
       "description": "Description",
       "cause": "Cause",
       "treatment": "Treatment",
@@ -398,11 +406,38 @@
       "diseasePrevention": "Disease Prevention",
       "marketPriceRange": "Market Price Range"
     },
+    "units": {
+      "mmPerSeason": "mm per season",
+      "tonsPerHectare": "tons per hectare",
+      "quintalsPerAcre": "quintals per acre",
+      "perSeason": "per season",
+      "perHectare": "per hectare",
+      "perAcre": "per acre",
+      "annually": "annually"
+    },
     "errors": {
       "locationDenied": "Unable to access location. Please allow GPS permission.",
       "districtLoad": "Unable to load district list.",
       "insightLoad": "Unable to load area intelligence data.",
       "detectFailed": "Automatic area detection failed. Please select district manually."
     }
+  },
+  "diseases": {
+    "bell_pepper_bacterial_spot": "Bell Pepper Bacterial Spot",
+    "bell_pepper_healthy": "Bell Pepper Healthy",
+    "potato_early_blight": "Potato Early Blight",
+    "potato_late_blight": "Potato Late Blight",
+    "potato_healthy": "Potato Healthy",
+    "tomato_bacterial_spot": "Tomato Bacterial Spot",
+    "tomato_early_blight": "Tomato Early Blight",
+    "tomato_late_blight": "Tomato Late Blight",
+    "tomato_leaf_mold": "Tomato Leaf Mold",
+    "tomato_septoria_leaf_spot": "Tomato Septoria Leaf Spot",
+    "tomato_spider_mites_two_spotted_spider_mite": "Tomato Spider Mites",
+    "tomato_target_spot": "Tomato Target Spot",
+    "tomato_yellow_leaf_curl_virus": "Tomato Yellow Leaf Curl Virus",
+    "tomato_mosaic_virus": "Tomato Mosaic Virus",
+    "tomato_healthy": "Tomato Healthy",
+    "garbage_not_leaf": "Not a leaf image"
   }
 }

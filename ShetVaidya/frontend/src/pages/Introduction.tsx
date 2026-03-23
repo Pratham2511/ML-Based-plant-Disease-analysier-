@@ -21,7 +21,7 @@ const Introduction = () => {
         <div className="hero-content">
           <p className="subtitle">{t('intro.subtitle')}</p>
           <h1 className="headline">{t('intro.title')}</h1>
-          <p className="lead">शेतवैद्य — पिकाचं दुखणं ओळखणारा.</p>
+          <p className="lead">{t('intro.tagline')}</p>
           <p className="lead">
             {t('intro.leadOne')}
           </p>
@@ -63,7 +63,6 @@ const Introduction = () => {
               loop
               playsInline
               className="landing-video"
-              style={{ width: '100%', borderRadius: '16px', display: 'block' }}
             >
               <source src="/shetvaidya_landing.webm" type="video/webm" />
               Your browser does not support the video tag.
@@ -71,23 +70,17 @@ const Introduction = () => {
           </div>
 
           <div className="landing-video-copy">
-            <h2 className="headline" style={{ marginBottom: '16px', fontSize: '2rem' }}>
-              {t('intro.videoHeadline', 'Disease Spreads Faster Than You Think.')}
+            <h2 className="headline landing-video-title">
+              {t('intro.videoHeadline')}
             </h2>
-            <p className="lead" style={{ marginBottom: '12px' }}>
-              {t(
-                'intro.videoLeadOne',
-                'Early field signs are easy to miss during routine rounds. ShetVaidya helps you act before infection spreads across the plot.'
-              )}
+            <p className="lead landing-video-lead landing-video-lead--tight">
+              {t('intro.videoLeadOne')}
             </p>
-            <p className="lead" style={{ marginBottom: '16px' }}>
-              {t(
-                'intro.videoLeadTwo',
-                'Use AI crop checks, medicine verification, and district intelligence together to make faster, more confident farm decisions.'
-              )}
+            <p className="lead landing-video-lead">
+              {t('intro.videoLeadTwo')}
             </p>
             <Link className="btn primary" to="/dashboard">
-              {t('intro.videoAction', 'Start Crop Check')}
+              {t('intro.videoAction')}
             </Link>
           </div>
         </div>

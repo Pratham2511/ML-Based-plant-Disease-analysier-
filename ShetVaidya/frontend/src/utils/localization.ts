@@ -1,7 +1,7 @@
 const LANGUAGE_TO_LOCALE: Record<string, string> = {
   en: 'en-IN',
-  hi: 'hi-IN',
-  mr: 'mr-IN',
+  hi: 'hi-IN-u-nu-deva',
+  mr: 'mr-IN-u-nu-deva',
 };
 
 type UnitReplacements = Array<[RegExp, string]>;

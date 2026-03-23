@@ -53,9 +53,17 @@ type HistoryInsight = {
 
 const ONBOARDING_KEY = 'shetvaidya-onboarding-complete';
 
+const normalizeDiseaseKey = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
 const Dashboard = () => {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
+  const isDevanagariLanguage = ['mr', 'hi'].includes(language.split('-')[0]);
 
   const [status, setStatus] = useState('');
   const [cameraResult, setCameraResult] = useState('');
@@ -274,6 +282,16 @@ const Dashboard = () => {
   };
 
   const topDiseaseLabel = insights.topDisease ? insights.topDisease.replaceAll('_', ' ') : t('dashboard.notAvailable');
+  const localizeDiseaseName = (value: string) => {
+    const diseaseKey = normalizeDiseaseKey(value);
+    return t(`diseases.${diseaseKey}`, {
+      defaultValue: localizeAgricultureText(value.replaceAll('_', ' '), language),
+    });
+  };
+
+  const localizedTopDiseaseLabel = insights.topDisease
+    ? localizeDiseaseName(insights.topDisease)
+    : t('dashboard.notAvailable');
   const formattedTotalScans = formatLocalizedNumber(insights.totalScans, language);
   const formattedAverageConfidence = formatLocalizedNumber(insights.avgConfidence, language, {
     minimumFractionDigits: 2,
@@ -287,12 +305,12 @@ const Dashboard = () => {
     t('dashboard.kpis.avgConfidence'),
     `${formattedAverageConfidence}%`,
     t('dashboard.kpis.topDisease'),
-    `${topDiseaseLabel}.`,
+    `${localizedTopDiseaseLabel}.`,
   ].join(' ');
 
   const analyzerNarration = prediction
     ? [
-        `${prediction.disease_name.replaceAll('_', ' ')}`,
+        `${localizeDiseaseName(prediction.disease_name)}`,
         `${t('dashboard.analyzer.confidence', {
           value: formatLocalizedNumber(prediction.confidence * 100, language, {
             minimumFractionDigits: 2,
@@ -374,7 +392,7 @@ const Dashboard = () => {
           </article>
           <article className="kpi-tile">
             <span>{t('dashboard.kpis.topDisease')}</span>
-            <strong>{topDiseaseLabel}</strong>
+            <strong>{localizedTopDiseaseLabel}</strong>
           </article>
           <article className="kpi-tile">
             <span>{t('dashboard.kpis.locationStatus')}</span>
@@ -400,7 +418,7 @@ const Dashboard = () => {
           </article>
           <article className="analytics-tile">
             <span>{t('dashboard.snapshot.topFinding')}</span>
-            <strong>{topDiseaseLabel}</strong>
+            <strong>{localizedTopDiseaseLabel}</strong>
           </article>
           <article className="analytics-tile analytics-tile--trend">
             <span>{t('dashboard.snapshot.trend')}</span>
@@ -504,7 +522,7 @@ const Dashboard = () => {
             <div className="crop-modal__header">
               <div>
                 <p className="subtitle">{t('dashboard.analyzer.title')}</p>
-                <h2>🌿 {prediction.disease_name.replaceAll('_', ' ')}</h2>
+                <h2>🌿 {localizeDiseaseName(prediction.disease_name)}</h2>
               </div>
               <div className="inline-row">
                 <button type="button" className="btn ghost btn--compact" onClick={() => setShowPredictionModal(false)}>
@@ -513,7 +531,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="result-panel">
+            <div className={`result-panel ${isDevanagariLanguage ? 'devanagari-result' : ''}`}>
               <div className="result-panel__heading">
                 <strong>📊 {t('dashboard.analyzer.confidence', {
                   value: formatLocalizedNumber(prediction.confidence * 100, language, {
@@ -524,6 +542,10 @@ const Dashboard = () => {
               </div>
 
               <div className="table-like">
+                <span className="label-muted">🌿 {t('dashboard.analyzer.diseaseName')}</span>
+                <span>{localizeDiseaseName(prediction.disease_name)}</span>
+                <span className="label-muted">🟢 {t('dashboard.analyzer.status')}</span>
+                <span>{t('dashboard.analyzer.statusDetected')}</span>
                 <span className="label-muted">🧾 {t('dashboard.analyzer.description')}</span>
                 <span>{localizeAgricultureText(prediction.description || t('dashboard.analyzer.noDescription'), language)}</span>
                 <span className="label-muted">🧫 {t('dashboard.analyzer.cause')}</span>

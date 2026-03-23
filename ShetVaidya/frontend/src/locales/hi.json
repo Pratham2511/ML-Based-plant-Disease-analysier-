@@ -39,6 +39,7 @@
   },
   "intro": {
     "subtitle": "AI फसल सुरक्षा प्लेटफॉर्म",
+    "tagline": "आपकी फसल के लिए AI-आधारित स्वास्थ्य मार्गदर्शन",
     "title": "स्मार्ट पौधा रोग पहचान और सलाह",
     "leadOne": "ShetVaidya AI आधारित निदान से फसलों में रोग जोखिम जल्दी पहचानने में मदद करता है।",
     "leadTwo": "रोग ट्रेंड मॉनिटर करें, दवा की प्रामाणिकता जांचें और जिला-आधारित सलाह एक ही जगह पाएं।",
@@ -75,6 +76,10 @@
       "advisorsTitle": "फील्ड सलाहकार",
       "advisorsDesc": "स्थान-आधारित और डेटा समर्थित फसल मार्गदर्शन दें।"
     },
+    "videoHeadline": "फसलों को रोग-मुक्त रखने में शेतवैद्य कैसे मदद करता है",
+    "videoLeadOne": "शेतवैद्य का AI विश्लेषण पत्तियों के लक्षणों से रोग पहचानकर तुरंत उपचार सुझाव देता है।",
+    "videoLeadTwo": "जिला-आधारित मिट्टी और मौसम जानकारी से सिंचाई, पोषण और स्प्रे निर्णय अधिक सटीक बनते हैं।",
+    "videoAction": "अब डैशबोर्ड पर जाकर अपना पहला स्कैन शुरू करें",
     "closingTitle": "प्रतिक्रियात्मक उपचार से सक्रिय फसल स्वास्थ्य प्रबंधन की ओर बढ़ें"
   },
   "auth": {
@@ -187,6 +192,9 @@
       "analyzeLeaf": "पत्ती का विश्लेषण करें",
       "loadingPrediction": "रोग विश्लेषण चल रहा है",
       "confidence": "कॉन्फिडेंस {{value}}%",
+      "diseaseName": "रोग का नाम",
+      "status": "स्थिति",
+      "statusDetected": "पाया गया",
       "description": "विवरण",
       "cause": "कारण",
       "treatment": "उपचार",
@@ -398,11 +406,38 @@
       "diseasePrevention": "रोग रोकथाम",
       "marketPriceRange": "बाजार मूल्य सीमा"
     },
+    "units": {
+      "mmPerSeason": "मिमी प्रति मौसम",
+      "tonsPerHectare": "टन प्रति हेक्टेयर",
+      "quintalsPerAcre": "क्विंटल प्रति एकड़",
+      "perSeason": "प्रति मौसम",
+      "perHectare": "प्रति हेक्टेयर",
+      "perAcre": "प्रति एकड़",
+      "annually": "वार्षिक"
+    },
     "errors": {
       "locationDenied": "लोकेशन उपलब्ध नहीं है। कृपया GPS अनुमति दें।",
       "districtLoad": "जिला सूची लोड नहीं हो सकी।",
       "insightLoad": "एरिया इंटेलिजेंस डेटा लोड नहीं हो सका।",
       "detectFailed": "ऑटोमेटिक क्षेत्र पहचान विफल रही। कृपया जिला मैन्युअली चुनें।"
     }
+  },
+  "diseases": {
+    "bell_pepper_bacterial_spot": "बेल पेपर बैक्टीरियल स्पॉट",
+    "bell_pepper_healthy": "बेल पेपर स्वस्थ",
+    "potato_early_blight": "आलू अर्ली ब्लाइट",
+    "potato_late_blight": "आलू लेट ब्लाइट",
+    "potato_healthy": "आलू स्वस्थ",
+    "tomato_bacterial_spot": "टमाटर बैक्टीरियल स्पॉट",
+    "tomato_early_blight": "टमाटर अर्ली ब्लाइट",
+    "tomato_late_blight": "टमाटर लेट ब्लाइट",
+    "tomato_leaf_mold": "टमाटर लीफ मोल्ड",
+    "tomato_septoria_leaf_spot": "टमाटर सेप्टोरिया लीफ स्पॉट",
+    "tomato_spider_mites_two_spotted_spider_mite": "टमाटर स्पाइडर माइट्स",
+    "tomato_target_spot": "टमाटर टार्गेट स्पॉट",
+    "tomato_yellow_leaf_curl_virus": "टमाटर येलो लीफ कर्ल वायरस",
+    "tomato_mosaic_virus": "टमाटर मोज़ेक वायरस",
+    "tomato_healthy": "टमाटर स्वस्थ",
+    "garbage_not_leaf": "यह पत्ती की छवि नहीं है"
   }
 }

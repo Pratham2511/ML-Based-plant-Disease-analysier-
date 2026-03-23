@@ -702,6 +702,9 @@ a {
 }
 
 .landing-video {
+  width: 100%;
+  display: block;
+  border-radius: 16px;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-soft);
   background: rgba(255, 255, 255, 0.72);
@@ -710,6 +713,19 @@ a {
 .landing-video-copy {
   display: grid;
   align-content: center;
+}
+
+.landing-video-title {
+  margin-bottom: 16px;
+  font-size: 2rem;
+}
+
+.landing-video-lead {
+  margin-bottom: 16px;
+}
+
+.landing-video-lead--tight {
+  margin-bottom: 12px;
 }
 
 .feature-card {
@@ -1174,6 +1190,17 @@ a {
   color: #225728;
 }
 
+.crop-card.marathi-text .crop-card__content h3,
+.crop-card.marathi-text .crop-card__facts,
+.crop-card.marathi-text .crop-card__facts strong,
+.crop-card.marathi-text .btn {
+  font-size: 90%;
+}
+
+.crop-card.marathi-text .crop-card__facts {
+  line-height: 1.55;
+}
+
 .water-guidance-card {
   display: grid;
   gap: 10px;
@@ -1490,6 +1517,14 @@ a {
   padding: 12px;
   display: grid;
   gap: 10px;
+}
+
+.result-panel.devanagari-result,
+.result-panel.devanagari-result .table-like,
+.result-panel.devanagari-result .table-like span,
+.result-panel.devanagari-result .pill-row,
+.result-panel.devanagari-result .pill {
+  line-height: 1.68;
 }
 
 .result-panel__heading {
