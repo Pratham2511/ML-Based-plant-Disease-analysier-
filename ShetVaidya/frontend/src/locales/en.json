@@ -12,6 +12,7 @@
     "scanHistory": "Scan History",
     "accountSettings": "Account Settings",
     "areaIntelligence": "Area Intelligence",
+    "krushiVibhag": "Krushi Vibhag",
     "login": "Login",
     "logout": "Logout",
     "sessionActive": "Session Active",
@@ -420,6 +421,138 @@
       "districtLoad": "Unable to load district list.",
       "insightLoad": "Unable to load area intelligence data.",
       "detectFailed": "Automatic area detection failed. Please select district manually."
+    }
+  },
+  "krushiVibhag": {
+    "title": "Krushi Vibhag",
+    "heroHeading": "कृषि विभाग — आपला शेतीचा आधार",
+    "heroSubtext": "Krushi Vibhag, Department of Agriculture Maharashtra, supports farmers with district-level supervision, crop advisory, and scheme access from field to office.",
+    "govBadge": "Maharashtra Government Initiative",
+    "slideshowTitle": "शेतकऱ्यांच्या शेतातून",
+    "slideshowPrev": "Previous farm photo",
+    "slideshowNext": "Next farm photo",
+    "slideshowDots": "Slideshow indicators",
+    "photoCaptionSoon": "Photo and caption will be available soon",
+    "photosNotice": "Farm photo list and captions will be available soon.",
+    "aboutTitle": "What Is Krushi Vibhag?",
+    "aboutLead": "Krushi Vibhag is the government body that supervises agricultural development at district and taluka levels across Maharashtra.",
+    "aboutBody": "It provides on-ground advisory, soil testing support, certified seed distribution, and scheme enrollment support. Farmers can visit their local office for free consultation.",
+    "roles": {
+      "districtOfficer": {
+        "title": "District Officer",
+        "desc": "Supervises district-level crop planning and seasonal agriculture priorities."
+      },
+      "talukaSupervisor": {
+        "title": "Taluka Supervisor",
+        "desc": "Delivers field-level farmer advisory and implementation support."
+      },
+      "villageWorker": {
+        "title": "Village Extension Worker",
+        "desc": "Provides village-level, door-to-door crop guidance and issue reporting."
+      }
+    },
+    "helpTitle": "How Contacting Them Helps You",
+    "benefits": {
+      "soilTesting": {
+        "title": "Free Soil Testing",
+        "desc": "Get soil tested at government labs for pH, nutrient levels, and practical recommendations."
+      },
+      "seedSubsidy": {
+        "title": "Seed and Fertilizer Subsidies",
+        "desc": "Access subsidized certified seeds and fertilizers through approved schemes."
+      },
+      "insurance": {
+        "title": "Crop Insurance Guidance",
+        "desc": "Receive help enrolling in PM Fasal Bima Yojana and state insurance programs."
+      },
+      "disaster": {
+        "title": "Disaster Relief Support",
+        "desc": "Report flood, drought, or pest damage and get support to claim compensation."
+      }
+    },
+    "schemesTitle": "Government Schemes for Farmers",
+    "schemes": {
+      "pmfby": {
+        "name": "PM Fasal Bima Yojana",
+        "description": "Crop insurance protection against natural disasters and weather shocks.",
+        "eligibility": "Farmers enrolled in notified crops"
+      },
+      "pmKisan": {
+        "name": "PM Kisan Samman Nidhi",
+        "description": "Direct income support of Rs. 6,000 per year for eligible farmer families.",
+        "eligibility": "Small and marginal farmer families"
+      },
+      "soilHealthCard": {
+        "name": "Soil Health Card Scheme",
+        "description": "Free soil testing and nutrient health cards for field-based fertilizer planning.",
+        "eligibility": "All registered farmers"
+      },
+      "pmksy": {
+        "name": "Pradhan Mantri Krishi Sinchai Yojana",
+        "description": "Irrigation subsidy support for drip and sprinkler systems.",
+        "eligibility": "Farmers applying approved micro-irrigation"
+      },
+      "mahadbt": {
+        "name": "Mahadbt Farmer Schemes",
+        "description": "Maharashtra portal for equipment, input, and farm-mechanization subsidies.",
+        "eligibility": "Farmers registered on Mahadbt"
+      },
+      "namoShetkari": {
+        "name": "Namo Shetkari Maha Samman",
+        "description": "Maharashtra state additional support of Rs. 6,000 per year for eligible farmers.",
+        "eligibility": "State verified beneficiary farmers"
+      }
+    },
+    "learnMore": "Learn More",
+    "contactTitle": "Contact Your Local Krushi Vibhag Office",
+    "selectDistrict": "Select Your District",
+    "districtComingSoonTag": "adding soon",
+    "remainingDistrictsNotice": "Remaining district office details will be added soon.",
+    "officeHeading": "{{district}} Krushi Adhikari Office",
+    "addressLabel": "Address",
+    "phoneLabel": "Phone",
+    "officeHoursLabel": "Office hours",
+    "officeHours": "Monday-Saturday, 10am-5pm",
+    "officeUnavailable": "Detailed office contact is being updated for this district. Please call the helpline below.",
+    "getDirections": "Get Directions",
+    "helplineTitle": "Farmer Helplines",
+    "helplines": {
+      "kisanCallCenter": "किसान कॉल सेंटर: 1800-180-1551",
+      "stateLine": "कृषी विभाग हेल्पलाइन: 1800-233-4000"
+    },
+    "helplineHours": "सोमवार ते शनिवार, सकाळी १० ते सायंकाळी ५",
+    "slides": {
+      "ahmednagarSugarcane": "Ahmednagar - Sugarcane Farm",
+      "puneTomato": "Pune - Tomato Plot",
+      "nashikGrapes": "Nashik - Grape Vineyard",
+      "vidarbhaCotton": "Vidarbha - Cotton Field",
+      "kolhapurRice": "Kolhapur - Paddy Farm"
+    },
+    "officeData": {
+      "Pune": {
+        "address": "District Agriculture Office, Shivajinagar, Pune",
+        "phone": "+91-20-2612-7364"
+      },
+      "Nashik": {
+        "address": "District Agriculture Office, Trimbak Road, Nashik",
+        "phone": "+91-253-257-4293"
+      },
+      "Ahmednagar": {
+        "address": "District Agriculture Office, Maliwada, Ahmednagar",
+        "phone": "+91-241-234-0611"
+      },
+      "Aurangabad": {
+        "address": "District Agriculture Office, Kranti Chowk, Aurangabad",
+        "phone": "+91-240-233-1187"
+      },
+      "Nagpur": {
+        "address": "District Agriculture Office, Civil Lines, Nagpur",
+        "phone": "+91-712-256-2745"
+      },
+      "Kolhapur": {
+        "address": "District Agriculture Office, Tarabai Park, Kolhapur",
+        "phone": "+91-231-265-4021"
+      }
     }
   },
   "diseases": {
