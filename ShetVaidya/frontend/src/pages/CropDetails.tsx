@@ -88,7 +88,7 @@ const CropDetails = ({ crop }: CropDetailsProps) => {
         <div className="pill-row">
           {crop.common_diseases.map((disease) => (
             <span key={disease} className="pill">
-              {disease}
+              {localizeAgricultureText(disease, language)}
             </span>
           ))}
         </div>

@@ -35,13 +35,15 @@ const CropDetailsModal = ({ crop, onClose }: CropDetailsModalProps) => {
     `${t('area.fields.commonDiseases')}: ${crop.common_diseases.map((disease) => localizeText(disease)).join(', ')}`,
   ].join('. ');
 
+  const localizedCropName = localizeText(crop.crop_name);
+
   return (
-    <div className="crop-modal-overlay" role="dialog" aria-modal="true" aria-label={t('area.detailsAria', { crop: crop.crop_name })}>
+    <div className="crop-modal-overlay" role="dialog" aria-modal="true" aria-label={t('area.detailsAria', { crop: localizedCropName })}>
       <div className="crop-modal card">
         <div className="crop-modal__header">
           <div>
             <p className="subtitle">{t('area.detailsTitle')}</p>
-            <h2>{crop.crop_name}</h2>
+            <h2>{localizedCropName}</h2>
           </div>
           <div className="inline-row">
             <ReadAloudButton text={narrationText} labelKey="area.readCropAdvice" />

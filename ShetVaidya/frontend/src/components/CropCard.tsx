@@ -101,7 +101,7 @@ const CropCard = ({ crop, onOpenDetails }: CropCardProps) => {
       </div>
 
       <div className="crop-card__content">
-        <h3>{crop.crop_name}</h3>
+        <h3>{localizeAreaMetric(crop.crop_name)}</h3>
         <div className="crop-card__facts">
           <span>
             <strong>{FIELD_ICONS.season} {t('area.fields.season')}:</strong> {localizeAreaMetric(crop.growing_season)}

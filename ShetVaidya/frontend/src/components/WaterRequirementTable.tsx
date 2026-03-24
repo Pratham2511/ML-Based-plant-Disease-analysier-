@@ -31,7 +31,7 @@ const WaterRequirementTable = ({ items }: WaterRequirementTableProps) => {
           <tbody>
             {items.map((item) => (
               <tr key={item.crop_name}>
-                <td>{item.crop_name}</td>
+                <td>{localizeAgricultureText(item.crop_name, language)}</td>
                 <td>{localizeAgricultureText(item.water_requirement, language)}</td>
                 <td>
                   <span className="pill">{localizeAgricultureText(item.recommended_method, language)}</span>
