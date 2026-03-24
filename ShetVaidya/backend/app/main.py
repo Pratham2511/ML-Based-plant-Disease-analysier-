@@ -190,7 +190,7 @@ optional_current_user_dep = getattr(deps, "get_optional_current_user", lambda: N
 @app.post("/api/predict")
 async def predict(
     file: UploadFile = File(...),
-    current_user: deps.TokenUser | None = Depends(optional_current_user_dep),
+    current_user = Depends(optional_current_user_dep),
     db: Session = Depends(deps.get_db),
 ):
     if not file.content_type or not file.content_type.startswith("image/"):
