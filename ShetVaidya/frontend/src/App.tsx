@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ScanHistory from './pages/ScanHistory';
 import AreaIntelligence from './pages/AreaIntelligence';
+import KrushiVibhag from './pages/KrushiVibhag';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const SPLASH_STORAGE_KEY = 'shetvaidya-splash-seen';
@@ -130,6 +131,9 @@ const TopNavigation = () => {
           <NavLink to="/area-intelligence" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             {t('nav.areaIntelligence')}
           </NavLink>
+          <NavLink to="/krushi-vibhag" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+            {t('nav.krushiVibhag')}
+          </NavLink>
           <NavLink to="/history" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             {t('nav.scanHistory')}
           </NavLink>
@@ -160,6 +164,9 @@ const TopNavigation = () => {
               </NavLink>
               <NavLink to="/area-intelligence" className="mobile-drawer__link" onClick={closeMobileMenu}>
                 {t('nav.areaIntelligence')}
+              </NavLink>
+              <NavLink to="/krushi-vibhag" className="mobile-drawer__link" onClick={closeMobileMenu}>
+                {t('nav.krushiVibhag')}
               </NavLink>
               <NavLink to="/history" className="mobile-drawer__link" onClick={closeMobileMenu}>
                 {t('nav.scanHistory')}
@@ -236,6 +243,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AreaIntelligence />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/krushi-vibhag"
+                element={
+                  <ProtectedRoute>
+                    <KrushiVibhag />
                   </ProtectedRoute>
                 }
               />

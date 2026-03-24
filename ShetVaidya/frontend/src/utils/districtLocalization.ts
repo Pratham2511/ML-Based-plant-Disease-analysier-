@@ -42,6 +42,8 @@ const DISTRICT_TRANSLATIONS: Record<string, DistrictTranslation> = {
   Yavatmal: { mr: 'यवतमाळ', hi: 'यवतमाल' },
 };
 
+export const MAHARASHTRA_DISTRICTS = Object.keys(DISTRICT_TRANSLATIONS);
+
 export const localizeDistrictName = (district: string, language: string) => {
   const baseLanguage = language.split('-')[0] as 'en' | 'mr' | 'hi';
   if (baseLanguage === 'en') {

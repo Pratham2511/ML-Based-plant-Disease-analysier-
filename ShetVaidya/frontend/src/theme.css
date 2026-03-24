@@ -2177,3 +2177,239 @@ a {
     display: none;
   }
 }
+
+.krushi-vibhag-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.krushi-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.krushi-hero__copy {
+  display: grid;
+  gap: 10px;
+}
+
+.krushi-three-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.krushi-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.krushi-schemes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.krushi-scheme-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(46, 125, 50, 0.24);
+  background: rgba(255, 255, 255, 0.88);
+  display: grid;
+}
+
+.krushi-scheme-card > header {
+  background: linear-gradient(140deg, #2e7d32, #3e9a42);
+  color: #fff;
+  padding: 11px 12px;
+}
+
+.krushi-scheme-card > header h3 {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+  font-size: 1rem;
+}
+
+.krushi-scheme-card__body {
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  align-content: space-between;
+}
+
+.krushi-scheme-card__body p {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
+.krushi-office-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.krushi-office-selector {
+  display: grid;
+  gap: 8px;
+}
+
+.krushi-office-card {
+  border-radius: 14px;
+  border: 1px solid rgba(46, 125, 50, 0.2);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.krushi-office-card h3 {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+  color: var(--color-ink);
+}
+
+.krushi-office-card p {
+  margin: 0;
+  color: var(--color-text-soft);
+}
+
+.krushi-office-card a {
+  color: #1b5e20;
+  font-weight: 700;
+}
+
+.krushi-helpline {
+  background: linear-gradient(160deg, #195a22, #2f7d35);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #eaf9ec;
+  display: grid;
+  gap: 6px;
+}
+
+.krushi-helpline h2 {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+  color: #fff;
+}
+
+.krushi-helpline p {
+  margin: 0;
+}
+
+.krushi-helpline a {
+  color: #d4ffd9;
+  font-weight: 800;
+}
+
+.krushi-helpline .lead {
+  color: rgba(234, 249, 236, 0.88);
+}
+
+.farm-slideshow {
+  display: grid;
+  gap: 10px;
+}
+
+.farm-slideshow__viewport {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  overflow: hidden;
+  position: relative;
+  height: 280px;
+  background: rgba(17, 54, 23, 0.84);
+}
+
+.farm-slideshow__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 600ms ease;
+  pointer-events: none;
+}
+
+.farm-slideshow__slide.is-active {
+  opacity: 1;
+}
+
+.farm-slideshow__slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.farm-slideshow__overlay {
+  position: absolute;
+  inset: auto 0 0;
+  background: linear-gradient(180deg, rgba(5, 22, 8, 0), rgba(5, 22, 8, 0.65));
+  padding: 28px 14px 12px;
+}
+
+.farm-slideshow__overlay span {
+  color: #f5fff6;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.farm-slideshow__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(8, 33, 12, 0.45);
+  color: #fff;
+  font-size: 1rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.farm-slideshow__arrow--left {
+  left: 10px;
+}
+
+.farm-slideshow__arrow--right {
+  right: 10px;
+}
+
+.farm-slideshow__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.farm-slideshow__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(46, 125, 50, 0.45);
+  background: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+
+.farm-slideshow__dot.is-active {
+  background: #2e7d32;
+  border-color: #2e7d32;
+}
+
+@media (max-width: 960px) {
+  .krushi-three-grid,
+  .krushi-benefits-grid,
+  .krushi-schemes-grid,
+  .krushi-office-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .farm-slideshow__viewport {
+    height: 200px;
+  }
+}
