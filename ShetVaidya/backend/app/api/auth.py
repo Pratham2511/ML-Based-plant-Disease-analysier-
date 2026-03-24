@@ -19,13 +19,23 @@ from app.utils.security import create_jwt
 router = APIRouter()
 
 
-def _set_auth_cookie(response: Response, token: str) -> None:
-    same_site = "none" if settings.cookie_secure else "lax"
+def _resolve_cookie_options(request: Request) -> tuple[bool, str]:
+    forwarded_proto = request.headers.get("x-forwarded-proto", "")
+    proxy_https = forwarded_proto.split(",")[0].strip().lower() == "https"
+    is_https_request = request.url.scheme == "https" or proxy_https
+
+    secure_cookie = bool(settings.cookie_secure or is_https_request)
+    same_site = "none" if secure_cookie else "lax"
+    return secure_cookie, same_site
+
+
+def _set_auth_cookie(response: Response, token: str, request: Request) -> None:
+    secure_cookie, same_site = _resolve_cookie_options(request)
     response.set_cookie(
         key=settings.jwt_cookie_name,
         value=token,
         httponly=True,
-        secure=settings.cookie_secure,
+        secure=secure_cookie,
         samesite=same_site,
         max_age=settings.jwt_exp_minutes * 60,
     )
@@ -99,17 +109,17 @@ def google_auth(payload: GoogleAuthRequest, request: Request, response: Response
         "auth_provider": "google",
     }
     token = create_jwt(token_payload)
-    _set_auth_cookie(response, token)
+    _set_auth_cookie(response, token, request)
     return {"user": _claims_to_user(token_payload), "access_token": token}
 
 
 @router.post("/logout", response_model=SimpleStatusResponse)
-def logout(response: Response):
-    same_site = "none" if settings.cookie_secure else "lax"
+def logout(request: Request, response: Response):
+    secure_cookie, same_site = _resolve_cookie_options(request)
     response.delete_cookie(
         key=settings.jwt_cookie_name,
         httponly=True,
-        secure=settings.cookie_secure,
+        secure=secure_cookie,
         samesite=same_site,
     )
     return {"status": "logged_out"}
@@ -123,6 +133,7 @@ def me(current_user: deps.TokenUser = Depends(deps.get_current_user)):
 @router.post("/profile", response_model=UserOut)
 def update_profile(
     payload: UpdateProfileRequest,
+    request: Request,
     response: Response,
     current_user: deps.TokenUser = Depends(deps.get_current_user),
 ):
@@ -136,13 +147,14 @@ def update_profile(
         "auth_provider": "google",
     }
     token = create_jwt(token_payload)
-    _set_auth_cookie(response, token)
+    _set_auth_cookie(response, token, request)
     return _claims_to_user(token_payload)
 
 
 @router.post("/location", response_model=UserOut)
 def update_location(
     payload: UpdateLocationRequest,
+    request: Request,
     response: Response,
     current_user: deps.TokenUser = Depends(deps.get_current_user),
 ):
@@ -156,5 +168,5 @@ def update_location(
         "auth_provider": "google",
     }
     token = create_jwt(token_payload)
-    _set_auth_cookie(response, token)
+    _set_auth_cookie(response, token, request)
     return _claims_to_user(token_payload)
