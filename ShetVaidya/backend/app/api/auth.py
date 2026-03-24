@@ -23,8 +23,10 @@ def _resolve_cookie_options(request: Request) -> tuple[bool, str]:
     forwarded_proto = request.headers.get("x-forwarded-proto", "")
     proxy_https = forwarded_proto.split(",")[0].strip().lower() == "https"
     is_https_request = request.url.scheme == "https" or proxy_https
+    host = request.headers.get("host", "").split(":")[0].strip().lower()
+    is_local_host = host in {"localhost", "127.0.0.1", "::1"}
 
-    secure_cookie = bool(settings.cookie_secure or is_https_request)
+    secure_cookie = bool(settings.cookie_secure or is_https_request or (host and not is_local_host))
     same_site = "none" if secure_cookie else "lax"
     return secure_cookie, same_site
 

@@ -159,8 +159,16 @@ if settings.environment == "production":
 
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
 
-vercel_origin = "https://ml-based-plant-disease-analysier.vercel.app"
-cors_origins = [vercel_origin]
+cors_origins = [str(origin).rstrip("/") for origin in settings.backend_cors_origins]
+
+# Development fallback when env values are not configured.
+if not cors_origins:
+    cors_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ]
 
 app.add_middleware(
     CORSMiddleware,
