@@ -184,10 +184,13 @@ app.include_router(scans.router, prefix="/scans", tags=["scans"])
 app.include_router(medicine.router, prefix="/medicine", tags=["medicine"])
 app.include_router(area_intelligence.router, prefix="/area-intelligence", tags=["area-intelligence"])
 
+# Guard optional auth dependency to avoid startup crashes from partial module loads.
+optional_current_user_dep = getattr(deps, "get_optional_current_user", lambda: None)
+
 @app.post("/api/predict")
 async def predict(
     file: UploadFile = File(...),
-    current_user: deps.TokenUser | None = Depends(deps.get_optional_current_user),
+    current_user: deps.TokenUser | None = Depends(optional_current_user_dep),
     db: Session = Depends(deps.get_db),
 ):
     if not file.content_type or not file.content_type.startswith("image/"):
