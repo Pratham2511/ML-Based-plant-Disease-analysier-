@@ -12,6 +12,10 @@ const MODEL_CLASS_KEY_MAP: Record<string, string> = {
   yellow_leaf_curl_virus: 'yellow_leaf_curl_virus',
   mosaic_virus: 'mosaic_virus',
   healthy: 'healthy',
+  healthy_tomato: 'tomato_healthy',
+  healthy_tomato_plant: 'tomato_healthy',
+  healthy_potato: 'potato_healthy',
+  healthy_bell_pepper: 'bell_pepper_healthy',
   not_a_leaf: 'garbage_not_leaf',
 
   // Canonical class ids from the backend model
@@ -99,10 +103,16 @@ export const localizeModelClassLabel = (
 ): string => {
   const candidates = getClassKeyCandidates(classKey);
   for (const key of candidates) {
-    const path = `diseases.${key}`;
-    const translated = t(path, { defaultValue: '' });
-    if (translated && translated !== path) {
-      return translated;
+    const titlePath = `diseases.${key}.title`;
+    const titleTranslated = t(titlePath, { defaultValue: '' });
+    if (titleTranslated && titleTranslated !== titlePath) {
+      return titleTranslated;
+    }
+
+    const labelPath = `diseases.${key}`;
+    const labelTranslated = t(labelPath, { defaultValue: '' });
+    if (labelTranslated && labelTranslated !== labelPath) {
+      return labelTranslated;
     }
   }
   return fallbackValue;
@@ -116,10 +126,16 @@ export const localizeModelAdvice = (
 ): string => {
   const candidates = getClassKeyCandidates(classKey);
   for (const key of candidates) {
-    const path = `mlAdvice.${key}.${field}`;
-    const translated = t(path, { defaultValue: '' });
-    if (translated && translated !== path) {
-      return translated;
+    const diseasePath = `diseases.${key}.${field}`;
+    const diseaseTranslated = t(diseasePath, { defaultValue: '' });
+    if (diseaseTranslated && diseaseTranslated !== diseasePath) {
+      return diseaseTranslated;
+    }
+
+    const advicePath = `mlAdvice.${key}.${field}`;
+    const adviceTranslated = t(advicePath, { defaultValue: '' });
+    if (adviceTranslated && adviceTranslated !== advicePath) {
+      return adviceTranslated;
     }
   }
   return fallbackValue;

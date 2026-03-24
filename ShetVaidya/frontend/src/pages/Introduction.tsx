@@ -71,16 +71,16 @@ const Introduction = () => {
 
           <div className="landing-video-copy">
             <h2 className="headline landing-video-title">
-              {t('intro.videoHeadline')}
+              {t('hero.headline')}
             </h2>
             <p className="lead landing-video-lead landing-video-lead--tight">
-              {t('intro.videoLeadOne')}
+              {t('hero.subtext')}
             </p>
             <p className="lead landing-video-lead">
-              {t('intro.videoLeadTwo')}
+              {t('hero.supportingText')}
             </p>
             <Link className="btn primary" to="/dashboard">
-              {t('intro.videoAction')}
+              {t('hero.cta')}
             </Link>
           </div>
         </div>

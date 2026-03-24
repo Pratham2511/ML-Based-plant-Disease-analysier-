@@ -450,6 +450,12 @@
     "tomato_healthy": "Tomato Healthy",
     "garbage_not_leaf": "Not a leaf image"
   },
+  "hero": {
+    "headline": "Disease Spreads Faster Than You Think.",
+    "subtext": "Early field signs are easy to miss during routine rounds. ShetVaidya helps you act before infection spreads across the plot.",
+    "supportingText": "Use AI crop checks, medicine verification, and district intelligence together to make faster, more confident farm decisions.",
+    "cta": "Start Crop Check"
+  },
   "mlAdvice": {
     "early_blight": {
       "description": "Early blight appears as dark concentric lesions and quickly weakens leaf health.",
