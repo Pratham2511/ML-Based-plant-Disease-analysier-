@@ -4,6 +4,7 @@ from app.models.medicine import Medicine, MedicineBatch
 from app.models.scan_history import ScanHistory
 from app.models.soil_report import SoilReport
 from app.models.crop_recommendation import CropRecommendation
+from app.models.farm import Farm
 
 __all__ = [
     "User",
@@ -13,4 +14,5 @@ __all__ = [
     "ScanHistory",
     "SoilReport",
     "CropRecommendation",
+    "Farm",
 ]

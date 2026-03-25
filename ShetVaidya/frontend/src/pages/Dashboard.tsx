@@ -6,8 +6,12 @@ import { BrowserMultiFormatReader } from '@zxing/library';
 import LeafLoader from '../components/LeafLoader';
 import MiniTrend from '../components/MiniTrend';
 import ReadAloudButton from '../components/ReadAloudButton';
+import AddFarmModal from '../components/AddFarmModal';
+import MandiPrices from '../components/MandiPrices';
+import WeatherWidget from '../components/WeatherWidget';
 import { formatLocalizedNumber, localizeAgricultureText } from '../utils/localization';
 import { localizeModelAdvice, localizeModelClassLabel, resolveModelClassKey } from '../utils/mlLocalization';
+import { useFarmContext } from '../context/FarmContext';
 
 type PredictionResult = {
   class_key: string | null;
@@ -72,6 +76,7 @@ const getSeverityClass = (diseaseKey: string) => {
 
 const Dashboard = () => {
   const { t, i18n } = useTranslation();
+  const { farms, activeFarm, addFarm } = useFarmContext();
   const language = i18n.language;
   const isDevanagariLanguage = ['mr', 'hi'].includes(language.split('-')[0]);
 
@@ -89,18 +94,31 @@ const Dashboard = () => {
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [historyItems, setHistoryItems] = useState<HistoryInsight[]>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAddFarmModal, setShowAddFarmModal] = useState(false);
   const [showPredictionModal, setShowPredictionModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
+  const [detectedDistrict, setDetectedDistrict] = useState('');
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         setLat(pos.coords.latitude);
         setLng(pos.coords.longitude);
+
+        try {
+          const response = await api.post('/area-intelligence/detect-district', {
+            latitude: Number(pos.coords.latitude.toFixed(6)),
+            longitude: Number(pos.coords.longitude.toFixed(6)),
+          });
+          setDetectedDistrict(String(response.data?.district || ''));
+        } catch {
+          setDetectedDistrict('');
+        }
       },
       () => {
         setLat(null);
         setLng(null);
+        setDetectedDistrict('');
       }
     );
 
@@ -206,11 +224,15 @@ const Dashboard = () => {
 
     const form = new FormData();
     form.append('file', selectedFile);
+    if (activeFarm?.id) {
+      form.append('farm_id', activeFarm.id);
+    }
     try {
       const scanPayload = {
         fileName: selectedFile.name,
         fileType: selectedFile.type,
         fileSize: selectedFile.size,
+        farmId: activeFarm?.id || null,
       };
       console.log('Scan payload being sent:', scanPayload);
 
@@ -329,6 +351,7 @@ const Dashboard = () => {
   const localizedTopDiseaseLabel = insights.topDisease
     ? localizeDiseaseName(insights.topDisease)
     : t('dashboard.notAvailable');
+  const dashboardDistrict = activeFarm?.district || detectedDistrict || '';
   const confidenceLabel = getConfidenceLabel(insights.avgConfidence, t);
   const formattedTotalScans = formatLocalizedNumber(insights.totalScans, language);
   const formattedAverageConfidence = formatLocalizedNumber(insights.avgConfidence, language, {
@@ -381,6 +404,16 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-layout">
+      {farms.length === 0 ? (
+        <section className="card farm-setup-card">
+          <h2>🌾 {t('farms.setupPrompt')}</h2>
+          <p className="lead">{t('farms.setupPrompt')}</p>
+          <button type="button" className="btn primary" onClick={() => setShowAddFarmModal(true)}>
+            {t('farms.setupCta')}
+          </button>
+        </section>
+      ) : null}
+
       {showOnboarding && (
         <div className="onboarding-overlay">
           <div className="card onboarding-card">
@@ -439,35 +472,9 @@ const Dashboard = () => {
         </div>
       </section>
 
-      <section className="card analytics-band">
-        <div className="section-title-row">
-          <h2>{t('dashboard.snapshotTitle')}</h2>
-          <span className="pill">{t('dashboard.snapshotPill')}</span>
-        </div>
+      {dashboardDistrict ? <WeatherWidget district={dashboardDistrict} /> : <section className="card"><p className="panel-muted">{t('weather.locationPrompt')}</p></section>}
 
-        <div className="analytics-grid">
-          <article className="analytics-tile">
-            <span>{t('dashboard.snapshot.totalScans')}</span>
-            <strong>{formattedTotalScans}</strong>
-          </article>
-          <article className="analytics-tile">
-            <span>{t('dashboard.snapshot.avgConfidence')}</span>
-            <strong>{confidenceLabel}</strong>
-          </article>
-          <article className="analytics-tile">
-            <span>{t('dashboard.snapshot.topFinding')}</span>
-            <strong>{localizedTopDiseaseLabel}</strong>
-          </article>
-          <article className="analytics-tile analytics-tile--trend">
-            <span>{t('dashboard.snapshot.trend')}</span>
-            {loadingInsights ? (
-              <LeafLoader variant="panel" label={t('dashboard.loadingInsights')} />
-            ) : (
-              <MiniTrend points={insights.trendPoints} />
-            )}
-          </article>
-        </div>
-      </section>
+      {dashboardDistrict ? <MandiPrices district={dashboardDistrict} preferredCrop={activeFarm?.crop} /> : null}
 
       <section className="dashboard-grid">
         <article className="card panel-card">
@@ -553,6 +560,36 @@ const Dashboard = () => {
             )}
           </div>
         </article>
+      </section>
+
+      <section className="card analytics-band">
+        <div className="section-title-row">
+          <h2>{t('dashboard.snapshotTitle')}</h2>
+          <span className="pill">{t('dashboard.snapshotPill')}</span>
+        </div>
+
+        <div className="analytics-grid">
+          <article className="analytics-tile">
+            <span>{t('dashboard.snapshot.totalScans')}</span>
+            <strong>{formattedTotalScans}</strong>
+          </article>
+          <article className="analytics-tile">
+            <span>{t('dashboard.snapshot.avgConfidence')}</span>
+            <strong>{confidenceLabel}</strong>
+          </article>
+          <article className="analytics-tile">
+            <span>{t('dashboard.snapshot.topFinding')}</span>
+            <strong>{localizedTopDiseaseLabel}</strong>
+          </article>
+          <article className="analytics-tile analytics-tile--trend">
+            <span>{t('dashboard.snapshot.trend')}</span>
+            {loadingInsights ? (
+              <LeafLoader variant="panel" label={t('dashboard.loadingInsights')} />
+            ) : (
+              <MiniTrend points={insights.trendPoints} />
+            )}
+          </article>
+        </div>
       </section>
 
       {showPredictionModal && prediction && (
@@ -645,6 +682,12 @@ const Dashboard = () => {
 
       {error && <p className="form-error">{error}</p>}
       {status && <p className="panel-muted">{t('dashboard.systemStatus')}: {status}</p>}
+
+      <AddFarmModal
+        isOpen={showAddFarmModal}
+        onClose={() => setShowAddFarmModal(false)}
+        onSave={addFarm}
+      />
     </div>
   );
 };

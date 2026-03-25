@@ -1,8 +1,9 @@
 import json
 import logging
+from uuid import UUID
 
 import httpx
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api import deps
@@ -46,6 +47,7 @@ def list_scans(current_user=Depends(deps.get_current_user), db: Session = Depend
         "items": [
             {
                 "id": str(item.id),
+                "farm_id": str(item.farm_id) if item.farm_id else None,
                 "disease_name": item.disease_name,
                 "confidence": item.confidence,
                 "image_url": item.image_url,
@@ -58,8 +60,20 @@ def list_scans(current_user=Depends(deps.get_current_user), db: Session = Depend
 
 
 @router.post("/analyze")
-async def analyze_leaf(file: UploadFile = File(...), current_user=Depends(deps.get_current_user), db: Session = Depends(deps.get_db)):
+async def analyze_leaf(
+    file: UploadFile = File(...),
+    farm_id: str | None = Form(default=None),
+    current_user=Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+):
     enforce_image_constraints(file)
+    farm_uuid = None
+    if farm_id:
+        try:
+            farm_uuid = UUID(str(farm_id))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid farm_id") from exc
+
     img_bytes = await file.read()
 
     async with httpx.AsyncClient(timeout=15) as client:
@@ -83,6 +97,7 @@ async def analyze_leaf(file: UploadFile = File(...), current_user=Depends(deps.g
 
     record = ScanHistory(
         user_id=current_user.id,
+        farm_id=farm_uuid,
         disease_name=prediction.get("disease_name"),
         confidence=prediction.get("confidence"),
         image_url=image_url,
@@ -97,4 +112,10 @@ async def analyze_leaf(file: UploadFile = File(...), current_user=Depends(deps.g
         logger.error("Failed to save scan to DB: %s", exc)
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to save scan")
-    return {"success": True, "result": prediction, "history_id": str(record.id), "image_url": image_url}
+    return {
+        "success": True,
+        "result": prediction,
+        "history_id": str(record.id),
+        "farm_id": str(farm_uuid) if farm_uuid else None,
+        "image_url": image_url,
+    }

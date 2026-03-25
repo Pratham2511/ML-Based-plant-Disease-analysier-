@@ -3,16 +3,17 @@ import logging
 import traceback
 from io import BytesIO
 from pathlib import Path
+from uuid import UUID
 
 import numpy as np
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
 from sqlalchemy.orm import Session
 
-from app.api import area_intelligence, auth, deps, health, medicine, scans
+from app.api import area_intelligence, auth, deps, farms, health, medicine, scans
 from app.core.config import settings
 from app.models.scan_history import ScanHistory
 from app.utils.storage import upload_to_r2
@@ -183,6 +184,7 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(scans.router, prefix="/scans", tags=["scans"])
 app.include_router(medicine.router, prefix="/medicine", tags=["medicine"])
 app.include_router(area_intelligence.router, prefix="/area-intelligence", tags=["area-intelligence"])
+app.include_router(farms.router, prefix="/farms", tags=["farms"])
 
 # Guard optional auth dependency to avoid startup crashes from partial module loads.
 optional_current_user_dep = getattr(deps, "get_optional_current_user", lambda: None)
@@ -190,6 +192,7 @@ optional_current_user_dep = getattr(deps, "get_optional_current_user", lambda: N
 @app.post("/api/predict")
 async def predict(
     file: UploadFile = File(...),
+    farm_id: str | None = Form(default=None),
     current_user = Depends(optional_current_user_dep),
     db: Session = Depends(deps.get_db),
 ):
@@ -202,6 +205,13 @@ async def predict(
         raise HTTPException(status_code=413, detail="Uploaded image is too large.")
         
     try:
+        farm_uuid = None
+        if farm_id:
+            try:
+                farm_uuid = UUID(str(farm_id))
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail="Invalid farm_id") from exc
+
         img = Image.open(BytesIO(image_bytes)).convert("RGB").resize((224, 224))
         image_array = np.array(img, dtype=np.float32)
         model = get_local_model()
@@ -259,6 +269,7 @@ async def predict(
                 image_url = upload_to_r2(file.filename or "leaf.jpg", image_bytes, file.content_type or "image/jpeg")
                 record = ScanHistory(
                     user_id=current_user.id,
+                    farm_id=farm_uuid,
                     disease_name=disease_name,
                     confidence=confidence_ratio,
                     image_url=image_url,
@@ -292,6 +303,7 @@ async def predict(
             "top_predictions": top_predictions,
             "model_warning": "uniform_output" if float(np.std(preds)) <= 1e-6 else None,
             "history_id": history_id,
+            "farm_id": str(farm_uuid) if farm_uuid else None,
             "image_url": image_url,
         }
     except HTTPException:

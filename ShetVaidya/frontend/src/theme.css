@@ -424,6 +424,221 @@ a {
   background: rgba(255, 255, 255, 0.7);
 }
 
+.farm-selector {
+  position: relative;
+}
+
+.farm-selector__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(46, 125, 50, 0.28);
+  background: rgba(255, 255, 255, 0.86);
+  color: #1b5e20;
+  font-weight: 700;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.farm-selector--compact .farm-selector__trigger {
+  max-width: 220px;
+}
+
+.farm-selector__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 280px;
+  max-width: 340px;
+  border: 1px solid rgba(46, 125, 50, 0.2);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+  padding: 8px;
+  z-index: 60;
+  display: grid;
+  gap: 6px;
+}
+
+.farm-selector__item {
+  border: 1px solid rgba(46, 125, 50, 0.16);
+  border-radius: 10px;
+  background: #f8fbf5;
+  color: #1d4d22;
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  text-align: left;
+}
+
+.farm-selector__item span {
+  font-size: 0.82rem;
+  color: #48644a;
+}
+
+.farm-selector__add {
+  border: 1px dashed rgba(46, 125, 50, 0.4);
+  border-radius: 10px;
+  background: #f1f8e9;
+  color: #2f7a35;
+  font-weight: 700;
+  padding: 8px;
+}
+
+.farm-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 92;
+  background: rgba(7, 24, 11, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+.farm-modal {
+  width: min(620px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(46, 125, 50, 0.24);
+  background: #f8fcf6;
+  box-shadow: var(--shadow-hard);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.farm-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.farm-modal__header h3 {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+}
+
+.farm-modal__form {
+  display: grid;
+  gap: 8px;
+}
+
+.farm-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.farms-section {
+  display: grid;
+  gap: 12px;
+}
+
+.farms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.farm-card {
+  border: 1px solid rgba(46, 125, 50, 0.18);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.farm-card.is-active {
+  border-color: #3b6d11;
+  box-shadow: 0 0 0 2px rgba(59, 109, 17, 0.14);
+}
+
+.farm-setup-card {
+  border-left: 4px solid #3b6d11;
+}
+
+.weather-widget,
+.mandi-widget {
+  display: grid;
+  gap: 10px;
+}
+
+.weather-widget__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.weather-widget__header h2,
+.mandi-widget h2 {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+}
+
+.weather-widget__days,
+.mandi-widget__list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.weather-day-card {
+  min-width: 80px;
+  border: 1px solid rgba(46, 125, 50, 0.2);
+  border-radius: 10px;
+  background: #f8fcf6;
+  padding: 8px;
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  font-size: 0.82rem;
+}
+
+.weather-day-card__icon {
+  font-size: 1.35rem;
+}
+
+.weather-widget__advisory {
+  margin: 0;
+  border-radius: 10px;
+  background: #fff7dd;
+  border: 1px solid #f4d683;
+  color: #7a5b11;
+  padding: 10px;
+  font-weight: 700;
+}
+
+.mandi-pill {
+  min-width: 150px;
+  border: 1px solid rgba(46, 125, 50, 0.2);
+  border-radius: 10px;
+  background: #f8fcf6;
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 960px) {
+  .farms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .farm-selector__menu {
+    position: static;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
 .lang-switcher__btn {
   border: 1px solid transparent;
   background: rgba(46, 125, 50, 0.08);

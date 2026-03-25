@@ -25,6 +25,7 @@ CREATE INDEX IF NOT EXISTS idx_batches_medicine_id ON medicine_batches(medicine_
 CREATE TABLE IF NOT EXISTS scan_history (
     id UUID PRIMARY KEY,
     user_id TEXT NOT NULL,
+    farm_id UUID NULL,
     disease_name TEXT NOT NULL,
     confidence DOUBLE PRECISION NOT NULL,
     image_url TEXT NOT NULL,
@@ -33,6 +34,22 @@ CREATE TABLE IF NOT EXISTS scan_history (
 );
 CREATE INDEX IF NOT EXISTS idx_scan_user ON scan_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_scan_created_at ON scan_history(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_scan_farm_id ON scan_history(farm_id);
+
+CREATE TABLE IF NOT EXISTS farms (
+    id UUID PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    crop VARCHAR(100) NOT NULL,
+    area_acres DOUBLE PRECISION,
+    district VARCHAR(100),
+    soil_type VARCHAR(100),
+    irrigation_type VARCHAR(100),
+    is_active BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_farms_user_id ON farms(user_id);
 
 CREATE TABLE IF NOT EXISTS soil_reports (
     id UUID PRIMARY KEY,

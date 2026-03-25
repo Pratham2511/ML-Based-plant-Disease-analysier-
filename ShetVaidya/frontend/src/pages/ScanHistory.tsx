@@ -5,6 +5,7 @@ import LeafLoader from '../components/LeafLoader';
 import ReadAloudButton from '../components/ReadAloudButton';
 import { formatLocalizedDateTime, formatLocalizedNumber, localizeAgricultureText, localizeNumericText } from '../utils/localization';
 import { localizeModelAdvice, localizeModelClassLabel, resolveModelClassKey } from '../utils/mlLocalization';
+import { useFarmContext } from '../context/FarmContext';
 
 type PredictionSummary = {
   raw_class?: string;
@@ -14,6 +15,7 @@ type PredictionSummary = {
 
 type HistoryItem = {
   id: string;
+  farm_id?: string | null;
   disease_name: string;
   confidence: number;
   image_url: string;
@@ -33,6 +35,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const ScanHistory = () => {
   const { t, i18n } = useTranslation();
+  const { farms } = useFarmContext();
   const language = i18n.language;
 
   const [items, setItems] = useState<HistoryItem[]>([]);
@@ -40,6 +43,7 @@ const ScanHistory = () => {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [minConfidence, setMinConfidence] = useState(0);
+  const [farmFilter, setFarmFilter] = useState('all');
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -72,7 +76,8 @@ const ScanHistory = () => {
   const filteredItems = items.filter((item) => {
     const searchHit = item.disease_name.toLowerCase().includes(query.trim().toLowerCase());
     const confidenceHit = item.confidence * 100 >= minConfidence;
-    return searchHit && confidenceHit;
+    const farmHit = farmFilter === 'all' ? true : item.farm_id === farmFilter;
+    return searchHit && confidenceHit && farmHit;
   });
 
   const averageConfidence = filteredItems.length
@@ -119,6 +124,16 @@ const ScanHistory = () => {
 
       <section className="card history-controls">
         <div className="history-controls__row">
+          <div className="history-control">
+            <label className="field-label" htmlFor="history-farm-filter">{t('farms.title')}</label>
+            <select id="history-farm-filter" className="input" value={farmFilter} onChange={(event) => setFarmFilter(event.target.value)}>
+              <option value="all">All Farms</option>
+              {farms.map((farm) => (
+                <option key={farm.id} value={farm.id}>{farm.name} - {farm.crop}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="history-control">
             <label className="field-label" htmlFor="history-search">{t('history.searchDisease')}</label>
             <input

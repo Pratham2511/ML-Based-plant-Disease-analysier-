@@ -7,6 +7,7 @@ import { Capacitor } from '@capacitor/core';
 import { AuthProvider, useAuth } from './components/AuthContext';
 import AppSplash from './components/AppSplash';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import FarmSelector from './components/FarmSelector';
 import Introduction from './pages/Introduction';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -14,6 +15,7 @@ import ScanHistory from './pages/ScanHistory';
 import AreaIntelligence from './pages/AreaIntelligence';
 import KrushiVibhag from './pages/KrushiVibhag';
 import ProtectedRoute from './components/ProtectedRoute';
+import { FarmProvider } from './context/FarmContext';
 
 const SPLASH_STORAGE_KEY = 'shetvaidya-splash-seen';
 
@@ -138,6 +140,7 @@ const TopNavigation = () => {
         </div>
 
         <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
+          {user ? <FarmSelector compact /> : null}
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             {t('nav.dashboard')}
           </NavLink>
@@ -171,6 +174,7 @@ const TopNavigation = () => {
                 ✕
               </button>
             </div>
+            <FarmSelector />
             <nav className="mobile-drawer__links" aria-label={t('nav.primaryLabel')}>
               <NavLink to="/dashboard" className="mobile-drawer__link" onClick={closeMobileMenu}>
                 {t('nav.dashboard')}
@@ -220,58 +224,60 @@ function App() {
 
   return (
     <AuthProvider>
-      <div className="app-shell app-shell--safe">
-        {showSplash && <AppSplash />}
-        <TopNavigation />
-        <main className="route-stage">
-          <div className="route-transition" key={location.pathname}>
-            <Routes location={location}>
-              <Route path="/" element={<Introduction />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/history"
-                element={
-                  <ProtectedRoute>
-                    <ScanHistory />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/area-intelligence"
-                element={
-                  <ProtectedRoute>
-                    <AreaIntelligence />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/krushi-vibhag"
-                element={
-                  <ProtectedRoute>
-                    <KrushiVibhag />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-        </main>
-      </div>
+      <FarmProvider>
+        <div className="app-shell app-shell--safe">
+          {showSplash && <AppSplash />}
+          <TopNavigation />
+          <main className="route-stage">
+            <div className="route-transition" key={location.pathname}>
+              <Routes location={location}>
+                <Route path="/" element={<Introduction />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/history"
+                  element={
+                    <ProtectedRoute>
+                      <ScanHistory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/area-intelligence"
+                  element={
+                    <ProtectedRoute>
+                      <AreaIntelligence />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/krushi-vibhag"
+                  element={
+                    <ProtectedRoute>
+                      <KrushiVibhag />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </div>
+          </main>
+        </div>
+      </FarmProvider>
     </AuthProvider>
   );
 }

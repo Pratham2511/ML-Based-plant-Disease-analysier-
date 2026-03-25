@@ -12,6 +12,7 @@ import api from '../lib/api';
 import type { AreaIntelligenceResponse, CropRecommendation, DetectDistrictResponse } from '../types/areaIntelligence';
 import { localizeDistrictName } from '../utils/districtLocalization';
 import { localizeAgricultureText } from '../utils/localization';
+import { useFarmContext } from '../context/FarmContext';
 
 const DISTRICT_ALIASES: Record<string, string> = {
   mumbai: 'Mumbai City',
@@ -34,6 +35,7 @@ const normalizeDistrictName = (district: string, availableDistricts: string[]) =
 
 const AreaIntelligence = () => {
   const { t, i18n } = useTranslation();
+  const { activeFarm } = useFarmContext();
   const language = i18n.language;
 
   const [districts, setDistricts] = useState<string[]>([]);
@@ -72,6 +74,9 @@ const AreaIntelligence = () => {
         const districtList = (response.data?.districts || []) as string[];
         setDistricts(districtList);
         setSelectedDistrict((prev) => {
+          if (activeFarm?.district && districtList.includes(activeFarm.district)) {
+            return activeFarm.district;
+          }
           if (prev && districtList.includes(prev)) {
             return prev;
           }
@@ -94,7 +99,13 @@ const AreaIntelligence = () => {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [t, activeFarm?.district]);
+
+  useEffect(() => {
+    if (!activeFarm?.district) return;
+    if (!districts.includes(activeFarm.district)) return;
+    setSelectedDistrict(activeFarm.district);
+  }, [activeFarm?.district, districts]);
 
   useEffect(() => {
     if (!selectedDistrict) return;

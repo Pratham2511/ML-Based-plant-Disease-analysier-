@@ -6,15 +6,20 @@ import api from '../lib/api';
 import { useAuth } from '../components/AuthContext';
 import LeafLoader from '../components/LeafLoader';
 import ReadAloudButton from '../components/ReadAloudButton';
+import AddFarmModal from '../components/AddFarmModal';
+import { useFarmContext, type Farm } from '../context/FarmContext';
 
 type NameForm = { full_name: string };
 
 const Profile = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { farms, addFarm, updateFarm, deleteFarm, setActiveFarm, loading: farmsLoading } = useFarmContext();
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [showFarmModal, setShowFarmModal] = useState(false);
+  const [editingFarm, setEditingFarm] = useState<Farm | null>(null);
 
   const nameForm = useForm<NameForm>({
     defaultValues: {
@@ -59,6 +64,66 @@ const Profile = () => {
 
   return (
     <div className="profile-layout">
+      <section className="card farms-section">
+        <div className="section-title-row">
+          <h2>{t('farms.title')}</h2>
+          <button
+            type="button"
+            className="btn primary btn--compact"
+            onClick={() => {
+              setEditingFarm(null);
+              setShowFarmModal(true);
+            }}
+          >
+            + {t('farms.addFarm')}
+          </button>
+        </div>
+
+        {farmsLoading ? <LeafLoader variant="panel" label={t('common.loading')} /> : null}
+
+        {farms.length === 0 ? <p className="panel-muted">{t('farms.noFarms')}</p> : null}
+
+        <div className="farms-grid">
+          {farms.map((farm) => (
+            <article key={farm.id} className={`farm-card ${farm.isActive ? 'is-active' : ''}`}>
+              <strong>{farm.isActive ? `✅ ${farm.name}` : farm.name}</strong>
+              <span>{farm.crop} · {farm.areaAcres ?? '-'} {t('farms.acres')}</span>
+              <span>{farm.district || '-'}</span>
+              <span>{farm.soilType ? t(`farms.soilTypes.${farm.soilType}`) : '-'}</span>
+              <div className="inline-row">
+                <button
+                  type="button"
+                  className="btn outline btn--compact"
+                  onClick={() => {
+                    setEditingFarm(farm);
+                    setShowFarmModal(true);
+                  }}
+                >
+                  {t('farms.editFarm')}
+                </button>
+                {!farm.isActive ? (
+                  <button type="button" className="btn ghost btn--compact" onClick={() => setActiveFarm(farm)}>
+                    {t('farms.setActive')}
+                  </button>
+                ) : (
+                  <span className="pill">{t('farms.active')}</span>
+                )}
+                <button
+                  type="button"
+                  className="btn ghost btn--compact"
+                  onClick={async () => {
+                    if (!window.confirm(t('farms.deleteConfirm'))) return;
+                    await deleteFarm(farm.id);
+                  }}
+                >
+                  {t('farms.deleteFarm')}
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="card profile-hero">
         <p className="subtitle">{t('profile.subtitle')}</p>
         <h1 className="headline">{t('profile.heroTitle')}</h1>
@@ -116,6 +181,19 @@ const Profile = () => {
       {pendingAction && <LeafLoader variant="panel" label={t('profile.updatingProfile')} />}
       {statusMessage && <div className="success-box">{statusMessage}</div>}
       {errorMessage && <p className="form-error">{errorMessage}</p>}
+
+      <AddFarmModal
+        isOpen={showFarmModal}
+        onClose={() => setShowFarmModal(false)}
+        initialFarm={editingFarm}
+        onSave={async (farmPayload) => {
+          if (editingFarm) {
+            await updateFarm(editingFarm.id, farmPayload);
+            return;
+          }
+          await addFarm(farmPayload);
+        }}
+      />
     </div>
   );
 };
