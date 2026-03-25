@@ -255,6 +255,7 @@ async def predict(
         image_url = None
         if current_user is not None:
             try:
+                logger.info("Attempting scan persistence for user=%s", current_user.id)
                 image_url = upload_to_r2(file.filename or "leaf.jpg", image_bytes, file.content_type or "image/jpeg")
                 record = ScanHistory(
                     user_id=current_user.id,
@@ -276,6 +277,7 @@ async def predict(
                 db.commit()
                 db.refresh(record)
                 history_id = str(record.id)
+                logger.info("Scan saved successfully: user=%s scan_id=%s", current_user.id, history_id)
             except Exception:
                 db.rollback()
                 logger.exception("Failed to persist scan history for user %s", current_user.id)

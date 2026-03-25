@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import api from '../lib/api';
 import LeafLoader from '../components/LeafLoader';
 import ReadAloudButton from '../components/ReadAloudButton';
 import { formatLocalizedDateTime, formatLocalizedNumber, localizeAgricultureText, localizeNumericText } from '../utils/localization';
@@ -30,6 +29,8 @@ type HistoryItem = {
   };
 };
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const ScanHistory = () => {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
@@ -43,14 +44,19 @@ const ScanHistory = () => {
 
   useEffect(() => {
     setLoading(true);
-    api
-      .get('/scans')
-      .then((res) => {
-        setItems(res.data.items || []);
+    fetch(`${API_BASE}/scans`, {
+      credentials: 'include',
+    })
+      .then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error((body as any)?.detail || t('history.errors.fetchFailed'));
+        }
+        setItems((body as any).items || []);
         setError('');
       })
       .catch((err) => {
-        setError(err?.response?.data?.detail || t('history.errors.fetchFailed'));
+        setError(err?.message || t('history.errors.fetchFailed'));
       })
       .finally(() => setLoading(false));
   }, [t]);

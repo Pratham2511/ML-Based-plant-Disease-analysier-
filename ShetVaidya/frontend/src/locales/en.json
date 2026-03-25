@@ -169,6 +169,11 @@
     "locationUnavailable": "Farm location not available",
     "systemStatus": "System status",
     "loadingInsights": "Loading insights",
+    "noScansYet": "No scans yet",
+    "highAccuracy": "High accuracy",
+    "goodAccuracy": "Good accuracy",
+    "lowAccuracy": "Low accuracy - retake photo",
+    "photoTip": "Best results: take photo in daylight, hold close to the leaf, avoid blur",
     "kpis": {
       "totalScans": "Total Disease Scans",
       "avgConfidence": "Average Detection Confidence",
@@ -504,6 +509,14 @@
       }
     },
     "learnMore": "Learn More",
+    "knowMore": "Know More",
+    "howItHelps": "How this helps you",
+    "atAGlance": "At a Glance",
+    "realStory": "Real Story from the Field",
+    "howToApply": "How to Apply - Step by Step",
+    "visitWebsite": "Visit Official Website",
+    "close": "Close",
+    "benefitAmountLabel": "Benefit amount",
     "contactTitle": "Contact Your Local Krushi Vibhag Office",
     "selectDistrict": "Select Your District",
     "districtComingSoonTag": "adding soon",
@@ -554,6 +567,13 @@
         "phone": "+91-231-265-4021"
       }
     }
+  },
+  "slideshow": {
+    "slide1": "Ahmednagar - Sugarcane Farm",
+    "slide2": "Nashik - Onion Fields",
+    "slide3": "Pune - Vegetable Cultivation",
+    "slide4": "Kolhapur - Turmeric Farm",
+    "slide5": "Nagpur - Orange Orchards"
   },
   "diseases": {
     "early_blight": "Early Blight",

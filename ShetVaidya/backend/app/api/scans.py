@@ -1,4 +1,5 @@
 import json
+import logging
 
 import httpx
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -11,6 +12,7 @@ from app.utils.storage import upload_to_r2
 from app.utils.validators import enforce_image_constraints
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 LOW_CONFIDENCE_THRESHOLD = 0.20
 LOW_CONFIDENCE_MARGIN = 0.05
@@ -86,7 +88,13 @@ async def analyze_leaf(file: UploadFile = File(...), current_user=Depends(deps.g
         image_url=image_url,
         analysis_json=json.dumps(prediction),
     )
-    db.add(record)
-    db.commit()
-    db.refresh(record)
+    try:
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+        logger.info("Scan saved successfully: user=%s scan_id=%s", current_user.id, record.id)
+    except Exception as exc:
+        logger.error("Failed to save scan to DB: %s", exc)
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to save scan")
     return {"success": True, "result": prediction, "history_id": str(record.id), "image_url": image_url}

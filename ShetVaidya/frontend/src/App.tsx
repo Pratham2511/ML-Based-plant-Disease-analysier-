@@ -19,10 +19,11 @@ const SPLASH_STORAGE_KEY = 'shetvaidya-splash-seen';
 
 const TopNavigation = () => {
   const { user, loading, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const currentLang = i18n.language.split('-')[0];
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -73,6 +74,18 @@ const TopNavigation = () => {
       <header className={`top-nav w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="top-nav__left">
           <img src="/assets/shetvaidya-navbar-mobile.svg" alt="ShetVaidya" height={36} className="brand-lockup-mobile" />
+          <div className="mobile-lang-switcher" aria-label={t('language.label')}>
+            {['mr', 'en', 'hi'].map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                className={`lang-pill ${currentLang === lang ? 'active' : ''}`}
+                onClick={() => i18n.changeLanguage(lang)}
+              >
+                {lang.toUpperCase()}
+              </button>
+            ))}
+          </div>
           <div className="desktop-only-inline">
             <LanguageSwitcher compact />
           </div>

@@ -51,6 +51,24 @@ html[lang='hi'] body {
   line-height: 1.5;
 }
 
+:lang(mr),
+:lang(hi) {
+  font-family: 'Noto Sans Devanagari', sans-serif;
+  font-size: 1.05em;
+  line-height: 1.8;
+}
+
+:lang(mr) h1,
+:lang(hi) h1,
+:lang(mr) h2,
+:lang(hi) h2,
+:lang(mr) h3,
+:lang(hi) h3,
+:lang(mr) .card-title,
+:lang(hi) .card-title {
+  font-size: 1.08em;
+}
+
 html[lang='mr'] .headline,
 html[lang='hi'] .headline,
 html[lang='mr'] .subtitle,
@@ -188,6 +206,29 @@ a {
 .desktop-only-inline {
   display: inline-flex;
   align-items: center;
+}
+
+.mobile-lang-switcher {
+  display: none;
+  gap: 4px;
+  align-items: center;
+}
+
+.mobile-lang-switcher .lang-pill {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  border: 1px solid #c4dba8;
+  color: #3b6d11;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.mobile-lang-switcher .lang-pill.active {
+  background: #3b6d11;
+  color: #fff;
+  border-color: #3b6d11;
 }
 
 .brand-mark {
@@ -1510,6 +1551,13 @@ a {
   padding: 10px 12px;
 }
 
+.photo-tip {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #2c6131;
+  font-weight: 600;
+}
+
 .result-panel {
   border-radius: 14px;
   border: 1px solid rgba(46, 125, 50, 0.2);
@@ -2226,6 +2274,36 @@ a {
   padding: 11px 12px;
 }
 
+.krushi-scheme-card--pmkisan > header,
+.scheme-popup__header--pmkisan {
+  background: linear-gradient(140deg, #2e7d32, #3e9a42);
+}
+
+.krushi-scheme-card--pikvima > header,
+.scheme-popup__header--pikvima {
+  background: linear-gradient(140deg, #1b5e20, #2e7d32);
+}
+
+.krushi-scheme-card--soilhealth > header,
+.scheme-popup__header--soilhealth {
+  background: linear-gradient(140deg, #6b4f2c, #8d6e3f);
+}
+
+.krushi-scheme-card--microirrigation > header,
+.scheme-popup__header--microirrigation {
+  background: linear-gradient(140deg, #00695c, #00897b);
+}
+
+.krushi-scheme-card--farmpond > header,
+.scheme-popup__header--farmpond {
+  background: linear-gradient(140deg, #1565c0, #1e88e5);
+}
+
+.krushi-scheme-card--horticulture > header,
+.scheme-popup__header--horticulture {
+  background: linear-gradient(140deg, #7b1fa2, #8e24aa);
+}
+
 .krushi-scheme-card > header h3 {
   margin: 0;
   font-family: 'Sora', sans-serif;
@@ -2399,17 +2477,251 @@ a {
   border-color: #2e7d32;
 }
 
+.scheme-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(7, 24, 11, 0.58);
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  animation: popup-fade 220ms ease;
+}
+
+.scheme-popup {
+  width: min(920px, 96vw);
+  max-height: 92vh;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: #f6fbf4;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  box-shadow: 0 24px 50px rgba(9, 31, 14, 0.42);
+  animation: popup-rise 260ms ease;
+}
+
+.scheme-popup__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 10px;
+  color: #fff;
+  padding: 14px;
+}
+
+.analyzer-disease-title {
+  margin: 0;
+}
+
+.analyzer-disease-title--healthy {
+  color: #3b6d11;
+}
+
+.analyzer-disease-title--early {
+  color: #ba7517;
+}
+
+.analyzer-disease-title--critical {
+  color: #a32d2d;
+}
+
+.scheme-popup__title {
+  display: flex;
+  gap: 10px;
+}
+
+.scheme-popup__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.16);
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+}
+
+.scheme-popup__title h3 {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+}
+
+.scheme-popup__title p {
+  margin: 2px 0 0;
+  opacity: 0.92;
+}
+
+.scheme-popup__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.14);
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.scheme-popup__content {
+  overflow-y: auto;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.scheme-popup__section {
+  border-radius: 12px;
+  border: 1px solid rgba(46, 125, 50, 0.18);
+  background: rgba(255, 255, 255, 0.84);
+  padding: 12px;
+}
+
+.scheme-popup__section h4 {
+  margin: 0 0 8px;
+  color: var(--color-ink);
+  font-family: 'Sora', sans-serif;
+}
+
+.scheme-popup__bullet-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--color-text-soft);
+}
+
+.scheme-popup__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.scheme-popup__stat-card {
+  border-radius: 10px;
+  border: 1px solid rgba(46, 125, 50, 0.2);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 8px;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  text-align: center;
+}
+
+.scheme-popup__stat-icon {
+  font-size: 1rem;
+}
+
+.scheme-popup__stat-card strong {
+  font-size: 0.84rem;
+  color: #1c4f23;
+}
+
+.scheme-popup__stat-card span {
+  font-size: 0.72rem;
+  color: #4a6b4f;
+}
+
+.scheme-popup__story {
+  border-left: 4px solid #2f7a35;
+  background: #f4faf1;
+}
+
+.scheme-popup__story p {
+  margin: 0;
+  color: #2f5234;
+}
+
+.scheme-popup__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.scheme-popup__steps li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
+.scheme-popup__steps li > span {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #2f7a35;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+.scheme-popup__steps li p {
+  margin: 4px 0 0;
+  color: var(--color-text-soft);
+}
+
+.scheme-popup__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@keyframes popup-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popup-rise {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @media (max-width: 960px) {
   .krushi-three-grid,
   .krushi-benefits-grid,
   .krushi-schemes-grid,
-  .krushi-office-grid {
+  .krushi-office-grid,
+  .scheme-popup__stats-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
+  .mobile-lang-switcher {
+    display: flex !important;
+  }
+
+  button,
+  .btn,
+  a.btn {
+    min-height: 44px;
+    font-size: 15px;
+  }
+
   .farm-slideshow__viewport {
     height: 200px;
+  }
+
+  .scheme-popup {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+
+  .scheme-popup__actions {
+    display: grid;
   }
 }

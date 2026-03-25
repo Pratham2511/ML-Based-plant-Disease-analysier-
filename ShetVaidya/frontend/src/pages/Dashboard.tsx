@@ -54,6 +54,21 @@ type HistoryInsight = {
 };
 
 const ONBOARDING_KEY = 'shetvaidya-onboarding-complete';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+const getConfidenceLabel = (confidence: number, t: (key: string) => string) => {
+  if (confidence === 0) return t('dashboard.noScansYet');
+  if (confidence >= 85) return t('dashboard.highAccuracy');
+  if (confidence >= 65) return t('dashboard.goodAccuracy');
+  return t('dashboard.lowAccuracy');
+};
+
+const getSeverityClass = (diseaseKey: string) => {
+  const lower = diseaseKey.toLowerCase();
+  if (lower.includes('healthy')) return 'analyzer-disease-title--healthy';
+  if (lower.includes('early')) return 'analyzer-disease-title--early';
+  return 'analyzer-disease-title--critical';
+};
 
 const Dashboard = () => {
   const { t, i18n } = useTranslation();
@@ -96,8 +111,14 @@ const Dashboard = () => {
   const refreshHistoryItems = async () => {
     setLoadingInsights(true);
     try {
-      const res = await api.get('/scans');
-      const items = (res.data.items || []) as HistoryInsight[];
+      const response = await fetch(`${API_BASE}/scans`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`History fetch failed with ${response.status}`);
+      }
+      const body = (await response.json()) as { items?: HistoryInsight[] };
+      const items = (body.items || []) as HistoryInsight[];
       setHistoryItems(items);
     } catch {
       // Keep local fallback insights when auth-based history is unavailable.
@@ -186,11 +207,27 @@ const Dashboard = () => {
     const form = new FormData();
     form.append('file', selectedFile);
     try {
-      const res = await api.post('/api/predict', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const scanPayload = {
+        fileName: selectedFile.name,
+        fileType: selectedFile.type,
+        fileSize: selectedFile.size,
+      };
+      console.log('Scan payload being sent:', scanPayload);
+
+      const response = await fetch(`${API_BASE}/api/predict`, {
+        method: 'POST',
+        credentials: 'include',
+        body: form,
       });
 
-      const payload = res.data || {};
+      const responseBody = await response.json().catch(() => ({}));
+      console.log('Scan API response:', { status: response.status, body: responseBody });
+
+      if (!response.ok) {
+        throw new Error((responseBody as any)?.detail || t('dashboard.errors.predictionFailed'));
+      }
+
+      const payload = responseBody || {};
 
       if (payload?.success === false) {
         const warningPayload = payload as WarningResult;
@@ -236,7 +273,7 @@ const Dashboard = () => {
       refreshHistoryItems();
       setStatus(t('dashboard.status.predictionComplete'));
     } catch (err: any) {
-      setError(err?.response?.data?.detail || t('dashboard.errors.predictionFailed'));
+      setError(err?.message || t('dashboard.errors.predictionFailed'));
     } finally {
       setLoadingPrediction(false);
     }
@@ -292,6 +329,7 @@ const Dashboard = () => {
   const localizedTopDiseaseLabel = insights.topDisease
     ? localizeDiseaseName(insights.topDisease)
     : t('dashboard.notAvailable');
+  const confidenceLabel = getConfidenceLabel(insights.avgConfidence, t);
   const formattedTotalScans = formatLocalizedNumber(insights.totalScans, language);
   const formattedAverageConfidence = formatLocalizedNumber(insights.avgConfidence, language, {
     minimumFractionDigits: 2,
@@ -388,7 +426,7 @@ const Dashboard = () => {
           </article>
           <article className="kpi-tile">
             <span>{t('dashboard.kpis.avgConfidence')}</span>
-            <strong>{formattedAverageConfidence}%</strong>
+            <strong>{confidenceLabel}</strong>
           </article>
           <article className="kpi-tile">
             <span>{t('dashboard.kpis.topDisease')}</span>
@@ -414,7 +452,7 @@ const Dashboard = () => {
           </article>
           <article className="analytics-tile">
             <span>{t('dashboard.snapshot.avgConfidence')}</span>
-            <strong>{formattedAverageConfidence}%</strong>
+            <strong>{confidenceLabel}</strong>
           </article>
           <article className="analytics-tile">
             <span>{t('dashboard.snapshot.topFinding')}</span>
@@ -456,6 +494,7 @@ const Dashboard = () => {
             <button className="btn primary" onClick={analyzeLeaf} disabled={loadingPrediction}>
               {t('dashboard.analyzer.analyzeLeaf')}
             </button>
+            <p className="photo-tip">{t('dashboard.photoTip')}</p>
 
             {loadingPrediction && <LeafLoader variant="panel" label={t('dashboard.analyzer.loadingPrediction')} />}
 
@@ -522,7 +561,9 @@ const Dashboard = () => {
             <div className="crop-modal__header">
               <div>
                 <p className="subtitle">{t('dashboard.analyzer.title')}</p>
-                <h2>🌿 {localizeDiseaseName(prediction.disease_name)}</h2>
+                <h2 className={`analyzer-disease-title ${getSeverityClass(prediction.class_key || prediction.disease_name)}`}>
+                  🌿 {localizeDiseaseName(prediction.disease_name)}
+                </h2>
               </div>
               <div className="inline-row">
                 <button type="button" className="btn ghost btn--compact" onClick={() => setShowPredictionModal(false)}>

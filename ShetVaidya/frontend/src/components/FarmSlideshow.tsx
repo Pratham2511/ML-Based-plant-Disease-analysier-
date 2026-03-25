@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type SlideItem = {
   src: string;
-  caption: string;
+  captionKey: string;
 };
 
 type FarmSlideshowProps = {
@@ -26,6 +27,7 @@ const FarmSlideshow = ({
   autoAdvanceMs = 4000,
   className,
 }: FarmSlideshowProps) => {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -98,11 +100,11 @@ const FarmSlideshow = ({
             <article
               key={`${slide.src}-${index}`}
               className={`farm-slideshow__slide ${active ? 'is-active' : ''}`}
-              aria-hidden={!active}
+              aria-hidden={active ? 'false' : 'true'}
             >
-              <img src={slide.src} alt={slide.caption} loading={index === 0 ? 'eager' : 'lazy'} />
+              <img src={slide.src} alt={t(slide.captionKey)} loading={index === 0 ? 'eager' : 'lazy'} />
               <div className="farm-slideshow__overlay">
-                <span>{slide.caption}</span>
+                <span>{t(slide.captionKey)}</span>
               </div>
             </article>
           );
@@ -134,10 +136,10 @@ const FarmSlideshow = ({
         <div className="farm-slideshow__dots" role="tablist" aria-label={dotLabel}>
           {slides.map((slide, index) => (
             <button
-              key={`${slide.caption}-${index}`}
+              key={`${slide.captionKey}-${index}`}
               type="button"
               role="tab"
-              aria-selected={index === currentIndex}
+              aria-selected={index === currentIndex ? 'true' : 'false'}
               aria-label={`${dotLabel} ${index + 1}`}
               className={`farm-slideshow__dot ${index === currentIndex ? 'is-active' : ''}`}
               onClick={() => goToSlide(index)}
