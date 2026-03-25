@@ -59,6 +59,13 @@ const getLocalizedList = (language: string, english: string[], marathi: string[]
   return english;
 };
 
+const getLocaleName = (scheme: SchemeData, currentLanguage: string) => {
+  const base = currentLanguage.split('-')[0];
+  if (base === 'mr') return scheme.nameMr;
+  if (base === 'hi') return scheme.nameHi;
+  return scheme.name;
+};
+
 const SchemePopup = ({ scheme, language, onClose }: SchemePopupProps) => {
   const { t } = useTranslation();
 
@@ -73,7 +80,8 @@ const SchemePopup = ({ scheme, language, onClose }: SchemePopupProps) => {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  const localizedName = getLocalized(language, scheme.name, scheme.nameMr, scheme.nameHi);
+  const currentLanguage = language;
+  const localizedName = getLocalized(currentLanguage, scheme.name, scheme.nameMr, scheme.nameHi);
   const localizedTagline = getLocalized(language, scheme.tagline, scheme.taglineMr, scheme.taglineHi);
   const localizedBenefit = getLocalized(language, scheme.benefitAmount, scheme.benefitAmountMr, scheme.benefitAmountHi);
 
@@ -169,6 +177,15 @@ const SchemePopup = ({ scheme, language, onClose }: SchemePopupProps) => {
               {t('krushiVibhag.close')}
             </button>
           </section>
+
+          <a
+            href={scheme.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="scheme-official-btn-large"
+          >
+            🌐 {t('krushiVibhag.visitOfficialSite')} - {getLocaleName(scheme, currentLanguage)} ↗
+          </a>
         </div>
       </div>
     </div>

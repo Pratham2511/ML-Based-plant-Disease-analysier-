@@ -2668,6 +2668,21 @@ a {
   flex-wrap: wrap;
 }
 
+.scheme-official-btn-large {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  margin-top: 24px;
+  background: #3b6d11;
+  color: #eaf3de;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 12px;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+}
+
 @keyframes popup-fade {
   from {
     opacity: 0;
