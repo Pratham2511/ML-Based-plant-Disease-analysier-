@@ -24,9 +24,14 @@ except ImportError:
     farms = None
 
 app = FastAPI(title=settings.app_name)
-logger = logging.getLogger("agroguard.inference")
+logger = logging.getLogger("shetvaidya.inference")
 
-MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "agroguard_max_accuracy.keras"
+_MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
+_MODEL_CANDIDATES = [
+    _MODELS_DIR / "shetvaidya_max_accuracy.keras",
+    _MODELS_DIR / "agroguard_max_accuracy.keras",
+]
+MODEL_PATH = next((candidate for candidate in _MODEL_CANDIDATES if candidate.exists()), _MODEL_CANDIDATES[0])
 DISEASE_DB_PATH = Path(__file__).resolve().parent.parent / "disease_database.json"
 
 LOW_CONFIDENCE_THRESHOLD = 0.20

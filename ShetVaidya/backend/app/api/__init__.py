@@ -1,1 +1,1 @@
-"""API routers package for AgroGuard backend."""
+"""API routers package for ShetVaidya backend."""

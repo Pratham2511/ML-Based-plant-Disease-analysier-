@@ -3,7 +3,7 @@
 ## Endpoints
 - `GET /health` – liveness
 - `GET /health/deep` – backend + db + redis + ml-service dependency checks
-- `POST /auth/google` – verifies Google ID token, creates/updates user, issues JWT (HttpOnly cookie `agroguard_token`)
+- `POST /auth/google` – verifies Google ID token, creates/updates user, issues JWT (HttpOnly cookie `shetvaidya_token`)
 - `GET /auth/me` – current authenticated user
 - `POST /auth/logout` – clears auth cookie
 - `POST /auth/profile` – updates user display name

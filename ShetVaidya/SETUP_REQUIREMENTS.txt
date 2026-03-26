@@ -67,7 +67,7 @@ Dev dependencies:
 - vite
 
 7) INSTALL COMMANDS
-From repo root (agroguard/agroguard):
+From repo root (ShetVaidya/ShetVaidya):
 
 Frontend:
 - cd frontend
@@ -77,24 +77,24 @@ Python virtual environment (run at workspace root where .venv should exist):
 - python3.11 -m venv .venv
 - source .venv/bin/activate
 - pip install --upgrade pip setuptools wheel
-- pip install -r agroguard/agroguard/backend/requirements.txt
-- pip install -r agroguard/agroguard/ml-service/requirements.txt
+- pip install -r backend/requirements.txt
+- pip install -r ml-service/requirements.txt
 
 8) RUN COMMANDS
 From workspace root:
 
 Backend API (port 8000):
-- cd agroguard/agroguard/backend
+- cd backend
 - source /absolute/path/to/.venv/bin/activate
 - uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ML service (port 9000):
-- cd agroguard/agroguard/ml-service
+- cd ml-service
 - source /absolute/path/to/.venv/bin/activate
 - uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
 
 Frontend (port 5174 used in this workspace):
-- cd agroguard/agroguard/frontend
+- cd frontend
 - npm run dev -- --host 0.0.0.0 --port 5174
 
 9) IMPORTANT NOTES

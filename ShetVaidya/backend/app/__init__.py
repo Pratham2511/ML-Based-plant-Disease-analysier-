@@ -1,1 +1,1 @@
-"""AgroGuard backend application package."""
+"""ShetVaidya backend application package."""

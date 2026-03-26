@@ -1161,7 +1161,7 @@ def _build_crop_payload(crop_row: CropRecommendation) -> Dict[str, Any]:
     return {
         "crop_name": crop_row.crop_name,
         "scientific_name": base.get("scientific_name", crop_row.crop_name),
-        "crop_image": base.get("crop_image", "https://picsum.photos/seed/agroguard-crop/420/260"),
+        "crop_image": base.get("crop_image", "https://picsum.photos/seed/shetvaidya-crop/420/260"),
         "growing_season": crop_row.growing_season,
         "water_requirement": crop_row.water_requirement,
         "expected_yield": base.get("expected_yield", "Varies by management practices"),
