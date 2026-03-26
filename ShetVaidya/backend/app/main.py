@@ -13,10 +13,15 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
 from sqlalchemy.orm import Session
 
-from app.api import area_intelligence, auth, deps, farms, health, medicine, scans
+from app.api import area_intelligence, auth, deps, health, medicine, scans
 from app.core.config import settings
 from app.models.scan_history import ScanHistory
 from app.utils.storage import upload_to_r2
+
+try:
+    from app.api import farms
+except ImportError:
+    farms = None
 
 app = FastAPI(title=settings.app_name)
 logger = logging.getLogger("agroguard.inference")
@@ -179,12 +184,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/")
+def root_status():
+    return {
+        "service": settings.app_name,
+        "status": "ok",
+        "health": "/health",
+        "auth": "/auth/google",
+    }
+
 app.include_router(health.router)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(scans.router, prefix="/scans", tags=["scans"])
 app.include_router(medicine.router, prefix="/medicine", tags=["medicine"])
 app.include_router(area_intelligence.router, prefix="/area-intelligence", tags=["area-intelligence"])
-app.include_router(farms.router, prefix="/farms", tags=["farms"])
+if farms is not None:
+    app.include_router(farms.router, prefix="/farms", tags=["farms"])
 
 # Guard optional auth dependency to avoid startup crashes from partial module loads.
 optional_current_user_dep = getattr(deps, "get_optional_current_user", lambda: None)

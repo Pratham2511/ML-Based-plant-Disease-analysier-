@@ -212,6 +212,36 @@ const TopNavigation = () => {
 function App() {
   const location = useLocation();
   const [showSplash, setShowSplash] = useState(() => sessionStorage.getItem(SPLASH_STORAGE_KEY) !== 'true');
+  const [dismissConfigWarning, setDismissConfigWarning] = useState(false);
+
+  const apiBaseUrl = String(import.meta.env.VITE_API_URL || '').trim();
+  const isProd = Boolean(import.meta.env.PROD);
+
+  const getApiConfigWarning = () => {
+    if (!isProd) return '';
+
+    if (!apiBaseUrl) {
+      return 'VITE_API_URL is missing in production. Auth requests may hit the frontend and return 404.';
+    }
+
+    // Relative API base (for example "/api") is valid when a proxy/rewrite is configured.
+    if (apiBaseUrl.startsWith('/')) {
+      return '';
+    }
+
+    try {
+      const apiUrl = new URL(apiBaseUrl);
+      if (apiUrl.origin === window.location.origin) {
+        return `VITE_API_URL points to the frontend origin (${apiUrl.origin}). Set it to your backend origin to avoid auth 404 errors.`;
+      }
+    } catch {
+      return 'VITE_API_URL is not a valid URL. Set it to your backend origin.';
+    }
+
+    return '';
+  };
+
+  const apiConfigWarning = getApiConfigWarning();
 
   useEffect(() => {
     if (!showSplash) return;
@@ -226,6 +256,14 @@ function App() {
     <AuthProvider>
       <FarmProvider>
         <div className="app-shell app-shell--safe">
+          {apiConfigWarning && !dismissConfigWarning ? (
+            <section className="startup-config-warning" role="alert" aria-live="polite">
+              <p>{apiConfigWarning}</p>
+              <button type="button" className="btn ghost btn--compact" onClick={() => setDismissConfigWarning(true)}>
+                Dismiss
+              </button>
+            </section>
+          ) : null}
           {showSplash && <AppSplash />}
           <TopNavigation />
           <main className="route-stage">

@@ -110,6 +110,34 @@ a {
   overflow-x: hidden;
 }
 
+.startup-config-warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(183, 28, 28, 0.35);
+  border-left: 4px solid #b71c1c;
+  border-radius: 12px;
+  background: rgba(255, 235, 238, 0.9);
+  color: #7f1414;
+  box-shadow: 0 10px 18px rgba(124, 22, 22, 0.12);
+}
+
+.startup-config-warning p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .startup-config-warning {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .route-stage {
   margin-top: 18px;
   animation: rise-in 420ms ease;
