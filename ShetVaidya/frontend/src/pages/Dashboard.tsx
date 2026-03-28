@@ -329,7 +329,8 @@ const Dashboard = () => {
   };
 
   const verifyBatch = async () => {
-    if (!batchCode.trim()) {
+    const code = batchCode.trim();
+    if (!code) {
       setError(t('dashboard.errors.enterBatch'));
       return;
     }
@@ -339,11 +340,22 @@ const Dashboard = () => {
     setVerifyResult(null);
 
     try {
-      const res = await api.get(`/medicine/verify/${encodeURIComponent(batchCode.trim())}`);
-      setVerifyResult(res.data as VerifyResponse);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/medicine/verify/${code}`,
+        {
+          credentials: 'include',
+        }
+      );
+
+      const body = (await response.json().catch(() => ({}))) as VerifyResponse & { detail?: string };
+      if (!response.ok) {
+        throw new Error(body?.detail || t('dashboard.errors.batchFailed'));
+      }
+
+      setVerifyResult(body as VerifyResponse);
       setStatus(t('dashboard.status.batchComplete'));
     } catch (err: any) {
-      setError(err?.response?.data?.detail || t('dashboard.errors.batchFailed'));
+      setError(err?.message || t('dashboard.errors.batchFailed'));
     } finally {
       setLoadingBatch(false);
     }
