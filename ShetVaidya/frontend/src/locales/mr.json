@@ -506,6 +506,25 @@
       "borewell": "बोअरवेल"
     }
   },
+  "medicine": {
+    "genuine": "खरे उत्पादन सत्यापित",
+    "firstVerification": "बाटली क्र. ची पहिली सत्यापना",
+    "bottleNumber": "बाटली क्रमांक",
+    "batchVerified": "बॅच सत्यापित",
+    "alreadyVerified": "बनावट उत्पादन सतर्कता",
+    "alreadyVerifiedMsg": "ही बाटली आधीच सत्यापित झाली आहे. जर ही नवीन सीलबंद बाटली असेल तर ती बनावट असू शकते. वापरू नका.",
+    "notFound": "कोड सापडला नाही",
+    "notFoundMsg": "हे उत्पादन आमच्या डेटाबेसमध्ये नाही. ते बनावट असू शकते. वापरू नका.",
+    "contactKrushi": "कृषी विभागाला कॉल करा",
+    "scanCount": "स्कॅन केलेल्या वेळा",
+    "firstVerifiedAt": "प्रथम सत्यापित",
+    "firstVerifiedDistrict": "प्रथम सत्यापित जिल्हा",
+    "cropType": "पीक",
+    "disease": "रोग",
+    "batchCode": "बॅच कोड",
+    "manufactured": "उत्पादन तारीख",
+    "highScanCount": "जास्त स्कॅन संख्या - काळजीपूर्वक तपासा"
+  },
   "krushiVibhag": {
     "title": "कृषि विभाग",
     "heroHeading": "कृषि विभाग — आपला शेतीचा आधार",

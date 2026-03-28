@@ -506,6 +506,25 @@
       "borewell": "Borewell"
     }
   },
+  "medicine": {
+    "genuine": "Genuine Product Verified",
+    "firstVerification": "First verification of Bottle",
+    "bottleNumber": "Bottle Number",
+    "batchVerified": "Batch Verified",
+    "alreadyVerified": "COUNTERFEIT ALERT",
+    "alreadyVerifiedMsg": "This bottle code has already been verified once. If this is a new sealed bottle, it may be counterfeit. Do not use it.",
+    "notFound": "Code Not Found",
+    "notFoundMsg": "This product is not in our database. It may be counterfeit. Do not use it.",
+    "contactKrushi": "Call Krushi Vibhag",
+    "scanCount": "Times scanned",
+    "firstVerifiedAt": "First verified on",
+    "firstVerifiedDistrict": "First verified in",
+    "cropType": "Crop",
+    "disease": "Disease",
+    "batchCode": "Batch Code",
+    "manufactured": "Manufactured",
+    "highScanCount": "High scan count - verify carefully"
+  },
   "krushiVibhag": {
     "title": "Krushi Vibhag",
     "heroHeading": "कृषि विभाग — आपला शेतीचा आधार",

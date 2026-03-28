@@ -37,16 +37,28 @@ type DiseaseDataPayload = {
   medicine?: string;
 };
 
-type BatchVerificationResult = {
-  batch_code: string;
+type VerifyResponse = {
   is_valid: boolean;
-  medicine: {
-    brand_name: string | null;
-    company: string | null;
-    active_ingredient: string | null;
-    concentration: string | null;
-    crop_type: string | null;
-    disease_category: string | null;
+  verification_type: 'bottle' | 'batch' | 'unknown';
+  alert_level: 'NONE' | 'LOW' | 'MEDIUM' | 'HIGH';
+  warning?: string;
+  message: string;
+  scan_count: number;
+  bottle_number?: number;
+  first_verified_at?: string;
+  first_verified_district?: string;
+  medicine?: {
+    brand_name: string;
+    company: string;
+    active_ingredient: string;
+    concentration: string;
+    crop_type: string;
+    disease_category: string;
+  };
+  batch?: {
+    batch_code: string;
+    manufacture_date: string;
+    batch_size: number;
   };
 };
 
@@ -87,7 +99,7 @@ const Dashboard = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [batchCode, setBatchCode] = useState('');
-  const [batchResult, setBatchResult] = useState<BatchVerificationResult | null>(null);
+  const [verifyResult, setVerifyResult] = useState<VerifyResponse | null>(null);
   const [error, setError] = useState('');
   const [loadingPrediction, setLoadingPrediction] = useState(false);
   const [loadingBatch, setLoadingBatch] = useState(false);
@@ -324,11 +336,11 @@ const Dashboard = () => {
 
     setLoadingBatch(true);
     setError('');
-    setBatchResult(null);
+    setVerifyResult(null);
 
     try {
       const res = await api.get(`/medicine/verify/${encodeURIComponent(batchCode.trim())}`);
-      setBatchResult(res.data);
+      setVerifyResult(res.data as VerifyResponse);
       setStatus(t('dashboard.status.batchComplete'));
     } catch (err: any) {
       setError(err?.response?.data?.detail || t('dashboard.errors.batchFailed'));
@@ -385,15 +397,17 @@ const Dashboard = () => {
       ].join('. ')
     : '';
 
-  const batchNarration = batchResult
+  const batchNarration = verifyResult
     ? [
-        batchResult.is_valid ? t('dashboard.batch.validBatch') : t('dashboard.batch.invalidBatch'),
-        `${t('dashboard.batch.code')}: ${batchResult.batch_code}`,
-        `${t('dashboard.batch.activeIngredient')}: ${localizeAgricultureText(batchResult.medicine.active_ingredient || t('dashboard.notAvailable'), language)}`,
-        `${t('dashboard.batch.crop')}: ${localizeAgricultureText(batchResult.medicine.crop_type || t('dashboard.notAvailable'), language)}`,
-        `${t('dashboard.batch.diseaseCategory')}: ${localizeAgricultureText(batchResult.medicine.disease_category || t('dashboard.notAvailable'), language)}`,
-        `${t('dashboard.batch.unknownBrand')}: ${localizeAgricultureText(batchResult.medicine.brand_name || t('dashboard.notAvailable'), language)}`,
-        `${t('dashboard.batch.unknownCompany')}: ${localizeAgricultureText(batchResult.medicine.company || t('dashboard.notAvailable'), language)}`,
+        verifyResult.is_valid ? t('medicine.genuine') : t('dashboard.batch.invalidBatch'),
+        verifyResult.message,
+        `${t('medicine.scanCount')}: ${formatLocalizedNumber(verifyResult.scan_count || 0, language)}`,
+        verifyResult.medicine
+          ? `${t('dashboard.batch.unknownBrand')}: ${localizeAgricultureText(verifyResult.medicine.brand_name || t('dashboard.notAvailable'), language)}`
+          : '',
+        verifyResult.medicine
+          ? `${t('dashboard.batch.activeIngredient')}: ${localizeAgricultureText(verifyResult.medicine.active_ingredient || t('dashboard.notAvailable'), language)}`
+          : '',
       ].join('. ')
     : '';
 
@@ -538,19 +552,80 @@ const Dashboard = () => {
 
             {loadingBatch && <LeafLoader variant="panel" label={t('dashboard.batch.validating')} />}
 
-            {batchResult && (
-              <div className={`verification-banner ${batchResult.is_valid ? 'ok' : 'error'}`}>
-                <strong>{batchResult.is_valid ? t('dashboard.batch.validBatch') : t('dashboard.batch.invalidBatch')}</strong>
-                <span>{t('dashboard.batch.code')}: {batchResult.batch_code}</span>
-                <span>
-                  {localizeAgricultureText(batchResult.medicine.brand_name || t('dashboard.batch.unknownBrand'), language)} | {localizeAgricultureText(batchResult.medicine.company || t('dashboard.batch.unknownCompany'), language)}
-                </span>
-                <span>
-                  {t('dashboard.batch.activeIngredient')}: {localizeAgricultureText(batchResult.medicine.active_ingredient || t('dashboard.notAvailable'), language)} ({localizeAgricultureText(batchResult.medicine.concentration || t('dashboard.notAvailable'), language)})
-                </span>
-                <span>
-                  {t('dashboard.batch.crop')}: {localizeAgricultureText(batchResult.medicine.crop_type || t('dashboard.notAvailable'), language)} | {t('dashboard.batch.diseaseCategory')}: {localizeAgricultureText(batchResult.medicine.disease_category || t('dashboard.notAvailable'), language)}
-                </span>
+            {verifyResult && (
+              <div className="verify-result-container">
+                {verifyResult.alert_level === 'NONE' && (
+                  <div className="verify-result">
+                    <div className="verify-banner green">✅ {t('medicine.genuine')}</div>
+                    <p className="verify-sub">
+                      {t('medicine.firstVerification')} #{formatLocalizedNumber(verifyResult.bottle_number || 0, language)}
+                    </p>
+                    <div className="medicine-details-card">
+                      <p><strong>{localizeAgricultureText(verifyResult.medicine?.brand_name || t('dashboard.notAvailable'), language)}</strong></p>
+                      <p>{localizeAgricultureText(verifyResult.medicine?.company || t('dashboard.notAvailable'), language)}</p>
+                      <p>
+                        {localizeAgricultureText(verifyResult.medicine?.active_ingredient || t('dashboard.notAvailable'), language)} - {localizeAgricultureText(verifyResult.medicine?.concentration || t('dashboard.notAvailable'), language)}
+                      </p>
+                      <p>{t('medicine.cropType')}: {localizeAgricultureText(verifyResult.medicine?.crop_type || t('dashboard.notAvailable'), language)}</p>
+                      <p>{t('medicine.disease')}: {localizeAgricultureText(verifyResult.medicine?.disease_category || t('dashboard.notAvailable'), language)}</p>
+                      <p>{t('medicine.batchCode')}: {localizeAgricultureText(verifyResult.batch?.batch_code || t('dashboard.notAvailable'), language)}</p>
+                      <p>{t('medicine.manufactured')}: {localizeAgricultureText(verifyResult.batch?.manufacture_date || t('dashboard.notAvailable'), language)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {(verifyResult.alert_level === 'LOW' || verifyResult.alert_level === 'MEDIUM') && (
+                  <div className="verify-result">
+                    <div className="verify-banner yellow">⚠️ {t('medicine.batchVerified')}</div>
+                    <p>{localizeAgricultureText(verifyResult.message, language)}</p>
+                    <p className="verify-sub">{t('medicine.scanCount')}: {formatLocalizedNumber(verifyResult.scan_count, language)}</p>
+                    <div className="medicine-details-card">
+                      <p><strong>{localizeAgricultureText(verifyResult.medicine?.brand_name || t('dashboard.notAvailable'), language)}</strong></p>
+                      <p>{localizeAgricultureText(verifyResult.medicine?.company || t('dashboard.notAvailable'), language)}</p>
+                      <p>
+                        {localizeAgricultureText(verifyResult.medicine?.active_ingredient || t('dashboard.notAvailable'), language)} - {localizeAgricultureText(verifyResult.medicine?.concentration || t('dashboard.notAvailable'), language)}
+                      </p>
+                      <p>{t('medicine.cropType')}: {localizeAgricultureText(verifyResult.medicine?.crop_type || t('dashboard.notAvailable'), language)}</p>
+                      <p>{t('medicine.disease')}: {localizeAgricultureText(verifyResult.medicine?.disease_category || t('dashboard.notAvailable'), language)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {verifyResult.alert_level === 'HIGH' && verifyResult.warning === 'ALREADY_VERIFIED' && (
+                  <div className="verify-result">
+                    <div className="verify-banner red">🚨 {t('medicine.alreadyVerified')}</div>
+                    <p>{t('medicine.alreadyVerifiedMsg')}</p>
+                    <div className="verify-detail-row">
+                      <span>{t('medicine.firstVerifiedAt')}:</span>
+                      <span>{localizeAgricultureText(verifyResult.first_verified_at || t('dashboard.notAvailable'), language)}</span>
+                    </div>
+                    <div className="verify-detail-row">
+                      <span>{t('medicine.firstVerifiedDistrict')}:</span>
+                      <span>{localizeAgricultureText(verifyResult.first_verified_district || t('dashboard.notAvailable'), language)}</span>
+                    </div>
+                    <div className="verify-detail-row">
+                      <span>{t('medicine.scanCount')}:</span>
+                      <span>{formatLocalizedNumber(verifyResult.scan_count, language)}</span>
+                    </div>
+                    <div className="medicine-details-card">
+                      <p><strong>{localizeAgricultureText(verifyResult.medicine?.brand_name || t('dashboard.notAvailable'), language)}</strong></p>
+                      <p>{localizeAgricultureText(verifyResult.medicine?.company || t('dashboard.notAvailable'), language)}</p>
+                    </div>
+                    <a href="tel:1800-233-4000" className="emergency-contact-btn">
+                      📞 {t('medicine.contactKrushi')} - 1800-233-4000
+                    </a>
+                  </div>
+                )}
+
+                {verifyResult.alert_level === 'HIGH' && verifyResult.verification_type === 'unknown' && (
+                  <div className="verify-result">
+                    <div className="verify-banner red">❌ {t('medicine.notFound')}</div>
+                    <p>{t('medicine.notFoundMsg')}</p>
+                    <a href="tel:1800-233-4000" className="emergency-contact-btn">
+                      📞 {t('medicine.contactKrushi')} - 1800-233-4000
+                    </a>
+                  </div>
+                )}
 
                 <ReadAloudButton
                   text={batchNarration}
