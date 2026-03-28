@@ -3,11 +3,13 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.core.config import settings
 from app.models.medicine import BottleCode, Medicine, MedicineBatch
+from app.models.user import User
 from app.utils.rate_limiter import enforce_rate_limit
 from app.utils.validators import validate_batch_code
 
@@ -62,14 +64,32 @@ def verify(code: str, request: Request, db: Session = Depends(deps.get_db), curr
 
         bottle.is_used = True
         bottle.used_at = datetime.now(timezone.utc)
-        bottle.used_by_district = "Unknown"
+        bottle.used_by_district = getattr(current_user, "district", None) or "Unknown"
+        bottle.used_by_user_id = None
+
         if current_user and getattr(current_user, "id", None):
             try:
-                bottle.used_by_user_id = UUID(str(current_user.id))
+                parsed_user_id = UUID(str(current_user.id))
+                user_exists = db.query(User.id).filter(User.id == parsed_user_id).first() is not None
+                if user_exists:
+                    bottle.used_by_user_id = parsed_user_id
             except (TypeError, ValueError):
                 bottle.used_by_user_id = None
 
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            # Fallback for environments where auth token identity doesn't map to users.id FK.
+            db.rollback()
+            bottle = db.query(BottleCode).filter(BottleCode.unique_code == clean_code).first()
+            if bottle:
+                bottle.scan_count = (bottle.scan_count or 0) + 1
+                bottle.is_used = True
+                bottle.used_at = datetime.now(timezone.utc)
+                bottle.used_by_user_id = None
+                bottle.used_by_district = getattr(current_user, "district", None) or "Unknown"
+                db.commit()
+
         logger.info("Bottle code verified first time: code=%s medicine=%s", clean_code, medicine.brand_name if medicine else "Unknown")
 
         return {
