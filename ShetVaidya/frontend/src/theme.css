@@ -1838,10 +1838,34 @@ a {
 }
 
 .preview-window {
-  background: linear-gradient(155deg, #103014, #1f4d24);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  min-height: 150px;
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  background: #000;
+  display: block;
+  border-radius: 8px;
+}
+
+.camera-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .preview-window {
+    height: 200px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .camera-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
 }
 
 .verification-banner {

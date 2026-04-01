@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import api from '../lib/api';
-import { BrowserMultiFormatReader } from '@zxing/library';
+import { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType } from '@zxing/library';
 import LeafLoader from '../components/LeafLoader';
 import MiniTrend from '../components/MiniTrend';
 import ReadAloudButton from '../components/ReadAloudButton';
@@ -124,7 +124,16 @@ const Dashboard = () => {
   const startCamera = async () => {
     if (!videoRef.current) return;
 
-    const reader = new BrowserMultiFormatReader();
+    const hints = new Map<DecodeHintType, unknown>();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.QR_CODE,
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.DATA_MATRIX,
+    ]);
+    hints.set(DecodeHintType.TRY_HARDER, true);
+
+    const reader = new BrowserMultiFormatReader(hints);
     readerRef.current = reader;
 
     setStatus(t('dashboard.status.openingCamera'));
@@ -599,13 +608,15 @@ const Dashboard = () => {
 
             <p className="panel-muted">{t('dashboard.batch.cameraReadout', { value: cameraResult || t('dashboard.batch.noCapture') })}</p>
             {showCamera ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="preview-window"
-              />
+              <div className="camera-container">
+                <video
+                  ref={videoRef}
+                  className="preview-window"
+                  autoPlay
+                  playsInline
+                  muted
+                />
+              </div>
             ) : (
               <div className="preview-window" />
             )}
