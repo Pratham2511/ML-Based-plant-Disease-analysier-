@@ -1,4 +1,5 @@
 import json
+import app.db.base  # Ensure all models are registered before any DB setup
 import logging
 import traceback
 from io import BytesIO
