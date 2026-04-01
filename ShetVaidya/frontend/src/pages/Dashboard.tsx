@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import api from '../lib/api';
-import { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType } from '@zxing/library';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import LeafLoader from '../components/LeafLoader';
 import MiniTrend from '../components/MiniTrend';
 import ReadAloudButton from '../components/ReadAloudButton';
@@ -112,47 +112,79 @@ const Dashboard = () => {
   const [warningMessage, setWarningMessage] = useState('');
   const [detectedDistrict, setDetectedDistrict] = useState('');
   const [showCamera, setShowCamera] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const [cameraError, setCameraError] = useState('');
+  const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
 
-  const stopCamera = () => {
-    readerRef.current?.reset();
-    readerRef.current = null;
+  const stopCamera = async () => {
+    if (html5QrcodeRef.current) {
+      try {
+        await html5QrcodeRef.current.stop();
+        await html5QrcodeRef.current.clear();
+      } catch {
+        // Ignore stop/clear errors from interrupted camera states.
+      }
+      html5QrcodeRef.current = null;
+    }
     setShowCamera(false);
   };
 
   const startCamera = async () => {
-    if (!videoRef.current) return;
-
-    const hints = new Map<DecodeHintType, unknown>();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-      BarcodeFormat.QR_CODE,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.DATA_MATRIX,
-    ]);
-    hints.set(DecodeHintType.TRY_HARDER, true);
-
-    const reader = new BrowserMultiFormatReader(hints);
-    readerRef.current = reader;
-
+    setShowCamera(true);
+    setCameraError('');
     setStatus(t('dashboard.status.openingCamera'));
-    try {
-      await reader.decodeFromVideoDevice(undefined, videoRef.current, (result) => {
-        if (result) {
-          const scannedCode = result.getText();
-          setCameraResult(scannedCode);
-          setBatchCode(scannedCode);
-          setStatus(t('dashboard.status.captured'));
-          stopCamera();
-        }
-      });
-    } catch (err) {
-      console.error('Camera error:', err);
-      setStatus(t('dashboard.status.cameraError'));
-      stopCamera();
-    }
+    setTimeout(async () => {
+      try {
+        const html5Qrcode = new Html5Qrcode('qr-reader-div');
+        html5QrcodeRef.current = html5Qrcode;
+
+        await html5Qrcode.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.5,
+            formatsToSupport: [
+              Html5QrcodeSupportedFormats.QR_CODE,
+              Html5QrcodeSupportedFormats.AZTEC,
+              Html5QrcodeSupportedFormats.CODABAR,
+              Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.CODE_93,
+              Html5QrcodeSupportedFormats.CODE_128,
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.EAN_8,
+              Html5QrcodeSupportedFormats.ITF,
+              Html5QrcodeSupportedFormats.DATA_MATRIX,
+              Html5QrcodeSupportedFormats.UPC_A,
+              Html5QrcodeSupportedFormats.UPC_E,
+            ],
+          },
+          (decodedText: string) => {
+            setCameraResult(decodedText);
+            setBatchCode(decodedText);
+            setStatus(t('dashboard.status.captured'));
+            stopCamera();
+          },
+          () => {
+            // Scanner emits frequent decode misses while searching; safe to ignore.
+          }
+        );
+      } catch {
+        setCameraError('Could not access camera. Please allow camera permission.');
+        setStatus(t('dashboard.status.cameraError'));
+        setShowCamera(false);
+      }
+    }, 300);
   };
+
+  useEffect(() => {
+    return () => {
+      if (html5QrcodeRef.current) {
+        html5QrcodeRef.current.stop().catch(() => {});
+        html5QrcodeRef.current = null;
+      }
+    };
+  }, []);
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -203,23 +235,6 @@ const Dashboard = () => {
     refreshHistoryItems();
   }, []);
 
-  useEffect(() => {
-    if (!showCamera) return;
-    const timer = setTimeout(() => {
-      startCamera();
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [showCamera]);
-
-  useEffect(() => {
-    return () => {
-      readerRef.current?.reset();
-    };
-  }, []);
-
   const dismissOnboarding = () => {
     setShowOnboarding(false);
     localStorage.setItem(ONBOARDING_KEY, 'true');
@@ -251,7 +266,7 @@ const Dashboard = () => {
   }, [historyItems]);
 
   const scanBatchCode = async () => {
-    setShowCamera(true);
+    await startCamera();
   };
 
   const callHealth = async () => {
@@ -596,29 +611,26 @@ const Dashboard = () => {
               <button className="btn ghost" onClick={scanBatchCode}>
                 {t('dashboard.batch.scanViaCamera')}
               </button>
-              {showCamera && (
-                <button className="btn ghost" onClick={stopCamera}>
-                  {t('common.close')}
-                </button>
-              )}
               <button className="btn primary" onClick={verifyBatch} disabled={loadingBatch}>
                 {t('dashboard.batch.verifyBatch')}
               </button>
             </div>
 
             <p className="panel-muted">{t('dashboard.batch.cameraReadout', { value: cameraResult || t('dashboard.batch.noCapture') })}</p>
-            {showCamera ? (
-              <div className="camera-container">
-                <video
-                  ref={videoRef}
-                  className="preview-window"
-                  autoPlay
-                  playsInline
-                  muted
-                />
+            {showCamera && (
+              <div className="camera-wrapper">
+                <div id="qr-reader-div" className="qr-reader-box" />
+                {cameraError && (
+                  <p className="camera-error-text">{cameraError}</p>
+                )}
+                <button
+                  type="button"
+                  className="btn outline"
+                  onClick={stopCamera}
+                >
+                  {t('medicine.stopCamera')}
+                </button>
               </div>
-            ) : (
-              <div className="preview-window" />
             )}
 
             {loadingBatch && <LeafLoader variant="panel" label={t('dashboard.batch.validating')} />}
