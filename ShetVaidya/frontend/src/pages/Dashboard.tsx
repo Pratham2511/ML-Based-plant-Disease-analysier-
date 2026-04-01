@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import api from '../lib/api';
@@ -111,6 +111,39 @@ const Dashboard = () => {
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
   const [detectedDistrict, setDetectedDistrict] = useState('');
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+
+  const stopCamera = () => {
+    readerRef.current?.reset();
+    readerRef.current = null;
+    setShowCamera(false);
+  };
+
+  const startCamera = async () => {
+    if (!videoRef.current) return;
+
+    const reader = new BrowserMultiFormatReader();
+    readerRef.current = reader;
+
+    setStatus(t('dashboard.status.openingCamera'));
+    try {
+      await reader.decodeFromVideoDevice(undefined, videoRef.current, (result) => {
+        if (result) {
+          const scannedCode = result.getText();
+          setCameraResult(scannedCode);
+          setBatchCode(scannedCode);
+          setStatus(t('dashboard.status.captured'));
+          stopCamera();
+        }
+      });
+    } catch (err) {
+      console.error('Camera error:', err);
+      setStatus(t('dashboard.status.cameraError'));
+      stopCamera();
+    }
+  };
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -161,6 +194,23 @@ const Dashboard = () => {
     refreshHistoryItems();
   }, []);
 
+  useEffect(() => {
+    if (!showCamera) return;
+    const timer = setTimeout(() => {
+      startCamera();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [showCamera]);
+
+  useEffect(() => {
+    return () => {
+      readerRef.current?.reset();
+    };
+  }, []);
+
   const dismissOnboarding = () => {
     setShowOnboarding(false);
     localStorage.setItem(ONBOARDING_KEY, 'true');
@@ -192,24 +242,7 @@ const Dashboard = () => {
   }, [historyItems]);
 
   const scanBatchCode = async () => {
-    const codeReader = new BrowserMultiFormatReader();
-    setStatus(t('dashboard.status.openingCamera'));
-    try {
-      const result = await codeReader.decodeFromVideoDevice(undefined, 'preview', (out) => {
-        if (out) {
-          setCameraResult(out.getText());
-          setBatchCode(out.getText());
-          setStatus(t('dashboard.status.captured'));
-          codeReader.reset();
-        }
-      });
-      if (result) {
-        setCameraResult(result.getText());
-        setBatchCode(result.getText());
-      }
-    } catch (err) {
-      setStatus(t('dashboard.status.cameraError'));
-    }
+    setShowCamera(true);
   };
 
   const callHealth = async () => {
@@ -554,13 +587,28 @@ const Dashboard = () => {
               <button className="btn ghost" onClick={scanBatchCode}>
                 {t('dashboard.batch.scanViaCamera')}
               </button>
+              {showCamera && (
+                <button className="btn ghost" onClick={stopCamera}>
+                  {t('common.close')}
+                </button>
+              )}
               <button className="btn primary" onClick={verifyBatch} disabled={loadingBatch}>
                 {t('dashboard.batch.verifyBatch')}
               </button>
             </div>
 
             <p className="panel-muted">{t('dashboard.batch.cameraReadout', { value: cameraResult || t('dashboard.batch.noCapture') })}</p>
-            <div id="preview" className="preview-window" />
+            {showCamera ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="preview-window"
+              />
+            ) : (
+              <div className="preview-window" />
+            )}
 
             {loadingBatch && <LeafLoader variant="panel" label={t('dashboard.batch.validating')} />}
 
