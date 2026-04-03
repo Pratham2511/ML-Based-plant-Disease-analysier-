@@ -104,6 +104,7 @@ const Dashboard = () => {
   const [loadingBatch, setLoadingBatch] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [historyItems, setHistoryItems] = useState<HistoryInsight[]>([]);
+  const [historySyncNotice, setHistorySyncNotice] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAddFarmModal, setShowAddFarmModal] = useState(false);
   const [showPredictionModal, setShowPredictionModal] = useState(false);
@@ -211,15 +212,47 @@ const Dashboard = () => {
     setShowOnboarding(!completed);
   }, []);
 
+  const isLocalHistoryItem = (item: HistoryInsight) => String(item.id).startsWith('local-');
+
+  const mergeHistoryItems = (remoteItems: HistoryInsight[], currentItems: HistoryInsight[]) => {
+    const localItems = currentItems.filter(isLocalHistoryItem);
+
+    // If backend returns nothing while we have local fallback records,
+    // keep local insights visible so KPI values stay responsive.
+    if (remoteItems.length === 0 && localItems.length > 0) {
+      return currentItems;
+    }
+
+    const remoteSignature = new Set(remoteItems.map((item) => `${item.disease_name}|${item.timestamp}`));
+    const unsyncedLocalItems = localItems.filter(
+      (item) => !remoteSignature.has(`${item.disease_name}|${item.timestamp}`)
+    );
+
+    return [...unsyncedLocalItems, ...remoteItems]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 50);
+  };
+
   const refreshHistoryItems = async () => {
     setLoadingInsights(true);
     try {
       const response = await api.get('/scans');
       const body = (response.data || {}) as { items?: HistoryInsight[] };
-      const items = (body.items || []) as HistoryInsight[];
-      setHistoryItems(items);
+      const remoteItems = Array.isArray(body.items) ? body.items : [];
+
+      if (remoteItems.length === 0 && historyItems.some(isLocalHistoryItem)) {
+        setHistorySyncNotice(t('history.errors.fetchFailed'));
+      } else {
+        setHistorySyncNotice('');
+      }
+
+      setHistoryItems((prev) => mergeHistoryItems(remoteItems, prev));
+      return true;
     } catch {
-      // Keep local fallback insights when auth-based history is unavailable.
+      // Keep local fallback insights when auth-based history is unavailable,
+      // but show a visible notice so users know cloud history sync failed.
+      setHistorySyncNotice(t('history.errors.fetchFailed'));
+      return false;
     } finally {
       setLoadingInsights(false);
     }
@@ -335,19 +368,22 @@ const Dashboard = () => {
       const diseaseForTrend = (payload.disease_name || payload.raw_class || t('dashboard.notAvailable')).replaceAll(' ', '_');
       const confidenceForTrend = Number(payload.confidence || 0) / 100;
 
-      setHistoryItems((prev) => [
-        {
-          id: `local-${nowIso}`,
-          disease_name: diseaseForTrend,
-          confidence: confidenceForTrend,
-          timestamp: nowIso,
-        },
-        ...prev,
-      ]);
+      const localInsight: HistoryInsight = {
+        id: `local-${nowIso}`,
+        disease_name: diseaseForTrend,
+        confidence: confidenceForTrend,
+        timestamp: nowIso,
+      };
+
+      setHistoryItems((prev) => [localInsight, ...prev].slice(0, 50));
 
       // Try to sync from backend history when user is authenticated.
-      refreshHistoryItems();
-      setStatus(t('dashboard.status.predictionComplete'));
+      const synced = await refreshHistoryItems();
+      if (!synced) {
+        setStatus(t('history.errors.fetchFailed'));
+      } else {
+        setStatus(t('dashboard.status.predictionComplete'));
+      }
     } catch (err: any) {
       setError(err?.message || t('dashboard.errors.predictionFailed'));
     } finally {
@@ -701,6 +737,8 @@ const Dashboard = () => {
           <h2>{t('dashboard.snapshotTitle')}</h2>
           <span className="pill">{t('dashboard.snapshotPill')}</span>
         </div>
+
+        {historySyncNotice ? <p className="form-error">{historySyncNotice}</p> : null}
 
         <div className="analytics-grid">
           <article className="analytics-tile">
