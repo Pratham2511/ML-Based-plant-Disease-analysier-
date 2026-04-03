@@ -4,7 +4,7 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from app.api import deps
 from app.core.config import settings
@@ -17,6 +17,25 @@ logger = logging.getLogger(__name__)
 
 LOW_CONFIDENCE_THRESHOLD = 0.20
 LOW_CONFIDENCE_MARGIN = 0.05
+
+
+def _safe_parse_analysis_payload(raw_payload: str | dict | None, scan_id: str) -> dict:
+    if isinstance(raw_payload, dict):
+        return raw_payload
+
+    if raw_payload is None:
+        return {}
+
+    text_payload = str(raw_payload).strip()
+    if not text_payload:
+        return {}
+
+    try:
+        parsed = json.loads(text_payload)
+        return parsed if isinstance(parsed, dict) else {"raw": parsed}
+    except Exception:
+        logger.warning("Malformed analysis_json for scan_id=%s", scan_id)
+        return {"raw": text_payload}
 
 
 def _is_prediction_accepted(prediction: dict) -> bool:
@@ -36,22 +55,49 @@ def _is_prediction_accepted(prediction: dict) -> bool:
 
 @router.get("")
 def list_scans(current_user=Depends(deps.get_current_user), db: Session = Depends(deps.get_db)):
-    items = (
-        db.query(ScanHistory)
-        .filter(ScanHistory.user_id == current_user.id)
-        .order_by(ScanHistory.created_at.desc())
-        .limit(50)
-        .all()
-    )
+    try:
+        items = (
+            db.query(ScanHistory)
+            .filter(ScanHistory.user_id == str(current_user.id))
+            .order_by(ScanHistory.created_at.desc())
+            .limit(50)
+            .all()
+        )
+    except Exception:
+        logger.exception("Primary scan history query failed, retrying with legacy-safe projection")
+        try:
+            # Older deployments may not have all latest columns (for example farm_id).
+            items = (
+                db.query(ScanHistory)
+                .options(
+                    load_only(
+                        ScanHistory.id,
+                        ScanHistory.user_id,
+                        ScanHistory.disease_name,
+                        ScanHistory.confidence,
+                        ScanHistory.image_url,
+                        ScanHistory.analysis_json,
+                        ScanHistory.created_at,
+                    )
+                )
+                .filter(ScanHistory.user_id == str(current_user.id))
+                .order_by(ScanHistory.created_at.desc())
+                .limit(50)
+                .all()
+            )
+        except Exception:
+            logger.exception("Legacy-safe scan history query also failed")
+            raise HTTPException(status_code=500, detail="Failed to fetch scan history")
+
     return {
         "items": [
             {
                 "id": str(item.id),
-                "farm_id": str(item.farm_id) if item.farm_id else None,
+                "farm_id": str(getattr(item, "farm_id", None)) if getattr(item, "farm_id", None) else None,
                 "disease_name": item.disease_name,
                 "confidence": item.confidence,
                 "image_url": item.image_url,
-                "analysis_json": json.loads(item.analysis_json),
+                "analysis_json": _safe_parse_analysis_payload(item.analysis_json, str(item.id)),
                 "timestamp": item.created_at,
             }
             for item in items
