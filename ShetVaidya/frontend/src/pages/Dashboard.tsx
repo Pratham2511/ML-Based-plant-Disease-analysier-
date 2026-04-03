@@ -70,7 +70,6 @@ type HistoryInsight = {
 };
 
 const ONBOARDING_KEY = 'shetvaidya-onboarding-complete';
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const getConfidenceLabel = (confidence: number, t: (key: string) => string) => {
   if (confidence === 0) return t('dashboard.noScansYet');
@@ -215,13 +214,8 @@ const Dashboard = () => {
   const refreshHistoryItems = async () => {
     setLoadingInsights(true);
     try {
-      const response = await fetch(`${API_BASE}/scans`, {
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        throw new Error(`History fetch failed with ${response.status}`);
-      }
-      const body = (await response.json()) as { items?: HistoryInsight[] };
+      const response = await api.get('/scans');
+      const body = (response.data || {}) as { items?: HistoryInsight[] };
       const items = (body.items || []) as HistoryInsight[];
       setHistoryItems(items);
     } catch {
@@ -305,18 +299,9 @@ const Dashboard = () => {
       };
       console.log('Scan payload being sent:', scanPayload);
 
-      const response = await fetch(`${API_BASE}/api/predict`, {
-        method: 'POST',
-        credentials: 'include',
-        body: form,
-      });
-
-      const responseBody = await response.json().catch(() => ({}));
+      const response = await api.post('/api/predict', form);
+      const responseBody = response.data || {};
       console.log('Scan API response:', { status: response.status, body: responseBody });
-
-      if (!response.ok) {
-        throw new Error((responseBody as any)?.detail || t('dashboard.errors.predictionFailed'));
-      }
 
       const payload = responseBody || {};
 
@@ -397,17 +382,8 @@ const Dashboard = () => {
     setVerifyResult(null);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/medicine/verify/${code}`,
-        {
-          credentials: 'include',
-        }
-      );
-
-      const body = (await response.json().catch(() => ({}))) as VerifyResponse & { detail?: string };
-      if (!response.ok) {
-        throw new Error(body?.detail || t('dashboard.errors.batchFailed'));
-      }
+      const response = await api.get(`/medicine/verify/${code}`);
+      const body = (response.data || {}) as VerifyResponse & { detail?: string };
 
       setVerifyResult(body as VerifyResponse);
       setStatus(t('dashboard.status.batchComplete'));

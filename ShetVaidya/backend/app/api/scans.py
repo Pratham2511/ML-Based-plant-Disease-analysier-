@@ -4,6 +4,7 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy import String, cast
 from sqlalchemy.orm import Session, load_only
 
 from app.api import deps
@@ -58,7 +59,7 @@ def list_scans(current_user=Depends(deps.get_current_user), db: Session = Depend
     try:
         items = (
             db.query(ScanHistory)
-            .filter(ScanHistory.user_id == str(current_user.id))
+            .filter(cast(ScanHistory.user_id, String) == str(current_user.id))
             .order_by(ScanHistory.created_at.desc())
             .limit(50)
             .all()
@@ -80,7 +81,7 @@ def list_scans(current_user=Depends(deps.get_current_user), db: Session = Depend
                         ScanHistory.created_at,
                     )
                 )
-                .filter(ScanHistory.user_id == str(current_user.id))
+                .filter(cast(ScanHistory.user_id, String) == str(current_user.id))
                 .order_by(ScanHistory.created_at.desc())
                 .limit(50)
                 .all()
