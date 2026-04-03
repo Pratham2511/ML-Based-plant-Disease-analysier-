@@ -4,7 +4,7 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from sqlalchemy import String, cast
+from sqlalchemy import String, cast, inspect, text
 from sqlalchemy.orm import Session, load_only
 
 from app.api import deps
@@ -18,6 +18,13 @@ logger = logging.getLogger(__name__)
 
 LOW_CONFIDENCE_THRESHOLD = 0.20
 LOW_CONFIDENCE_MARGIN = 0.05
+
+
+def _safe_float(value: object, fallback: float = 0.0) -> float:
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except Exception:
+        return fallback
 
 
 def _safe_parse_analysis_payload(raw_payload: str | dict | None, scan_id: str) -> dict:
@@ -54,17 +61,55 @@ def _is_prediction_accepted(prediction: dict) -> bool:
     return confidence >= LOW_CONFIDENCE_THRESHOLD and margin >= LOW_CONFIDENCE_MARGIN
 
 
+def _serialize_scan_item(
+    *,
+    item_id: object,
+    disease_name: object,
+    confidence: object,
+    image_url: object,
+    analysis_payload: object,
+    timestamp: object,
+    farm_id: object | None,
+) -> dict:
+    return {
+        "id": str(item_id),
+        "farm_id": str(farm_id) if farm_id else None,
+        "disease_name": str(disease_name or ""),
+        "confidence": _safe_float(confidence),
+        "image_url": str(image_url or ""),
+        "analysis_json": _safe_parse_analysis_payload(analysis_payload, str(item_id)),
+        "timestamp": timestamp,
+    }
+
+
 @router.get("")
 def list_scans(current_user=Depends(deps.get_current_user), db: Session = Depends(deps.get_db)):
+    user_id_text = str(current_user.id)
+
     try:
         items = (
             db.query(ScanHistory)
-            .filter(cast(ScanHistory.user_id, String) == str(current_user.id))
+            .filter(cast(ScanHistory.user_id, String) == user_id_text)
             .order_by(ScanHistory.created_at.desc())
             .limit(50)
             .all()
         )
+        return {
+            "items": [
+                _serialize_scan_item(
+                    item_id=item.id,
+                    farm_id=getattr(item, "farm_id", None),
+                    disease_name=item.disease_name,
+                    confidence=item.confidence,
+                    image_url=item.image_url,
+                    analysis_payload=item.analysis_json,
+                    timestamp=item.created_at,
+                )
+                for item in items
+            ]
+        }
     except Exception:
+        db.rollback()
         logger.exception("Primary scan history query failed, retrying with legacy-safe projection")
         try:
             # Older deployments may not have all latest columns (for example farm_id).
@@ -81,29 +126,74 @@ def list_scans(current_user=Depends(deps.get_current_user), db: Session = Depend
                         ScanHistory.created_at,
                     )
                 )
-                .filter(cast(ScanHistory.user_id, String) == str(current_user.id))
+                .filter(cast(ScanHistory.user_id, String) == user_id_text)
                 .order_by(ScanHistory.created_at.desc())
                 .limit(50)
                 .all()
             )
-        except Exception:
-            logger.exception("Legacy-safe scan history query also failed")
-            raise HTTPException(status_code=500, detail="Failed to fetch scan history")
-
-    return {
-        "items": [
-            {
-                "id": str(item.id),
-                "farm_id": str(getattr(item, "farm_id", None)) if getattr(item, "farm_id", None) else None,
-                "disease_name": item.disease_name,
-                "confidence": item.confidence,
-                "image_url": item.image_url,
-                "analysis_json": _safe_parse_analysis_payload(item.analysis_json, str(item.id)),
-                "timestamp": item.created_at,
+            return {
+                "items": [
+                    _serialize_scan_item(
+                        item_id=item.id,
+                        farm_id=None,
+                        disease_name=item.disease_name,
+                        confidence=item.confidence,
+                        image_url=item.image_url,
+                        analysis_payload=item.analysis_json,
+                        timestamp=item.created_at,
+                    )
+                    for item in items
+                ]
             }
-            for item in items
-        ]
-    }
+        except Exception:
+            db.rollback()
+            logger.exception("Legacy-safe ORM scan history query failed, trying raw SQL fallback")
+
+    try:
+        inspector = inspect(db.bind)
+        columns = {column["name"] for column in inspector.get_columns("scan_history")}
+
+        required_columns = {"id", "user_id", "disease_name", "confidence", "image_url", "analysis_json"}
+        if not required_columns.issubset(columns):
+            logger.warning("scan_history schema missing required columns: %s", sorted(required_columns - columns))
+            return {"items": []}
+
+        selected_columns = ["id", "disease_name", "confidence", "image_url", "analysis_json"]
+        has_farm_id = "farm_id" in columns
+        has_created_at = "created_at" in columns
+
+        if has_farm_id:
+            selected_columns.append("farm_id")
+        if has_created_at:
+            selected_columns.append("created_at")
+
+        order_clause = " ORDER BY created_at DESC" if has_created_at else ""
+        sql = text(
+            f"SELECT {', '.join(selected_columns)} "
+            "FROM scan_history "
+            "WHERE CAST(user_id AS TEXT) = :user_id"
+            f"{order_clause} "
+            "LIMIT 50"
+        )
+        rows = db.execute(sql, {"user_id": user_id_text}).mappings().all()
+
+        return {
+            "items": [
+                _serialize_scan_item(
+                    item_id=row.get("id"),
+                    farm_id=row.get("farm_id") if has_farm_id else None,
+                    disease_name=row.get("disease_name"),
+                    confidence=row.get("confidence"),
+                    image_url=row.get("image_url"),
+                    analysis_payload=row.get("analysis_json"),
+                    timestamp=row.get("created_at") if has_created_at else None,
+                )
+                for row in rows
+            ]
+        }
+    except Exception:
+        logger.exception("Raw SQL scan history fallback failed; returning empty history")
+        return {"items": []}
 
 
 @router.post("/analyze")
