@@ -19,6 +19,20 @@ class TokenUser(BaseModel):
     longitude: float | None = None
 
 
+def _extract_token_from_request(request: Request) -> str | None:
+    cookie_token = request.cookies.get(settings.jwt_cookie_name)
+    if cookie_token:
+        return cookie_token
+
+    auth_header = str(request.headers.get("authorization") or "").strip()
+    if auth_header.lower().startswith("bearer "):
+        bearer_token = auth_header[7:].strip()
+        if bearer_token:
+            return bearer_token
+
+    return None
+
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
@@ -28,9 +42,9 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def get_current_user(request: Request) -> TokenUser:
-    token = request.cookies.get(settings.jwt_cookie_name)
+    token = _extract_token_from_request(request)
     if not token:
-        logger.warning("Missing auth token cookie on request path=%s", request.url.path)
+        logger.warning("Missing auth token on request path=%s", request.url.path)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
     try:
         payload = verify_token(token)
@@ -54,7 +68,7 @@ def get_current_user(request: Request) -> TokenUser:
 
 
 def get_optional_current_user(request: Request) -> TokenUser | None:
-    token = request.cookies.get(settings.jwt_cookie_name)
+    token = _extract_token_from_request(request)
     if not token:
         return None
 

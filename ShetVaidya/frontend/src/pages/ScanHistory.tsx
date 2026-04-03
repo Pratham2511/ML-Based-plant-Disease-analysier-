@@ -6,6 +6,7 @@ import ReadAloudButton from '../components/ReadAloudButton';
 import { formatLocalizedDateTime, formatLocalizedNumber, localizeAgricultureText, localizeNumericText } from '../utils/localization';
 import { localizeModelAdvice, localizeModelClassLabel, resolveModelClassKey } from '../utils/mlLocalization';
 import { useFarmContext } from '../context/FarmContext';
+import api from '../lib/api';
 
 type PredictionSummary = {
   raw_class?: string;
@@ -45,23 +46,16 @@ const ScanHistory = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${import.meta.env.VITE_API_URL}/scans`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(async (response) => {
-        const body = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error((body as any)?.detail || t('history.errors.fetchFailed'));
-        }
+    api
+      .get('/scans')
+      .then((response) => {
+        const body = response?.data || {};
         setItems((body as any).items || []);
         setError('');
       })
       .catch((err) => {
-        setError(err?.message || t('history.errors.fetchFailed'));
+        const message = err?.response?.data?.detail || err?.message || t('history.errors.fetchFailed');
+        setError(message);
       })
       .finally(() => setLoading(false));
   }, [t]);

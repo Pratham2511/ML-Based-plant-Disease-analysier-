@@ -82,6 +82,17 @@ const TopNavigation = () => {
           <div className="desktop-only-inline">
             <LanguageSwitcher compact />
           </div>
+          <div className="top-nav__mobile-action">
+            {user ? (
+              <button className="btn ghost top-nav__mobile-login" onClick={logout} disabled={loading}>
+                {t('nav.logout')}
+              </button>
+            ) : (
+              <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick} disabled={loading}>
+                {loading ? t('auth.restoringSession') : t('nav.login')}
+              </button>
+            )}
+          </div>
         </div>
 
         <NavLink to="/" className="brand-mark brand-mark--desktop min-w-0" aria-label="ShetVaidya">

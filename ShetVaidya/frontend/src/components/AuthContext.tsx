@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
-import api from '../lib/api';
+import api, { getStoredAccessToken, setApiAuthToken, setStoredAccessToken } from '../lib/api';
 
 export type User = {
   id: string;
@@ -71,6 +71,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const exchangeGoogleAuth = async (payload: { credential?: string; access_token?: string }) => {
     try {
       const res = await api.post('/auth/google', payload);
+      const accessToken = String(res.data?.access_token || '').trim();
+      if (accessToken) {
+        setStoredAccessToken(accessToken);
+        setApiAuthToken(accessToken);
+      }
       setUser(res.data.user);
       // Explicitly redirect to dashboard on successful auth
       navigate('/dashboard');
@@ -105,6 +110,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const restoreSession = async () => {
       try {
+        const persistedToken = getStoredAccessToken();
+        if (persistedToken) {
+          setApiAuthToken(persistedToken);
+        }
         const res = await api.get('/auth/me');
         if (active) {
           setUser(res.data);
@@ -116,6 +125,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         if (active) {
           setUser(null);
+        }
+        if (err?.response?.status === 401) {
+          setStoredAccessToken(null);
+          setApiAuthToken(null);
         }
       } finally {
         if (active) {
@@ -215,6 +228,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     setLoading(true);
     setUser(null);
+    setStoredAccessToken(null);
+    setApiAuthToken(null);
     try {
       await api.post('/auth/logout');
     } catch {

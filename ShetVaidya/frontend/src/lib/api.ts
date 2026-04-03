@@ -1,5 +1,22 @@
 import axios from 'axios';
 
+const ACCESS_TOKEN_STORAGE_KEY = 'shetvaidya_access_token';
+
+export const getStoredAccessToken = (): string => {
+  if (typeof window === 'undefined') return '';
+  return String(window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) || '').trim();
+};
+
+export const setStoredAccessToken = (token: string | null): void => {
+  if (typeof window === 'undefined') return;
+  const normalized = String(token || '').trim();
+  if (!normalized) {
+    window.localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    return;
+  }
+  window.localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, normalized);
+};
+
 axios.defaults.withCredentials = true;
 
 const api = axios.create({
@@ -8,6 +25,20 @@ const api = axios.create({
 });
 
 api.defaults.withCredentials = true;
+
+const initialToken = getStoredAccessToken();
+if (initialToken) {
+  api.defaults.headers.common.Authorization = `Bearer ${initialToken}`;
+}
+
+export const setApiAuthToken = (token: string | null): void => {
+  const normalized = String(token || '').trim();
+  if (!normalized) {
+    delete api.defaults.headers.common.Authorization;
+    return;
+  }
+  api.defaults.headers.common.Authorization = `Bearer ${normalized}`;
+};
 
 const normalizeBackend404 = (error: any) => {
   const status = error?.response?.status;
@@ -49,5 +80,16 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+api.interceptors.request.use((config) => {
+  const token = getStoredAccessToken();
+  if (token) {
+    config.headers = config.headers || {};
+    if (!config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
 
 export default api;
