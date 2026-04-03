@@ -11,6 +11,7 @@ import MandiPrices from '../components/MandiPrices';
 import WeatherWidget from '../components/WeatherWidget';
 import { formatLocalizedNumber, localizeAgricultureText } from '../utils/localization';
 import { localizeModelAdvice, localizeModelClassLabel, resolveModelClassKey } from '../utils/mlLocalization';
+import { appendLocalScanHistory, mergeScanHistory, readLocalScanHistory, type ScanHistoryItem } from '../utils/localScanHistory';
 import { useFarmContext } from '../context/FarmContext';
 
 type PredictionResult = {
@@ -68,6 +69,13 @@ type HistoryInsight = {
   confidence: number;
   timestamp: string;
 };
+
+const toHistoryInsight = (item: ScanHistoryItem): HistoryInsight => ({
+  id: item.id,
+  disease_name: String(item.disease_name || '').replaceAll(' ', '_'),
+  confidence: Number(item.confidence || 0),
+  timestamp: item.timestamp,
+});
 
 const ONBOARDING_KEY = 'shetvaidya-onboarding-complete';
 
@@ -210,47 +218,38 @@ const Dashboard = () => {
 
     const completed = localStorage.getItem(ONBOARDING_KEY) === 'true';
     setShowOnboarding(!completed);
-  }, []);
 
-  const isLocalHistoryItem = (item: HistoryInsight) => String(item.id).startsWith('local-');
-
-  const mergeHistoryItems = (remoteItems: HistoryInsight[], currentItems: HistoryInsight[]) => {
-    const localItems = currentItems.filter(isLocalHistoryItem);
-
-    // If backend returns nothing while we have local fallback records,
-    // keep local insights visible so KPI values stay responsive.
-    if (remoteItems.length === 0 && localItems.length > 0) {
-      return currentItems;
+    const localHistory = readLocalScanHistory();
+    if (localHistory.length > 0) {
+      setHistoryItems(localHistory.map(toHistoryInsight));
     }
-
-    const remoteSignature = new Set(remoteItems.map((item) => `${item.disease_name}|${item.timestamp}`));
-    const unsyncedLocalItems = localItems.filter(
-      (item) => !remoteSignature.has(`${item.disease_name}|${item.timestamp}`)
-    );
-
-    return [...unsyncedLocalItems, ...remoteItems]
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 50);
-  };
+  }, []);
 
   const refreshHistoryItems = async () => {
     setLoadingInsights(true);
+    const localHistory = readLocalScanHistory();
     try {
       const response = await api.get('/scans');
       const body = (response.data || {}) as { items?: HistoryInsight[] };
-      const remoteItems = Array.isArray(body.items) ? body.items : [];
+      const remoteItems = Array.isArray(body.items)
+        ? body.items.map((item) => ({
+            ...item,
+            confidence: Number(item.confidence || 0) > 1 ? Number(item.confidence || 0) / 100 : Number(item.confidence || 0),
+          })) as ScanHistoryItem[]
+        : [];
 
-      if (remoteItems.length === 0 && historyItems.some(isLocalHistoryItem)) {
-        setHistorySyncNotice(t('history.errors.fetchFailed'));
-      } else {
-        setHistorySyncNotice('');
-      }
+      const merged = mergeScanHistory(remoteItems, localHistory);
+      setHistoryItems(merged.map(toHistoryInsight));
 
-      setHistoryItems((prev) => mergeHistoryItems(remoteItems, prev));
-      return true;
+      const remoteSynced = remoteItems.length > 0 || localHistory.length === 0;
+      setHistorySyncNotice(remoteSynced ? '' : t('history.errors.fetchFailed'));
+      return remoteSynced;
     } catch {
       // Keep local fallback insights when auth-based history is unavailable,
       // but show a visible notice so users know cloud history sync failed.
+      if (localHistory.length > 0) {
+        setHistoryItems(localHistory.map(toHistoryInsight));
+      }
       setHistorySyncNotice(t('history.errors.fetchFailed'));
       return false;
     } finally {
@@ -368,14 +367,36 @@ const Dashboard = () => {
       const diseaseForTrend = (payload.disease_name || payload.raw_class || t('dashboard.notAvailable')).replaceAll(' ', '_');
       const confidenceForTrend = Number(payload.confidence || 0) / 100;
 
-      const localInsight: HistoryInsight = {
-        id: `local-${nowIso}`,
+      const localTopPredictions = Array.isArray(payload.top_predictions)
+        ? payload.top_predictions
+            .map((entry: any) => ({
+              raw_class: entry?.raw_class ? String(entry.raw_class) : undefined,
+              disease_name: String(entry?.disease_name || '').trim(),
+              confidence: Number(entry?.confidence || 0) > 1 ? Number(entry?.confidence || 0) / 100 : Number(entry?.confidence || 0),
+            }))
+            .filter((entry: any) => entry.disease_name)
+        : undefined;
+
+      const localHistoryId = String(payload.history_id || `local-${nowIso}`);
+      const localHistory = appendLocalScanHistory({
+        id: localHistoryId,
+        farm_id: activeFarm?.id || null,
         disease_name: diseaseForTrend,
         confidence: confidenceForTrend,
+        image_url: String(payload.image_url || ''),
         timestamp: nowIso,
-      };
+        analysis_json: {
+          raw_class: payload.raw_class ? String(payload.raw_class) : undefined,
+          description: diseaseData.description,
+          cause: diseaseData.cause,
+          treatment: diseaseData.treatment,
+          recommended_medicines: medicines,
+          crop_type: activeFarm?.crop || undefined,
+          top_predictions: localTopPredictions,
+        },
+      });
 
-      setHistoryItems((prev) => [localInsight, ...prev].slice(0, 50));
+      setHistoryItems(localHistory.map(toHistoryInsight));
 
       // Try to sync from backend history when user is authenticated.
       const synced = await refreshHistoryItems();

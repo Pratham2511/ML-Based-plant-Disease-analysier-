@@ -5,39 +5,16 @@ import LeafLoader from '../components/LeafLoader';
 import ReadAloudButton from '../components/ReadAloudButton';
 import { formatLocalizedDateTime, formatLocalizedNumber, localizeAgricultureText, localizeNumericText } from '../utils/localization';
 import { localizeModelAdvice, localizeModelClassLabel, resolveModelClassKey } from '../utils/mlLocalization';
+import { mergeScanHistory, readLocalScanHistory, writeLocalScanHistory, type ScanHistoryItem } from '../utils/localScanHistory';
 import { useFarmContext } from '../context/FarmContext';
 import api from '../lib/api';
-
-type PredictionSummary = {
-  raw_class?: string;
-  disease_name: string;
-  confidence: number;
-};
-
-type HistoryItem = {
-  id: string;
-  farm_id?: string | null;
-  disease_name: string;
-  confidence: number;
-  image_url: string;
-  timestamp: string;
-  analysis_json?: {
-    raw_class?: string;
-    description?: string;
-    cause?: string;
-    treatment?: string;
-    recommended_medicines?: string[];
-    crop_type?: string;
-    top_predictions?: PredictionSummary[];
-  };
-};
 
 const ScanHistory = () => {
   const { t, i18n } = useTranslation();
   const { farms } = useFarmContext();
   const language = i18n.language;
 
-  const [items, setItems] = useState<HistoryItem[]>([]);
+  const [items, setItems] = useState<ScanHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
@@ -45,19 +22,42 @@ const ScanHistory = () => {
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    let active = true;
+    const localItems = readLocalScanHistory();
+    if (localItems.length) {
+      setItems(localItems);
+    }
+
     setLoading(true);
     api
       .get('/scans')
       .then((response) => {
         const body = response?.data || {};
-        setItems((body as any).items || []);
-        setError('');
+        const remoteItems = Array.isArray((body as any).items) ? ((body as any).items as ScanHistoryItem[]) : [];
+        const mergedItems = mergeScanHistory(remoteItems, localItems);
+
+        if (!active) return;
+        setItems(mergedItems);
+        writeLocalScanHistory(mergedItems);
+        setError(remoteItems.length === 0 && localItems.length > 0 ? t('history.errors.fetchFailed') : '');
       })
       .catch((err) => {
         const message = err?.response?.data?.detail || err?.message || t('history.errors.fetchFailed');
+        if (!active) return;
+        if (localItems.length > 0) {
+          setItems(localItems);
+          setError(t('history.errors.fetchFailed'));
+          return;
+        }
         setError(message);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [t]);
 
   if (loading) {
@@ -167,9 +167,13 @@ const ScanHistory = () => {
                 <span className="label-muted">{t('history.cropType')}: {localizeAgricultureText(item.analysis_json?.crop_type || t('dashboard.notAvailable'), language)}</span>
               </div>
 
-              <a href={item.image_url} target="_blank" rel="noreferrer" className="history-link">
-                {t('history.viewImage')}
-              </a>
+              {item.image_url ? (
+                <a href={item.image_url} target="_blank" rel="noreferrer" className="history-link">
+                  {t('history.viewImage')}
+                </a>
+              ) : (
+                <span className="label-muted">{t('dashboard.notAvailable')}</span>
+              )}
 
               {item.analysis_json?.description && (
                 <div className="history-description">
