@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import api from '../lib/api';
@@ -12,8 +12,8 @@ import { useFarmContext, type Farm } from '../context/FarmContext';
 type NameForm = { full_name: string };
 
 const Profile = () => {
-  const { t } = useTranslation();
-  const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { user, logout } = useAuth();
   const { farms, addFarm, updateFarm, deleteFarm, setActiveFarm, loading: farmsLoading } = useFarmContext();
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -62,8 +62,122 @@ const Profile = () => {
     t('profile.googleAccountDesc'),
   ].join(' ');
 
+  const joinedDateLabel = useMemo(() => {
+    const earliestFarm = [...farms]
+      .filter((farm) => farm.createdAt)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0];
+
+    if (!earliestFarm?.createdAt) {
+      return t('profile.mobile.notAvailable');
+    }
+
+    return new Date(earliestFarm.createdAt).toLocaleDateString(i18n.language, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }, [farms, i18n.language, t]);
+
+  const handleMobileSettingTap = (messageKey: string) => {
+    setStatusMessage(t(messageKey));
+    setErrorMessage('');
+  };
+
   return (
     <div className="profile-layout">
+      <section className="profile-mobile-shell">
+        <header className="profile-mobile-glass-header">
+          <p className="profile-mobile-title">{t('profile.mobile.title')}</p>
+        </header>
+
+        <section className="profile-mobile-hero card">
+          <div className="profile-mobile-avatar-wrap">
+            <img
+              src={user?.picture_url || '/assets/logo.svg'}
+              alt={t('profile.mobile.avatarAlt')}
+              className="profile-mobile-avatar"
+            />
+            <button type="button" className="profile-mobile-avatar-edit" onClick={() => handleMobileSettingTap('profile.mobile.profileEditHint')}>
+              ✎
+            </button>
+          </div>
+          <h2>{displayName}</h2>
+          <p>{user?.email || t('dashboard.notAvailable')}</p>
+
+          <div className="profile-mobile-meta-grid">
+            <article className="profile-mobile-meta-card">
+              <span>{t('profile.mobile.statusLabel')}</span>
+              <strong className="profile-mobile-status-pill">{t('profile.mobile.statusActive')}</strong>
+            </article>
+            <article className="profile-mobile-meta-card">
+              <span>{t('profile.mobile.joinedLabel')}</span>
+              <strong>{joinedDateLabel}</strong>
+            </article>
+          </div>
+        </section>
+
+        <section className="profile-mobile-group card">
+          <h3>{t('profile.mobile.accountSettings')}</h3>
+          <button type="button" className="profile-mobile-row" onClick={() => handleMobileSettingTap('profile.mobile.personalInfoHint')}>
+            <span className="profile-mobile-row-icon">👤</span>
+            <span className="profile-mobile-row-copy">
+              <strong>{t('profile.mobile.personalInfoTitle')}</strong>
+              <small>{t('profile.mobile.personalInfoSubtitle')}</small>
+            </span>
+            <span className="profile-mobile-chevron">›</span>
+          </button>
+          <button type="button" className="profile-mobile-row" onClick={() => handleMobileSettingTap('profile.mobile.notificationsHint')}>
+            <span className="profile-mobile-row-icon">🔔</span>
+            <span className="profile-mobile-row-copy">
+              <strong>{t('profile.mobile.notificationsTitle')}</strong>
+              <small>{t('profile.mobile.notificationsSubtitle')}</small>
+            </span>
+            <span className="profile-mobile-chevron">›</span>
+          </button>
+          <button type="button" className="profile-mobile-row" onClick={() => handleMobileSettingTap('profile.mobile.languageHint')}>
+            <span className="profile-mobile-row-icon">🌐</span>
+            <span className="profile-mobile-row-copy">
+              <strong>{t('profile.mobile.languageTitle')}</strong>
+              <small>{t('profile.mobile.languageSubtitle')}</small>
+            </span>
+            <span className="profile-mobile-chevron">›</span>
+          </button>
+        </section>
+
+        <section className="profile-mobile-group card">
+          <h3>{t('profile.mobile.supportPrivacy')}</h3>
+          <button type="button" className="profile-mobile-row" onClick={() => handleMobileSettingTap('profile.mobile.helpHint')}>
+            <span className="profile-mobile-row-icon">🆘</span>
+            <span className="profile-mobile-row-copy">
+              <strong>{t('profile.mobile.helpTitle')}</strong>
+              <small>{t('profile.mobile.helpSubtitle')}</small>
+            </span>
+            <span className="profile-mobile-chevron">›</span>
+          </button>
+          <button type="button" className="profile-mobile-row" onClick={() => handleMobileSettingTap('profile.mobile.privacyHint')}>
+            <span className="profile-mobile-row-icon">🔐</span>
+            <span className="profile-mobile-row-copy">
+              <strong>{t('profile.mobile.privacyTitle')}</strong>
+              <small>{t('profile.mobile.privacySubtitle')}</small>
+            </span>
+            <span className="profile-mobile-chevron">›</span>
+          </button>
+        </section>
+
+        <section className="profile-mobile-actions">
+          <button
+            type="button"
+            className="btn profile-mobile-logout"
+            onClick={logout}
+            disabled={pendingAction !== null}
+          >
+            {t('nav.logout')}
+          </button>
+          <p className="profile-mobile-version">Version 2.4.0-Beta</p>
+        </section>
+      </section>
+
+      <div className="profile-desktop-content">
       <section className="card farms-section">
         <div className="section-title-row">
           <h2>{t('farms.title')}</h2>
@@ -177,6 +291,7 @@ const Profile = () => {
           </div>
         </div>
       </section>
+      </div>
 
       {pendingAction && <LeafLoader variant="panel" label={t('profile.updatingProfile')} />}
       {statusMessage && <div className="success-box">{statusMessage}</div>}

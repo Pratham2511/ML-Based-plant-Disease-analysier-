@@ -71,7 +71,7 @@ export const FarmProvider = ({ children }: { children: React.ReactNode }) => {
 
     setLoading(true);
     try {
-      const response = await api.get('/farms');
+      const response = await api.get('/farms', { withCredentials: true });
       const records = Array.isArray(response.data) ? response.data : [];
       setFarms(records.map(mapFarm));
     } finally {
@@ -86,7 +86,7 @@ export const FarmProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addFarm = async (farm: Omit<Farm, 'id' | 'isActive' | 'createdAt'>) => {
     const payload = toPayload(farm);
-    await api.post('/farms', payload);
+    await api.post('/farms', payload, { withCredentials: true });
     await refreshFarms();
   };
 
@@ -99,17 +99,17 @@ export const FarmProvider = ({ children }: { children: React.ReactNode }) => {
     if (farm.soilType !== undefined) payload.soil_type = farm.soilType?.trim() || null;
     if (farm.irrigationType !== undefined) payload.irrigation_type = farm.irrigationType?.trim() || null;
 
-    await api.put(`/farms/${id}`, payload);
+    await api.put(`/farms/${id}`, payload, { withCredentials: true });
     await refreshFarms();
   };
 
   const deleteFarm = async (id: string) => {
-    await api.delete(`/farms/${id}`);
+    await api.delete(`/farms/${id}`, { withCredentials: true });
     await refreshFarms();
   };
 
   const setActiveFarm = async (farm: Farm) => {
-    await api.post(`/farms/${farm.id}/activate`);
+    await api.post(`/farms/${farm.id}/activate`, undefined, { withCredentials: true });
     await refreshFarms();
   };
 

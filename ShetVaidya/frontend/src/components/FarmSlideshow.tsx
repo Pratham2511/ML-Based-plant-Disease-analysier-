@@ -100,11 +100,10 @@ const FarmSlideshow = ({
             <article
               key={`${slide.src}-${index}`}
               className={`farm-slideshow__slide ${active ? 'is-active' : ''}`}
-              aria-hidden={active ? 'false' : 'true'}
             >
               <img src={slide.src} alt={t(slide.captionKey)} loading={index === 0 ? 'eager' : 'lazy'} />
               <div className="farm-slideshow__overlay">
-                <span>{t(slide.captionKey)}</span>
+                <p className="slide-caption">{t(slide.captionKey)}</p>
               </div>
             </article>
           );
@@ -133,13 +132,11 @@ const FarmSlideshow = ({
       </div>
 
       {slides.length > 1 ? (
-        <div className="farm-slideshow__dots" role="tablist" aria-label={dotLabel}>
+        <div className="farm-slideshow__dots" aria-label={dotLabel}>
           {slides.map((slide, index) => (
             <button
               key={`${slide.captionKey}-${index}`}
               type="button"
-              role="tab"
-              aria-selected={index === currentIndex ? 'true' : 'false'}
               aria-label={`${dotLabel} ${index + 1}`}
               className={`farm-slideshow__dot ${index === currentIndex ? 'is-active' : ''}`}
               onClick={() => goToSlide(index)}

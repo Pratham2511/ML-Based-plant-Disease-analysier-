@@ -120,6 +120,11 @@ const ReadAloudButton = ({ text, className = '', labelKey = 'common.readAloud' }
   const speak = () => {
     const synth = window.speechSynthesis;
 
+    if (!synth) {
+      alert('Text to speech is not supported in this browser.');
+      return;
+    }
+
     if (synth.speaking || speaking) {
       stopSpeaking();
       return;
@@ -127,51 +132,74 @@ const ReadAloudButton = ({ text, className = '', labelKey = 'common.readAloud' }
 
     const baseLang = i18n.language.split('-')[0].toLowerCase();
     const targetLang = LANGUAGE_MAP[baseLang] || 'en-IN';
-    const selectedVoice = selectVoice(voices, baseLang, targetLang);
     const chunks = chunkText(text);
 
     if (!chunks.length) {
       return;
     }
 
+    synth.cancel();
+
     const sessionId = sessionRef.current + 1;
     sessionRef.current = sessionId;
     setSpeaking(true);
 
-    let index = 0;
-    const speakNextChunk = () => {
+    const speakWithVoices = () => {
       if (sessionRef.current !== sessionId) {
         return;
       }
 
-      const chunk = chunks[index];
-      if (!chunk) {
-        setSpeaking(false);
-        return;
-      }
+      const availableVoices = synth.getVoices();
+      const selectedVoice = selectVoice(availableVoices.length ? availableVoices : voices, baseLang, targetLang);
 
-      const utterance = new SpeechSynthesisUtterance(chunk);
-      utterance.lang = targetLang;
-      utterance.rate = 0.98;
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
-
-      utterance.onend = () => {
-        index += 1;
-        speakNextChunk();
-      };
-
-      utterance.onerror = () => {
-        if (sessionRef.current === sessionId) {
-          setSpeaking(false);
+      let index = 0;
+      const speakNextChunk = () => {
+        if (sessionRef.current !== sessionId) {
+          return;
         }
+
+        const chunk = chunks[index];
+        if (!chunk) {
+          setSpeaking(false);
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(chunk);
+        utterance.lang = targetLang;
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
+
+        utterance.onend = () => {
+          index += 1;
+          speakNextChunk();
+        };
+
+        utterance.onerror = () => {
+          if (sessionRef.current === sessionId) {
+            setSpeaking(false);
+          }
+        };
+
+        synth.speak(utterance);
       };
 
-      synth.speak(utterance);
+      speakNextChunk();
     };
 
-    speakNextChunk();
+    if (synth.getVoices().length === 0) {
+      synth.addEventListener('voiceschanged', speakWithVoices, { once: true });
+      window.setTimeout(() => {
+        if (sessionRef.current === sessionId && !synth.speaking) {
+          speakWithVoices();
+        }
+      }, 250);
+    } else {
+      speakWithVoices();
+    }
   };
 
   return (

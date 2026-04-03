@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGoogleLogin } from '@react-oauth/google';
 import { Capacitor } from '@capacitor/core';
@@ -22,14 +22,8 @@ const SPLASH_STORAGE_KEY = 'shetvaidya-splash-seen';
 const TopNavigation = () => {
   const { user, loading, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
   const { t, i18n } = useTranslation();
-  const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const currentLang = i18n.language.split('-')[0];
-
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 2);
@@ -63,13 +57,10 @@ const TopNavigation = () => {
       } else {
         initiateLogin();
       }
-      setMobileMenuOpen(false);
     } catch (err: any) {
       alert(`${t('auth.errors.loginTriggerError')}: ${err.message}`);
     }
   };
-
-  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
     <>
@@ -114,29 +105,6 @@ const TopNavigation = () => {
             )}
           </div>
 
-          <div className="top-nav__mobile-action">
-            {user ? (
-              <button
-                type="button"
-                className="top-nav__hamburger"
-                onClick={() => setMobileMenuOpen((open) => !open)}
-                aria-label={mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
-              >
-                {mobileMenuOpen ? '✕' : '☰'}
-              </button>
-            ) : (
-              <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick} disabled={loading}>
-                {loading ? (
-                  <>
-                    <span className="btn__spinner" aria-hidden />
-                    <span className="btn__mobile-loading-text">{t('common.loading')}</span>
-                  </>
-                ) : (
-                  t('nav.login')
-                )}
-              </button>
-            )}
-          </div>
         </div>
 
         <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
@@ -150,7 +118,7 @@ const TopNavigation = () => {
           <NavLink to="/krushi-vibhag" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             {t('nav.krushiVibhag')}
           </NavLink>
-          <NavLink to="/history" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+          <NavLink to="/scan-history" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             {t('nav.scanHistory')}
           </NavLink>
           <NavLink to="/profile" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
@@ -158,54 +126,45 @@ const TopNavigation = () => {
           </NavLink>
         </nav>
       </header>
-
-      {user ? (
-        <>
-          <button
-            type="button"
-            className={`mobile-drawer-backdrop ${mobileMenuOpen ? 'open' : ''}`}
-            onClick={closeMobileMenu}
-            aria-label={t('nav.closeMenuBackdrop')}
-          />
-          <aside className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
-            <div className="mobile-drawer__head">
-              <strong>ShetVaidya</strong>
-              <button type="button" className="mobile-drawer__close" onClick={closeMobileMenu} aria-label={t('nav.closeMenu')}>
-                ✕
-              </button>
-            </div>
-            <FarmSelector />
-            <nav className="mobile-drawer__links" aria-label={t('nav.primaryLabel')}>
-              <NavLink to="/dashboard" className="mobile-drawer__link" onClick={closeMobileMenu}>
-                {t('nav.dashboard')}
-              </NavLink>
-              <NavLink to="/area-intelligence" className="mobile-drawer__link" onClick={closeMobileMenu}>
-                {t('nav.areaIntelligence')}
-              </NavLink>
-              <NavLink to="/krushi-vibhag" className="mobile-drawer__link" onClick={closeMobileMenu}>
-                {t('nav.krushiVibhag')}
-              </NavLink>
-              <NavLink to="/history" className="mobile-drawer__link" onClick={closeMobileMenu}>
-                {t('nav.scanHistory')}
-              </NavLink>
-              <NavLink to="/profile" className="mobile-drawer__link" onClick={closeMobileMenu}>
-                {t('nav.accountSettings')}
-              </NavLink>
-            </nav>
-            <button
-              className="btn ghost mobile-drawer__logout"
-              onClick={async () => {
-                await logout();
-                closeMobileMenu();
-              }}
-              disabled={loading}
-            >
-              {loading ? t('auth.restoringSession') : t('nav.logout')}
-            </button>
-          </aside>
-        </>
-      ) : null}
     </>
+  );
+};
+
+const MobileBottomTabBar = () => {
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  if (!user) {
+    return null;
+  }
+
+  const isActive = (paths: string[]) => paths.includes(location.pathname);
+
+  return (
+    <nav className="mobile-bottom-tab-bar" aria-label={t('nav.mobileQuickNavigation')}>
+      <button onClick={() => navigate('/')} className={isActive(['/']) ? 'tab-active' : ''}>
+        <span className="tab-icon">🏠</span>
+        <span className="tab-label">{t('nav.home')}</span>
+      </button>
+      <button onClick={() => navigate('/dashboard')} className={isActive(['/dashboard']) ? 'tab-active' : ''}>
+        <span className="tab-icon">📊</span>
+        <span className="tab-label">{t('nav.dashboard')}</span>
+      </button>
+      <button onClick={() => navigate('/scan-history')} className={isActive(['/scan-history', '/history']) ? 'tab-active' : ''}>
+        <span className="tab-icon">🕐</span>
+        <span className="tab-label">{t('nav.history')}</span>
+      </button>
+      <button onClick={() => navigate('/krushi-vibhag')} className={isActive(['/krushi-vibhag']) ? 'tab-active' : ''}>
+        <span className="tab-icon">🌾</span>
+        <span className="tab-label">{t('nav.krushiVibhag')}</span>
+      </button>
+      <button onClick={() => navigate('/profile')} className={isActive(['/profile']) ? 'tab-active' : ''}>
+        <span className="tab-icon">👤</span>
+        <span className="tab-label">{t('nav.profile')}</span>
+      </button>
+    </nav>
   );
 };
 
@@ -287,6 +246,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="/scan-history"
+                  element={
+                    <ProtectedRoute>
+                      <ScanHistory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/history"
                   element={
                     <ProtectedRoute>
@@ -314,6 +281,7 @@ function App() {
               </Routes>
             </div>
           </main>
+          <MobileBottomTabBar />
         </div>
       </FarmProvider>
     </AuthProvider>

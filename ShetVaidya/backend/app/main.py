@@ -14,7 +14,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
 from sqlalchemy.orm import Session
 
-from app.api import area_intelligence, auth, deps, health, medicine, scans
+from app.api import area_intelligence, auth, deps, health, mandi_prices, medicine, scans
 from app.core.config import settings
 from app.models.scan_history import ScanHistory
 from app.utils.storage import upload_to_r2
@@ -204,6 +204,7 @@ app.include_router(health.router)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(scans.router, prefix="/scans", tags=["scans"])
 app.include_router(medicine.router, prefix="/medicine", tags=["medicine"])
+app.include_router(mandi_prices.router, prefix="/api", tags=["mandi"])
 app.include_router(area_intelligence.router, prefix="/area-intelligence", tags=["area-intelligence"])
 if farms is not None:
     app.include_router(farms.router, prefix="/farms", tags=["farms"])

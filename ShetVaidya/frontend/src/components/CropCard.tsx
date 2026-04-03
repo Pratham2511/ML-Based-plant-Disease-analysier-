@@ -103,22 +103,22 @@ const CropCard = ({ crop, onOpenDetails }: CropCardProps) => {
       <div className="crop-card__content">
         <h3>{localizeAreaMetric(crop.crop_name)}</h3>
         <div className="crop-card__facts">
-          <span>
+          <span className="crop-detail-item">
             <strong>{FIELD_ICONS.season} {t('area.fields.season')}:</strong> {localizeAreaMetric(crop.growing_season)}
           </span>
-          <span>
+          <span className="crop-detail-item">
             <strong>{FIELD_ICONS.water} {t('area.fields.water')}:</strong> {localizeAreaMetric(crop.water_requirement)}
           </span>
-          <span>
+          <span className="crop-detail-item">
             <strong>{FIELD_ICONS.temperature} {t('area.fields.temperature')}:</strong> {localizeAreaMetric(crop.ideal_temperature_range)}
           </span>
-          <span>
+          <span className="crop-detail-item">
             <strong>{FIELD_ICONS.yield} {t('area.fields.yield')}:</strong> {localizeAreaMetric(crop.expected_yield)}
           </span>
-          <span>
+          <span className="crop-detail-item">
             <strong>{FIELD_ICONS.risk} {t('area.fields.risk')}:</strong> {localizeAreaMetric(crop.pest_disease_risk_level)}
           </span>
-          <span>
+          <span className="crop-detail-item">
             <strong>{FIELD_ICONS.market} {t('area.fields.marketDemand')}:</strong> {localizeAreaMetric(crop.market_demand_indicator)}
           </span>
         </div>

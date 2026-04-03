@@ -530,11 +530,18 @@ const KrushiVibhag = () => {
               </p>
               <p>
                 <strong>{t('krushiVibhag.phoneLabel')}:</strong>{' '}
-                <a href={`tel:${selectedOffice.phone}`}>{selectedOffice.phone}</a>
+                <a href={`tel:${selectedOffice.phone.replace(/[^0-9+]/g, '')}`}>{selectedOffice.phone}</a>
               </p>
               <p>
                 <strong>{t('krushiVibhag.officeHoursLabel')}:</strong> {t('krushiVibhag.officeHours')}
               </p>
+
+              <a
+                href={`tel:${selectedOffice.phone.replace(/[^0-9+]/g, '')}`}
+                className="btn primary call-office-btn"
+              >
+                📞 {t('krushiVibhag.callOffice')}
+              </a>
 
               <button type="button" className="btn primary" onClick={() => openMaps(selectedOffice)}>
                 {t('krushiVibhag.getDirections')}

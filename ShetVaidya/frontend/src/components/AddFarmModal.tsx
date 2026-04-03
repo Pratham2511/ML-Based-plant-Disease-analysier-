@@ -107,16 +107,16 @@ const AddFarmModal = ({ isOpen, onClose, onSave, initialFarm }: AddFarmModalProp
   };
 
   return (
-    <div className="farm-modal-backdrop" role="presentation" onClick={onClose}>
-      <div className="farm-modal" role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
-        <div className="farm-modal__header">
+    <div className="add-farm-modal-overlay" role="presentation" onClick={onClose}>
+      <div className="add-farm-modal-content" role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
+        <div className="add-farm-modal__header">
           <h3>{title}</h3>
           <button type="button" className="btn ghost btn--compact" onClick={onClose}>
-            X
+            ×
           </button>
         </div>
 
-        <div className="farm-modal__form">
+        <div className="add-farm-modal__form">
           <label className="field-label" htmlFor="farm-name">{t('farms.farmName')} *</label>
           <input id="farm-name" className="input" value={form.name} onChange={(e) => onFieldChange('name', e.target.value)} />
 
@@ -158,7 +158,7 @@ const AddFarmModal = ({ isOpen, onClose, onSave, initialFarm }: AddFarmModalProp
 
         {error ? <p className="form-error">{error}</p> : null}
 
-        <div className="farm-modal__actions">
+        <div className="add-farm-modal__actions">
           <button type="button" className="btn ghost" onClick={onClose} disabled={saving}>{t('farms.cancel')}</button>
           <button type="button" className="btn primary" onClick={handleSave} disabled={saving}>{t('farms.save')}</button>
         </div>

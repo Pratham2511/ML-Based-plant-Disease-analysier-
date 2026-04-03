@@ -24,13 +24,6 @@ type CacheShape = {
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-const toMandiDistrict = (district: string): string => {
-  return district
-    .toUpperCase()
-    .replace('MUMBAI CITY', 'MUMBAI')
-    .replace('AURANGABAD', 'CHHATRAPATI SAMBHAJINAGAR');
-};
-
 const getCommodityEmoji = (commodity: string): string => {
   const map: Record<string, string> = {
     tomato: '🍅',
@@ -76,7 +69,7 @@ const parseRecords = (body: any): MandiRecord[] => {
         minPrice,
         maxPrice,
         modalPrice,
-        date: String(record?.arrival_date || ''),
+        date: String(record?.date || record?.arrival_date || ''),
         pricePerKg: Math.round((modalPrice / 100) * 100) / 100,
       };
     })
@@ -95,22 +88,14 @@ const MandiPrices = ({ district, preferredCrop }: MandiPricesProps) => {
   const cacheKey = useMemo(() => `shetvaidya_mandi_${district}`, [district]);
 
   const fetchMandi = async () => {
-    const apiKey = import.meta.env.VITE_DATAGOV_API_KEY;
-    if (!apiKey || !district) return;
+    if (!district) return;
 
     setLoading(true);
     setError('');
 
     try {
-      const url = new URL('https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070');
-      url.searchParams.set('api-key', apiKey);
-      url.searchParams.set('format', 'json');
-      url.searchParams.set('filters[State]', 'Maharashtra');
-      url.searchParams.set('filters[District]', toMandiDistrict(district));
-      url.searchParams.set('limit', '20');
-      url.searchParams.set('offset', '0');
-
-      const response = await fetch(url.toString());
+      const url = `${import.meta.env.VITE_API_URL}/api/mandi-prices?district=${encodeURIComponent(district)}`;
+      const response = await fetch(url, { credentials: 'include' });
       if (!response.ok) throw new Error('Mandi API failed');
       const body = await response.json();
       const parsed = parseRecords(body);

@@ -140,7 +140,7 @@ const Introduction = () => {
             <Link className="btn primary" to="/dashboard">
               {t('intro.primaryAction')}
             </Link>
-            <Link className="btn ghost" to="/history">
+            <Link className="btn ghost" to="/scan-history">
               {t('nav.scanHistory')}
             </Link>
           </div>

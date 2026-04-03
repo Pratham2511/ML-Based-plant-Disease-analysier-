@@ -86,16 +86,36 @@ const WeatherWidget = ({ district }: WeatherWidgetProps) => {
   const [cacheNotice, setCacheNotice] = useState('');
 
   const key = useMemo(() => `shetvaidya_weather_${district}`, [district]);
+  const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
   const advisory = useMemo(() => getFarmingAdvisory(forecast, t), [forecast, t]);
 
-  const fetchWeather = async () => {
+  const fetchWeather = async (forceRefresh = false) => {
     if (!district) return;
 
-    const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-    if (!apiKey) {
+    if (!API_KEY) {
+      console.error('VITE_OPENWEATHER_API_KEY is not set');
       setError(t('weather.error'));
       return;
+    }
+
+    if (!forceRefresh) {
+      const cacheRaw = localStorage.getItem(key);
+      if (cacheRaw) {
+        try {
+          const parsed = JSON.parse(cacheRaw) as CachedWeatherPayload;
+          const age = Date.now() - Number(parsed.updatedAt || 0);
+          if (age <= THREE_HOURS_MS && Array.isArray(parsed.forecast) && parsed.forecast.length > 0) {
+            setForecast(parsed.forecast);
+            setLastUpdated(parsed.updatedAt || null);
+            setError('');
+            setCacheNotice(t('weather.cachedFallback'));
+            return;
+          }
+        } catch {
+          // Ignore broken cache and continue with network request.
+        }
+      }
     }
 
     setLoading(true);
@@ -103,14 +123,9 @@ const WeatherWidget = ({ district }: WeatherWidgetProps) => {
     setCacheNotice('');
 
     try {
-      const url = new URL('https://api.openweathermap.org/data/2.5/forecast');
-      url.searchParams.set('q', `${district},Maharashtra,IN`);
-      url.searchParams.set('appid', apiKey);
-      url.searchParams.set('units', 'metric');
-      url.searchParams.set('cnt', '5');
-      url.searchParams.set('lang', 'en');
+      const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(district)},Maharashtra,IN&appid=${API_KEY}&units=metric&cnt=5&lang=en`;
 
-      const response = await fetch(url.toString());
+      const response = await fetch(url);
       if (!response.ok) throw new Error(`Weather API failed: ${response.status}`);
       const body = await response.json();
       const parsed = parseWeather(body);
@@ -150,7 +165,7 @@ const WeatherWidget = ({ district }: WeatherWidgetProps) => {
   };
 
   useEffect(() => {
-    fetchWeather();
+    fetchWeather(false);
   }, [district]);
 
   const lastUpdatedLabel = useMemo(() => {
@@ -162,7 +177,7 @@ const WeatherWidget = ({ district }: WeatherWidgetProps) => {
     <section className="card weather-widget">
       <div className="weather-widget__header">
         <h2>🌤 {t('weather.title')} - {district} {t('weather.district')}</h2>
-        <button type="button" className="btn outline btn--compact" onClick={fetchWeather} disabled={loading}>
+        <button type="button" className="btn outline btn--compact" onClick={() => fetchWeather(true)} disabled={loading}>
           {t('weather.refresh')} ↻
         </button>
       </div>

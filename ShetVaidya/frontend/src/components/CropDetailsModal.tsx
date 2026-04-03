@@ -39,7 +39,7 @@ const CropDetailsModal = ({ crop, onClose }: CropDetailsModalProps) => {
 
   return (
     <div className="crop-modal-overlay" role="dialog" aria-modal="true" aria-label={t('area.detailsAria', { crop: localizedCropName })}>
-      <div className="crop-modal card">
+      <div className="crop-modal crop-modal--mobile-safe card">
         <div className="crop-modal__header">
           <div>
             <p className="subtitle">{t('area.detailsTitle')}</p>

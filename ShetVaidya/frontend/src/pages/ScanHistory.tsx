@@ -31,8 +31,6 @@ type HistoryItem = {
   };
 };
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
 const ScanHistory = () => {
   const { t, i18n } = useTranslation();
   const { farms } = useFarmContext();
@@ -42,14 +40,17 @@ const ScanHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [minConfidence, setMinConfidence] = useState(0);
   const [farmFilter, setFarmFilter] = useState('all');
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/scans`, {
+    fetch(`${import.meta.env.VITE_API_URL}/scans`, {
+      method: 'GET',
       credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
       .then(async (response) => {
         const body = await response.json().catch(() => ({}));
@@ -75,9 +76,8 @@ const ScanHistory = () => {
 
   const filteredItems = items.filter((item) => {
     const searchHit = item.disease_name.toLowerCase().includes(query.trim().toLowerCase());
-    const confidenceHit = item.confidence * 100 >= minConfidence;
     const farmHit = farmFilter === 'all' ? true : item.farm_id === farmFilter;
-    return searchHit && confidenceHit && farmHit;
+    return searchHit && farmHit;
   });
 
   const averageConfidence = filteredItems.length
@@ -142,22 +142,6 @@ const ScanHistory = () => {
               placeholder={t('history.searchPlaceholder')}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-            />
-          </div>
-
-          <div className="history-control">
-            <label className="field-label" htmlFor="history-confidence">
-              {localizeNumericText(t('history.minimumConfidence', { value: minConfidence }), language)}
-            </label>
-            <input
-              id="history-confidence"
-              className="slider"
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={minConfidence}
-              onChange={(event) => setMinConfidence(Number(event.target.value))}
             />
           </div>
         </div>

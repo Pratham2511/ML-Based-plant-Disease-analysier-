@@ -37,17 +37,17 @@ CREATE INDEX IF NOT EXISTS idx_scan_created_at ON scan_history(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_scan_farm_id ON scan_history(farm_id);
 
 CREATE TABLE IF NOT EXISTS farms (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id TEXT NOT NULL,
     name VARCHAR(100) NOT NULL,
     crop VARCHAR(100) NOT NULL,
-    area_acres DOUBLE PRECISION,
+    area_acres DECIMAL(8,2),
     district VARCHAR(100),
     soil_type VARCHAR(100),
     irrigation_type VARCHAR(100),
     is_active BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_farms_user_id ON farms(user_id);
 

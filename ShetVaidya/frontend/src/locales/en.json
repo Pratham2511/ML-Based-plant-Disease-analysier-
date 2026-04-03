@@ -9,6 +9,8 @@
   "nav": {
     "home": "Home",
     "dashboard": "Dashboard",
+    "history": "History",
+    "profile": "Profile",
     "scanHistory": "Scan History",
     "accountSettings": "Account Settings",
     "areaIntelligence": "Area Intelligence",
@@ -323,6 +325,32 @@
       "currentPassword": "Enter current password",
       "newPassword": "Enter new password",
       "confirmPassword": "Confirm new password"
+    },
+    "mobile": {
+      "title": "Profile",
+      "avatarAlt": "Profile avatar",
+      "statusLabel": "Status",
+      "statusActive": "Active",
+      "joinedLabel": "Joined",
+      "notAvailable": "Not available",
+      "accountSettings": "Account Settings",
+      "personalInfoTitle": "Personal Information",
+      "personalInfoSubtitle": "Manage your name and account details",
+      "notificationsTitle": "Notifications",
+      "notificationsSubtitle": "Control alerts and reminders",
+      "languageTitle": "Language",
+      "languageSubtitle": "Choose Marathi, English, or Hindi",
+      "supportPrivacy": "Support & Privacy",
+      "helpTitle": "Help & Support",
+      "helpSubtitle": "Get assistance from Krushi Vibhag",
+      "privacyTitle": "Privacy Policy",
+      "privacySubtitle": "Read data and account privacy terms",
+      "profileEditHint": "Profile picture editing support is coming soon.",
+      "personalInfoHint": "Personal information settings are available in this profile page.",
+      "notificationsHint": "Notification preferences will be available in a coming update.",
+      "languageHint": "Use the language pills in the top bar to switch app language.",
+      "helpHint": "Contact your district Krushi Vibhag office for direct support.",
+      "privacyHint": "Privacy policy details will be published in an upcoming release."
     }
   },
   "history": {
@@ -625,6 +653,7 @@
     "officeHoursLabel": "Office hours",
     "officeHours": "Monday-Saturday, 10am-5pm",
     "officeUnavailable": "Detailed office contact is being updated for this district. Please call the helpline below.",
+    "callOffice": "Call Office",
     "getDirections": "Get Directions",
     "helplineTitle": "Farmer Helplines",
     "helplines": {

@@ -7,6 +7,8 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.defaults.withCredentials = true;
+
 const normalizeBackend404 = (error: any) => {
   const status = error?.response?.status;
   const rawData = error?.response?.data;

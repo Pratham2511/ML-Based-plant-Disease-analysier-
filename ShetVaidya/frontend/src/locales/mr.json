@@ -9,6 +9,8 @@
   "nav": {
     "home": "मुख्यपृष्ठ",
     "dashboard": "डॅशबोर्ड",
+    "history": "हिस्ट्री",
+    "profile": "प्रोफाइल",
     "scanHistory": "स्कॅन हिस्ट्री",
     "accountSettings": "खाते सेटिंग्ज",
     "areaIntelligence": "एरिया इंटेलिजन्स",
@@ -323,6 +325,32 @@
       "currentPassword": "सध्याचा पासवर्ड टाका",
       "newPassword": "नवीन पासवर्ड टाका",
       "confirmPassword": "नवीन पासवर्ड पुन्हा टाका"
+    },
+    "mobile": {
+      "title": "प्रोफाइल",
+      "avatarAlt": "प्रोफाइल फोटो",
+      "statusLabel": "स्थिती",
+      "statusActive": "सक्रिय",
+      "joinedLabel": "जॉईन तारीख",
+      "notAvailable": "उपलब्ध नाही",
+      "accountSettings": "खाते सेटिंग्ज",
+      "personalInfoTitle": "वैयक्तिक माहिती",
+      "personalInfoSubtitle": "नाव आणि खाते तपशील व्यवस्थापित करा",
+      "notificationsTitle": "सूचना",
+      "notificationsSubtitle": "अलर्ट्स आणि रिमाइंडर्स नियंत्रित करा",
+      "languageTitle": "भाषा",
+      "languageSubtitle": "मराठी, इंग्रजी किंवा हिंदी निवडा",
+      "supportPrivacy": "सपोर्ट आणि प्रायव्हसी",
+      "helpTitle": "मदत आणि सपोर्ट",
+      "helpSubtitle": "कृषी विभागाकडून मदत मिळवा",
+      "privacyTitle": "गोपनीयता धोरण",
+      "privacySubtitle": "डेटा आणि खाते गोपनीयता नियम वाचा",
+      "profileEditHint": "प्रोफाइल फोटो संपादन लवकरच उपलब्ध होईल.",
+      "personalInfoHint": "वैयक्तिक माहिती सेटिंग्ज या प्रोफाइल पेजवर उपलब्ध आहेत.",
+      "notificationsHint": "सूचना सेटिंग्ज पुढील अपडेटमध्ये उपलब्ध होतील.",
+      "languageHint": "भाषा बदलण्यासाठी वरच्या पट्टीतील भाषा बटणे वापरा.",
+      "helpHint": "थेट मदतीसाठी तुमच्या जिल्ह्यातील कृषी विभाग कार्यालयाशी संपर्क करा.",
+      "privacyHint": "गोपनीयता धोरणाची सविस्तर माहिती पुढील प्रकाशनात येईल."
     }
   },
   "history": {
@@ -625,6 +653,7 @@
     "officeHoursLabel": "कार्यालय वेळ",
     "officeHours": "सोमवार-शनिवार, सकाळी १० ते सायंकाळी ५",
     "officeUnavailable": "या जिल्ह्यासाठी तपशील अद्ययावत केले जात आहेत. खालील हेल्पलाइनवर संपर्क करा.",
+    "callOffice": "कार्यालयाला कॉल करा",
     "getDirections": "दिशा मिळवा",
     "helplineTitle": "शेतकरी हेल्पलाइन",
     "helplines": {
