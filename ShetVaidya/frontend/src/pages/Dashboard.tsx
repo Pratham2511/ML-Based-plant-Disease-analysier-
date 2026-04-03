@@ -753,38 +753,6 @@ const Dashboard = () => {
         </article>
       </section>
 
-      <section className="card analytics-band">
-        <div className="section-title-row">
-          <h2>{t('dashboard.snapshotTitle')}</h2>
-          <span className="pill">{t('dashboard.snapshotPill')}</span>
-        </div>
-
-        {historySyncNotice ? <p className="form-error">{historySyncNotice}</p> : null}
-
-        <div className="analytics-grid">
-          <article className="analytics-tile">
-            <span>{t('dashboard.snapshot.totalScans')}</span>
-            <strong>{formattedTotalScans}</strong>
-          </article>
-          <article className="analytics-tile">
-            <span>{t('dashboard.snapshot.avgConfidence')}</span>
-            <strong>{confidenceLabel}</strong>
-          </article>
-          <article className="analytics-tile">
-            <span>{t('dashboard.snapshot.topFinding')}</span>
-            <strong>{localizedTopDiseaseLabel}</strong>
-          </article>
-          <article className="analytics-tile analytics-tile--trend">
-            <span>{t('dashboard.snapshot.trend')}</span>
-            {loadingInsights ? (
-              <LeafLoader variant="panel" label={t('dashboard.loadingInsights')} />
-            ) : (
-              <MiniTrend points={insights.trendPoints} />
-            )}
-          </article>
-        </div>
-      </section>
-
       {showPredictionModal && prediction && (
         <div className="crop-modal-overlay" role="dialog" aria-modal="true" aria-label={t('dashboard.analyzer.title')}>
           <div className="crop-modal card analyzer-modal">
