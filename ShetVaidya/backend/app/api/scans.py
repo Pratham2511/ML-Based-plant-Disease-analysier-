@@ -1,11 +1,13 @@
 import json
 import logging
-from uuid import UUID
+import uuid as uuid_lib
+from typing import Any, Optional
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from sqlalchemy import String, cast, inspect, text
-from sqlalchemy.orm import Session, load_only
+from pydantic import BaseModel
+from sqlalchemy import String, cast
+from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.core.config import settings
@@ -20,30 +22,47 @@ LOW_CONFIDENCE_THRESHOLD = 0.20
 LOW_CONFIDENCE_MARGIN = 0.05
 
 
-def _safe_float(value: object, fallback: float = 0.0) -> float:
+class ScanCreateRequest(BaseModel):
+    farm_id: Optional[str] = None
+    crop_type: Optional[str] = None
+    top_predictions: Optional[list[Any]] = None
+
+
+class ScanHistoryItem(BaseModel):
+    id: str
+    disease_name: Optional[str]
+    confidence: Optional[float]
+    image_url: Optional[str]
+    created_at: str
+    crop_type: Optional[str] = None
+    farm_id: Optional[str] = None
+    top_predictions: Optional[Any] = None
+    analysis_json: Optional[str] = None
+
+
+def _safe_uuid(value: object | None) -> uuid_lib.UUID | None:
+    if value is None:
+        return None
     try:
-        return float(value)  # type: ignore[arg-type]
-    except Exception:
-        return fallback
+        return uuid_lib.UUID(str(value))
+    except (ValueError, AttributeError, TypeError):
+        return None
 
 
-def _safe_parse_analysis_payload(raw_payload: str | dict | None, scan_id: str) -> dict:
-    if isinstance(raw_payload, dict):
-        return raw_payload
-
-    if raw_payload is None:
-        return {}
-
-    text_payload = str(raw_payload).strip()
-    if not text_payload:
-        return {}
-
-    try:
-        parsed = json.loads(text_payload)
-        return parsed if isinstance(parsed, dict) else {"raw": parsed}
-    except Exception:
-        logger.warning("Malformed analysis_json for scan_id=%s", scan_id)
-        return {"raw": text_payload}
+def _serialize_scan_item(scan: ScanHistory) -> dict:
+    created_at_value = str(scan.created_at) if scan.created_at else ""
+    return {
+        "id": str(scan.id),
+        "disease_name": scan.disease_name,
+        "confidence": scan.confidence,
+        "image_url": scan.image_url,
+        "created_at": created_at_value,
+        "timestamp": created_at_value,
+        "crop_type": scan.crop_type,
+        "farm_id": str(scan.farm_id) if scan.farm_id else None,
+        "top_predictions": scan.top_predictions,
+        "analysis_json": scan.analysis_json,
+    }
 
 
 def _is_prediction_accepted(prediction: dict) -> bool:
@@ -61,155 +80,50 @@ def _is_prediction_accepted(prediction: dict) -> bool:
     return confidence >= LOW_CONFIDENCE_THRESHOLD and margin >= LOW_CONFIDENCE_MARGIN
 
 
-def _serialize_scan_item(
-    *,
-    item_id: object,
-    disease_name: object,
-    confidence: object,
-    image_url: object,
-    analysis_payload: object,
-    timestamp: object,
-    farm_id: object | None,
-) -> dict:
-    return {
-        "id": str(item_id),
-        "farm_id": str(farm_id) if farm_id else None,
-        "disease_name": str(disease_name or ""),
-        "confidence": _safe_float(confidence),
-        "image_url": str(image_url or ""),
-        "analysis_json": _safe_parse_analysis_payload(analysis_payload, str(item_id)),
-        "timestamp": timestamp,
-    }
-
-
 @router.get("")
-def list_scans(current_user=Depends(deps.get_current_user), db: Session = Depends(deps.get_db)):
+def list_scans(
+    farm_id: str | None = None,
+    current_user=Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+):
     user_id_text = str(current_user.id)
 
     try:
-        items = (
-            db.query(ScanHistory)
-            .filter(cast(ScanHistory.user_id, String) == user_id_text)
-            .order_by(ScanHistory.created_at.desc())
-            .limit(50)
-            .all()
-        )
-        return {
-            "items": [
-                _serialize_scan_item(
-                    item_id=item.id,
-                    farm_id=getattr(item, "farm_id", None),
-                    disease_name=item.disease_name,
-                    confidence=item.confidence,
-                    image_url=item.image_url,
-                    analysis_payload=item.analysis_json,
-                    timestamp=item.created_at,
-                )
-                for item in items
-            ]
-        }
-    except Exception:
-        db.rollback()
-        logger.exception("Primary scan history query failed, retrying with legacy-safe projection")
-        try:
-            # Older deployments may not have all latest columns (for example farm_id).
-            items = (
-                db.query(ScanHistory)
-                .options(
-                    load_only(
-                        ScanHistory.id,
-                        ScanHistory.user_id,
-                        ScanHistory.disease_name,
-                        ScanHistory.confidence,
-                        ScanHistory.image_url,
-                        ScanHistory.analysis_json,
-                        ScanHistory.created_at,
-                    )
-                )
-                .filter(cast(ScanHistory.user_id, String) == user_id_text)
-                .order_by(ScanHistory.created_at.desc())
-                .limit(50)
-                .all()
-            )
-            return {
-                "items": [
-                    _serialize_scan_item(
-                        item_id=item.id,
-                        farm_id=None,
-                        disease_name=item.disease_name,
-                        confidence=item.confidence,
-                        image_url=item.image_url,
-                        analysis_payload=item.analysis_json,
-                        timestamp=item.created_at,
-                    )
-                    for item in items
-                ]
-            }
-        except Exception:
-            db.rollback()
-            logger.exception("Legacy-safe ORM scan history query failed, trying raw SQL fallback")
+        query = db.query(ScanHistory)
+        user_uuid = _safe_uuid(user_id_text)
+        if user_uuid is not None:
+            query = query.filter(ScanHistory.user_id == user_uuid)
+        else:
+            query = query.filter(cast(ScanHistory.user_id, String) == user_id_text)
 
-    try:
-        inspector = inspect(db.bind)
-        columns = {column["name"] for column in inspector.get_columns("scan_history")}
+        if farm_id and farm_id != "all":
+            farm_uuid = _safe_uuid(farm_id)
+            if farm_uuid is not None:
+                query = query.filter(ScanHistory.farm_id == farm_uuid)
 
-        required_columns = {"id", "user_id", "disease_name", "confidence", "image_url", "analysis_json"}
-        if not required_columns.issubset(columns):
-            logger.warning("scan_history schema missing required columns: %s", sorted(required_columns - columns))
-            return {"items": []}
-
-        selected_columns = ["id", "disease_name", "confidence", "image_url", "analysis_json"]
-        has_farm_id = "farm_id" in columns
-        has_created_at = "created_at" in columns
-
-        if has_farm_id:
-            selected_columns.append("farm_id")
-        if has_created_at:
-            selected_columns.append("created_at")
-
-        order_clause = " ORDER BY created_at DESC" if has_created_at else ""
-        sql = text(
-            f"SELECT {', '.join(selected_columns)} "
-            "FROM scan_history "
-            "WHERE CAST(user_id AS TEXT) = :user_id"
-            f"{order_clause} "
-            "LIMIT 50"
-        )
-        rows = db.execute(sql, {"user_id": user_id_text}).mappings().all()
+        scans = query.order_by(ScanHistory.created_at.desc()).limit(50).all()
+        scan_items = [_serialize_scan_item(scan) for scan in scans]
 
         return {
-            "items": [
-                _serialize_scan_item(
-                    item_id=row.get("id"),
-                    farm_id=row.get("farm_id") if has_farm_id else None,
-                    disease_name=row.get("disease_name"),
-                    confidence=row.get("confidence"),
-                    image_url=row.get("image_url"),
-                    analysis_payload=row.get("analysis_json"),
-                    timestamp=row.get("created_at") if has_created_at else None,
-                )
-                for row in rows
-            ]
+            "scans": scan_items,
+            "items": scan_items,
+            "total": len(scan_items),
         }
-    except Exception:
-        logger.exception("Raw SQL scan history fallback failed; returning empty history")
-        return {"items": []}
+    except Exception as exc:
+        logger.error("Failed to fetch scan history: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch scan history")
 
 
 @router.post("/analyze")
 async def analyze_leaf(
     file: UploadFile = File(...),
     farm_id: str | None = Form(default=None),
+    crop_type: str | None = Form(default=None),
+    top_predictions: str | None = Form(default=None),
     current_user=Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
 ):
     enforce_image_constraints(file)
-    farm_uuid = None
-    if farm_id:
-        try:
-            farm_uuid = UUID(str(farm_id))
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail="Invalid farm_id") from exc
 
     img_bytes = await file.read()
 
@@ -232,27 +146,69 @@ async def analyze_leaf(
 
     image_url = upload_to_r2(file.filename, img_bytes, file.content_type or "image/jpeg")
 
-    record = ScanHistory(
-        user_id=current_user.id,
-        farm_id=farm_uuid,
-        disease_name=prediction.get("disease_name"),
-        confidence=prediction.get("confidence"),
-        image_url=image_url,
-        analysis_json=json.dumps(prediction),
+    request_body = ScanCreateRequest(
+        farm_id=farm_id,
+        crop_type=crop_type,
+        top_predictions=None,
     )
+    if top_predictions:
+        try:
+            parsed_top_predictions = json.loads(top_predictions)
+            if isinstance(parsed_top_predictions, list):
+                request_body.top_predictions = parsed_top_predictions
+        except json.JSONDecodeError:
+            request_body.top_predictions = None
+
+    history_id = None
+    farm_id_value = None
     try:
-        db.add(record)
+        if request_body.farm_id:
+            try:
+                farm_id_value = uuid_lib.UUID(str(request_body.farm_id))
+            except (ValueError, AttributeError, TypeError):
+                farm_id_value = None
+                logger.warning("Invalid farm_id received: %s, saving as null", request_body.farm_id)
+
+        top_predictions_value: object | None = request_body.top_predictions
+        if top_predictions_value is None:
+            top_predictions_value = prediction.get("top_predictions")
+        if isinstance(top_predictions_value, str):
+            try:
+                top_predictions_value = json.loads(top_predictions_value)
+            except json.JSONDecodeError:
+                top_predictions_value = None
+
+        current_user_uuid = _safe_uuid(getattr(current_user, "id", None))
+
+        scan_record = ScanHistory(
+            user_id=current_user_uuid,
+            disease_name=prediction.get("disease_name") or prediction.get("class_name"),
+            confidence=prediction.get("confidence"),
+            image_url=image_url,
+            analysis_json=json.dumps(prediction),
+            farm_id=farm_id_value,
+            crop_type=request_body.crop_type,
+            top_predictions=top_predictions_value,
+        )
+
+        db.add(scan_record)
         db.commit()
-        db.refresh(record)
-        logger.info("Scan saved successfully: user=%s scan_id=%s", current_user.id, record.id)
+        db.refresh(scan_record)
+        history_id = str(scan_record.id)
+        logger.info(
+            "Scan saved successfully: id=%s user=%s farm=%s",
+            scan_record.id,
+            current_user.id if current_user else "anonymous",
+            farm_id_value,
+        )
     except Exception as exc:
-        logger.error("Failed to save scan to DB: %s", exc)
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to save scan")
+        logger.error("Failed to save scan to DB: %s", exc, exc_info=True)
+
     return {
         "success": True,
         "result": prediction,
-        "history_id": str(record.id),
-        "farm_id": str(farm_uuid) if farm_uuid else None,
+        "history_id": history_id,
+        "farm_id": str(farm_id_value) if farm_id_value else None,
         "image_url": image_url,
     }

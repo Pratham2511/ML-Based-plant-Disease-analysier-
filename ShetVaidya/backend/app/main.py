@@ -1,10 +1,10 @@
 import json
+import uuid as uuid_lib
 import app.db.base  # Ensure all models are registered before any DB setup
 import logging
 import traceback
 from io import BytesIO
 from pathlib import Path
-from uuid import UUID
 
 import numpy as np
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
@@ -216,6 +216,7 @@ optional_current_user_dep = getattr(deps, "get_optional_current_user", lambda: N
 async def predict(
     file: UploadFile = File(...),
     farm_id: str | None = Form(default=None),
+    crop_type: str | None = Form(default=None),
     current_user = Depends(optional_current_user_dep),
     db: Session = Depends(deps.get_db),
 ):
@@ -231,9 +232,10 @@ async def predict(
         farm_uuid = None
         if farm_id:
             try:
-                farm_uuid = UUID(str(farm_id))
-            except ValueError as exc:
-                raise HTTPException(status_code=400, detail="Invalid farm_id") from exc
+                farm_uuid = uuid_lib.UUID(str(farm_id))
+            except (ValueError, AttributeError, TypeError):
+                farm_uuid = None
+                logger.warning("Invalid farm_id received on /api/predict: %s, saving as null", farm_id)
 
         img = Image.open(BytesIO(image_bytes)).convert("RGB").resize((224, 224))
         image_array = np.array(img, dtype=np.float32)
@@ -290,12 +292,20 @@ async def predict(
             try:
                 logger.info("Attempting scan persistence for user=%s", current_user.id)
                 image_url = upload_to_r2(file.filename or "leaf.jpg", image_bytes, file.content_type or "image/jpeg")
+                user_uuid = None
+                try:
+                    user_uuid = uuid_lib.UUID(str(current_user.id))
+                except (ValueError, AttributeError, TypeError):
+                    logger.warning("Invalid current_user.id on /api/predict: %s, saving as null", current_user.id)
+
                 record = ScanHistory(
-                    user_id=current_user.id,
+                    user_id=user_uuid,
                     farm_id=farm_uuid,
                     disease_name=disease_name,
                     confidence=confidence_ratio,
                     image_url=image_url,
+                    crop_type=crop_type,
+                    top_predictions=top_predictions,
                     analysis_json=json.dumps(
                         {
                             "raw_class": raw_class,
