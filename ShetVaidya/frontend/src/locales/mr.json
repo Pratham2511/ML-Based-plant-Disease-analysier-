@@ -7,8 +7,9 @@
     "splashBooting": "मुख्य सेवा सुरू होत आहेत"
   },
   "nav": {
-    "home": "मुख्यपृष्ठ",
+    "home": "होम",
     "dashboard": "डॅशबोर्ड",
+    "area": "क्षेत्र",
     "history": "हिस्ट्री",
     "profile": "प्रोफाइल",
     "scanHistory": "स्कॅन हिस्ट्री",
@@ -272,6 +273,10 @@
     "userId": "वापरकर्ता आयडी",
     "displayName": "नाव",
     "account": "ईमेल",
+    "notificationsComingSoon": "नोटिफिकेशन वैशिष्ट्य भविष्यातील अपडेटमध्ये येईल.",
+    "languagePickerTitle": "भाषा निवडा",
+    "helpTitle": "मदत आणि सहाय्य",
+    "helpBody": "पीक सल्ल्यासाठी किसान कॉल सेंटरवर कॉल करा: 1800-180-1551. अॅप सहाय्यासाठी support@shetvaidya.in वर ईमेल करा.",
     "authProvider": "ऑथ: Google OAuth",
     "authProviderNarration": "साइन-इन पद्धत: फक्त Google OAuth",
     "googleAccountTitle": "Google खाते",

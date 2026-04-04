@@ -9,6 +9,7 @@
   "nav": {
     "home": "होम",
     "dashboard": "डैशबोर्ड",
+    "area": "क्षेत्र",
     "history": "हिस्ट्री",
     "profile": "प्रोफाइल",
     "scanHistory": "स्कैन हिस्ट्री",
@@ -272,6 +273,10 @@
     "userId": "यूज़र आईडी",
     "displayName": "नाम",
     "account": "ईमेल",
+    "notificationsComingSoon": "नोटिफिकेशन सुविधा भविष्य के अपडेट में आएगी।",
+    "languagePickerTitle": "भाषा चुनें",
+    "helpTitle": "सहायता और समर्थन",
+    "helpBody": "फसल सलाह के लिए किसान कॉल सेंटर पर कॉल करें: 1800-180-1551. ऐप सहायता के लिए support@shetvaidya.in पर ईमेल करें।",
     "authProvider": "ऑथ: Google OAuth",
     "authProviderNarration": "साइन-इन तरीका: केवल Google OAuth",
     "googleAccountTitle": "Google खाता",

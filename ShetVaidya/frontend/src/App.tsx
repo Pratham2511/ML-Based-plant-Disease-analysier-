@@ -66,8 +66,12 @@ const TopNavigation = () => {
     <>
       <header className={`top-nav w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="top-nav__left">
-          <img src="/assets/shetvaidya-navbar-mobile.svg" alt="ShetVaidya" height={36} className="brand-lockup-mobile" />
-          <div className="mobile-lang-switcher" aria-label={t('language.label')}>
+          <div className="top-nav__brand" aria-label="ShetVaidya">
+            <img src="/assets/shetvaidya-navbar-mobile.svg" alt="ShetVaidya" height={36} className="brand-lockup-mobile" />
+            <span className="top-nav__brand-text">Shet Vaidya</span>
+          </div>
+
+          <div className="mobile-lang-switcher top-nav__lang-switcher" aria-label={t('language.label')}>
             {['mr', 'en', 'hi'].map((lang) => (
               <button
                 key={lang}
@@ -81,17 +85,6 @@ const TopNavigation = () => {
           </div>
           <div className="desktop-only-inline">
             <LanguageSwitcher compact />
-          </div>
-          <div className="top-nav__mobile-action">
-            {user ? (
-              <button className="btn ghost top-nav__mobile-login" onClick={logout} disabled={loading}>
-                {t('nav.logout')}
-              </button>
-            ) : (
-              <button className="btn primary top-nav__mobile-login" onClick={handleLoginClick} disabled={loading}>
-                {loading ? t('auth.restoringSession') : t('nav.login')}
-              </button>
-            )}
           </div>
         </div>
 
@@ -112,6 +105,18 @@ const TopNavigation = () => {
             ) : (
               <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick} disabled={loading}>
                 {t('nav.login')}
+              </button>
+            )}
+          </div>
+
+          <div className="top-nav__mobile-action">
+            {user ? (
+              <button className="btn ghost top-nav__mobile-login top-nav__auth-btn" onClick={logout} disabled={loading}>
+                {t('nav.logout')}
+              </button>
+            ) : (
+              <button className="btn primary top-nav__mobile-login top-nav__auth-btn" onClick={handleLoginClick} disabled={loading}>
+                {loading ? t('auth.restoringSession') : t('nav.login')}
               </button>
             )}
           </div>
@@ -155,22 +160,26 @@ const MobileBottomTabBar = () => {
 
   return (
     <nav className="mobile-bottom-tab-bar" aria-label={t('nav.mobileQuickNavigation')}>
-      <button onClick={() => navigate('/')} className={isActive(['/']) ? 'tab-active' : ''}>
+      <button onClick={() => navigate('/dashboard')} className={isActive(['/dashboard']) ? 'tab-active' : ''}>
         <span className="tab-icon">🏠</span>
         <span className="tab-label">{t('nav.home')}</span>
       </button>
-      <button onClick={() => navigate('/dashboard')} className={isActive(['/dashboard']) ? 'tab-active' : ''}>
-        <span className="tab-icon">📊</span>
-        <span className="tab-label">{t('nav.dashboard')}</span>
-      </button>
+
       <button onClick={() => navigate('/scan-history')} className={isActive(['/scan-history', '/history']) ? 'tab-active' : ''}>
         <span className="tab-icon">🕐</span>
         <span className="tab-label">{t('nav.history')}</span>
       </button>
+
+      <button onClick={() => navigate('/area-intelligence')} className={isActive(['/area-intelligence']) ? 'tab-active' : ''}>
+        <span className="tab-icon">🗺️</span>
+        <span className="tab-label">{t('nav.area')}</span>
+      </button>
+
       <button onClick={() => navigate('/krushi-vibhag')} className={isActive(['/krushi-vibhag']) ? 'tab-active' : ''}>
         <span className="tab-icon">🌾</span>
         <span className="tab-label">{t('nav.krushiVibhag')}</span>
       </button>
+
       <button onClick={() => navigate('/profile')} className={isActive(['/profile']) ? 'tab-active' : ''}>
         <span className="tab-icon">👤</span>
         <span className="tab-label">{t('nav.profile')}</span>

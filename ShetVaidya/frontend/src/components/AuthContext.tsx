@@ -8,7 +8,9 @@ import api, { getStoredAccessToken, setApiAuthToken, setStoredAccessToken } from
 export type User = {
   id: string;
   full_name?: string | null;
+  name?: string | null;
   email: string;
+  picture?: string | null;
   picture_url?: string | null;
 };
 
@@ -41,6 +43,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const normalizeUser = (rawUser: any): User | null => {
+    if (!rawUser) return null;
+    const email = String(rawUser?.email || '').trim();
+    if (!email) return null;
+
+    const preferredName = String(rawUser?.full_name || rawUser?.name || '').trim() || email.split('@')[0] || '';
+    const preferredPicture = String(rawUser?.picture_url || rawUser?.picture || '').trim() || null;
+
+    return {
+      id: String(rawUser?.id || email).trim(),
+      email,
+      full_name: preferredName || null,
+      name: preferredName || null,
+      picture: preferredPicture,
+      picture_url: preferredPicture,
+    };
+  };
 
   // Initialize Web Google Identity popup
   useEffect(() => {
@@ -76,7 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setStoredAccessToken(accessToken);
         setApiAuthToken(accessToken);
       }
-      setUser(res.data.user);
+      setUser(normalizeUser(res.data.user));
       // Explicitly redirect to dashboard on successful auth
       navigate('/dashboard');
     } catch (err: any) {
@@ -116,7 +136,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         const res = await api.get('/auth/me');
         if (active) {
-          setUser(res.data);
+          setUser(normalizeUser(res.data));
         }
       } catch (err: any) {
         // Log error only in development and non-401 cases

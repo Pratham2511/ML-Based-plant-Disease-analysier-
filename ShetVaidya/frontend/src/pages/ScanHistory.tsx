@@ -94,7 +94,7 @@ const ScanHistory = () => {
   };
 
   const localizeAdvice = (
-    item: HistoryItem,
+    item: ScanHistoryItem,
     field: 'description' | 'cause' | 'treatment',
     fallbackValue: string
   ) => {
@@ -156,7 +156,7 @@ const ScanHistory = () => {
       ) : (
         <div className="history-timeline history-timeline--cards">
           {filteredItems.map((item) => (
-            <article className="history-card" key={item.id}>
+            <article className="history-card scan-history-card" key={item.id}>
               <div className="history-card__header">
                 <strong>{localizeDisease(item.disease_name, item.analysis_json?.raw_class)}</strong>
                 <span className="pill">{formatLocalizedNumber(item.confidence * 100, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
@@ -201,13 +201,19 @@ const ScanHistory = () => {
 
               {expandedCards[item.id] && (
                 <div className="history-details-panel">
-                  <div className="table-like">
-                    <span className="label-muted">{t('history.cause')}</span>
-                    <span>{localizeAdvice(item, 'cause', item.analysis_json?.cause || t('dashboard.notAvailable'))}</span>
-                    <span className="label-muted">{t('history.treatment')}</span>
-                    <span>{localizeAdvice(item, 'treatment', item.analysis_json?.treatment || t('dashboard.notAvailable'))}</span>
-                    <span className="label-muted">{t('history.description')}</span>
-                    <span>{localizeAdvice(item, 'description', item.analysis_json?.description || t('dashboard.notAvailable'))}</span>
+                  <div className="scan-card-content">
+                    <div className="scan-detail-row">
+                      <span className="scan-detail-label">{t('history.cause')}</span>
+                      <span className="scan-detail-value">{localizeAdvice(item, 'cause', item.analysis_json?.cause || t('dashboard.notAvailable'))}</span>
+                    </div>
+                    <div className="scan-detail-row">
+                      <span className="scan-detail-label">{t('history.treatment')}</span>
+                      <span className="scan-detail-value">{localizeAdvice(item, 'treatment', item.analysis_json?.treatment || t('dashboard.notAvailable'))}</span>
+                    </div>
+                    <div className="scan-detail-row">
+                      <span className="scan-detail-label">{t('history.description')}</span>
+                      <span className="scan-detail-value">{localizeAdvice(item, 'description', item.analysis_json?.description || t('dashboard.notAvailable'))}</span>
+                    </div>
                   </div>
 
                   <div className="pill-row">

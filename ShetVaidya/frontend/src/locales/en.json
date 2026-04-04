@@ -9,6 +9,7 @@
   "nav": {
     "home": "Home",
     "dashboard": "Dashboard",
+    "area": "Area",
     "history": "History",
     "profile": "Profile",
     "scanHistory": "Scan History",
@@ -272,6 +273,10 @@
     "userId": "User ID",
     "displayName": "Name",
     "account": "Email",
+    "notificationsComingSoon": "Notifications feature coming in a future update.",
+    "languagePickerTitle": "Choose Language",
+    "helpTitle": "Help & Support",
+    "helpBody": "For crop advisory help call Kisan Call Centre: 1800-180-1551. For app support email us at support@shetvaidya.in",
     "authProvider": "Auth: Google OAuth",
     "authProviderNarration": "Sign-in method: Google OAuth only",
     "googleAccountTitle": "Google Account",
