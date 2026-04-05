@@ -10,6 +10,7 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import FarmSelector from './components/FarmSelector';
 import Introduction from './pages/Introduction';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
 import ScanHistory from './pages/ScanHistory';
 import AreaIntelligence from './pages/AreaIntelligence';
@@ -22,6 +23,7 @@ const SPLASH_STORAGE_KEY = 'shetvaidya-splash-seen';
 const TopNavigation = () => {
   const { user, loading, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const currentLang = i18n.language.split('-')[0];
 
@@ -125,6 +127,11 @@ const TopNavigation = () => {
 
         <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
           {user ? <FarmSelector compact /> : null}
+          {user?.role === 'admin' ? (
+            <button onClick={() => navigate('/admin')} className="btn outline admin-link" type="button">
+              Admin Panel
+            </button>
+          ) : null}
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             {t('nav.dashboard')}
           </NavLink>
@@ -186,6 +193,17 @@ const MobileBottomTabBar = () => {
       </button>
     </nav>
   );
+};
+
+const AdminRoute = ({ children }: { children: React.ReactElement }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+  if (!user) return <Navigate to="/" replace />;
+  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return children;
 };
 
 function App() {
@@ -295,6 +313,14 @@ function App() {
                     <ProtectedRoute>
                       <KrushiVibhag />
                     </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <AdminDashboard />
+                    </AdminRoute>
                   }
                 />
                 <Route path="*" element={<Navigate to="/" replace />} />

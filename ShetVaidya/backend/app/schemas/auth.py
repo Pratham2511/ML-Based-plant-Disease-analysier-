@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from typing import Optional
+from typing import Literal, Optional
 
 
 class GoogleAuthRequest(BaseModel):
@@ -23,6 +23,7 @@ class UserOut(BaseModel):
     picture_url: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    role: Literal["user", "admin"] = "user"
 
     model_config = ConfigDict(from_attributes=True)
 

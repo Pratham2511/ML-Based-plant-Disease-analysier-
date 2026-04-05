@@ -12,9 +12,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api import area_intelligence, auth, deps, health, mandi_prices, medicine, scans
+from app.api import admin, area_intelligence, auth, deps, health, mandi_prices, medicine, scans
 from app.core.config import settings
 from app.models.scan_history import ScanHistory
 from app.utils.storage import upload_to_r2
@@ -42,6 +43,35 @@ MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 model = None
 tf_runtime = None
+
+
+def maybe_raise_alert(db: Session, alert_type: str, message: str, severity: str = "warning") -> None:
+    try:
+        existing = db.execute(
+            text(
+                """
+                SELECT id
+                FROM admin_alerts
+                WHERE alert_type = :atype AND created_at > NOW() - INTERVAL '30 minutes'
+                LIMIT 1
+                """
+            ),
+            {"atype": alert_type},
+        ).fetchone()
+
+        if not existing:
+            db.execute(
+                text(
+                    """
+                    INSERT INTO admin_alerts (alert_type, message, severity)
+                    VALUES (:atype, :msg, :sev)
+                    """
+                ),
+                {"atype": alert_type, "msg": message, "sev": severity},
+            )
+            db.commit()
+    except Exception:
+        db.rollback()
 
 # V2.0 CLASSES LIST (Alphabetically sorted, exactly as trained)
 CLASSES = [
@@ -202,6 +232,7 @@ def root_status():
 
 app.include_router(health.router)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(scans.router, prefix="/scans", tags=["scans"])
 app.include_router(medicine.router, prefix="/medicine", tags=["medicine"])
 app.include_router(mandi_prices.router, prefix="/api", tags=["mandi"])
@@ -254,6 +285,12 @@ async def predict(
         # --- THE VERSION 2.0 BOUNCER ---
         # If it predicts Index 0 (Garbage) or the confidence is too low
         if top1_idx == 0 or max_confidence < RECOGNITION_THRESHOLD:
+            maybe_raise_alert(
+                db,
+                "failed_scan_spike",
+                "Failed scan detected: image not recognized or confidence below threshold",
+                "warning",
+            )
             return {
                 "success": False,
                 "error": "Image not recognized. Please upload a clear, close-up picture of a plant leaf."
@@ -275,6 +312,12 @@ async def predict(
         margin = top1_ratio - top2_ratio
         
         if top1_ratio < LOW_CONFIDENCE_THRESHOLD or margin < LOW_CONFIDENCE_MARGIN:
+            maybe_raise_alert(
+                db,
+                "failed_scan_spike",
+                "Failed scan detected: low confidence prediction",
+                "warning",
+            )
             return {
                 "success": False,
                 "error_type": "LOW_CONFIDENCE",
@@ -289,6 +332,12 @@ async def predict(
         history_id = None
         image_url = None
         if current_user is not None:
+            auth.log_activity(
+                db=db,
+                user_id=str(current_user.id),
+                action_type="scan",
+                details={"farm_id": str(farm_uuid) if farm_uuid else None, "crop_type": crop_type},
+            )
             try:
                 logger.info("Attempting scan persistence for user=%s", current_user.id)
                 image_url = upload_to_r2(file.filename or "leaf.jpg", image_bytes, file.content_type or "image/jpeg")
@@ -340,8 +389,10 @@ async def predict(
             "image_url": image_url,
         }
     except HTTPException:
+        maybe_raise_alert(db, "failed_scan_spike", "Failed scan detected: prediction request rejected", "warning")
         raise
     except Exception as exc:
         traceback.print_exc()
         logger.exception("Local prediction pipeline failed")
+        maybe_raise_alert(db, "failed_scan_spike", f"Failed scan detected: {str(exc)}", "warning")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(exc)}")

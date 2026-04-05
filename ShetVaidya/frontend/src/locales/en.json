@@ -41,6 +41,23 @@
     "no": "No",
     "unknown": "Unknown"
   },
+  "admin": {
+    "title": "Admin Dashboard",
+    "activeNow": "Active right now",
+    "active15m": "Active last 15 min",
+    "active24h": "Active last 24 hours",
+    "scansToday": "Scans today",
+    "failedScans": "Failed scans today",
+    "newUsers": "New users today",
+    "systemHealth": "System health",
+    "activityFeed": "Activity feed",
+    "userList": "Users",
+    "alerts": "Alerts",
+    "markRead": "Mark read",
+    "noAlerts": "No active alerts",
+    "operational": "Operational",
+    "down": "Down"
+  },
   "intro": {
     "subtitle": "AI Crop Defense Platform",
     "title": "Smart Plant Disease Detection and Advisory",

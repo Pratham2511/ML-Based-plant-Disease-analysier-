@@ -12,6 +12,7 @@ export type User = {
   email: string;
   picture?: string | null;
   picture_url?: string | null;
+  role: 'user' | 'admin';
 };
 
 type AuthContextProps = {
@@ -51,6 +52,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const preferredName = String(rawUser?.full_name || rawUser?.name || '').trim() || email.split('@')[0] || '';
     const preferredPicture = String(rawUser?.picture_url || rawUser?.picture || '').trim() || null;
+    const normalizedRole = String(rawUser?.role || 'user').trim().toLowerCase() === 'admin' ? 'admin' : 'user';
 
     return {
       id: String(rawUser?.id || email).trim(),
@@ -59,6 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       name: preferredName || null,
       picture: preferredPicture,
       picture_url: preferredPicture,
+      role: normalizedRole,
     };
   };
 
@@ -199,6 +202,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const apiBaseUrl = String(import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+
+    const sendHeartbeat = async () => {
+      try {
+        const token = getStoredAccessToken();
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        await fetch(`${apiBaseUrl}/auth/heartbeat`, {
+          method: 'POST',
+          credentials: 'include',
+          headers,
+        });
+      } catch {
+        // Silently ignore heartbeat errors to avoid user disruption.
+      }
+    };
+
+    sendHeartbeat();
+    const interval = window.setInterval(sendHeartbeat, 45000);
+
+    return () => window.clearInterval(interval);
+  }, [user]);
 
   const loginWithGoogleCredential = async (credential: string) => {
     setLoading(true);

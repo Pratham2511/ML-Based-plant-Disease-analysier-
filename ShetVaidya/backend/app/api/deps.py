@@ -17,6 +17,7 @@ class TokenUser(BaseModel):
     picture_url: str | None = None
     latitude: float | None = None
     longitude: float | None = None
+    role: str = "user"
 
 
 def _extract_token_from_request(request: Request) -> str | None:
@@ -59,6 +60,7 @@ def get_current_user(request: Request) -> TokenUser:
             picture_url=payload.get("picture_url"),
             latitude=payload.get("latitude"),
             longitude=payload.get("longitude"),
+            role=str(payload.get("role") or "user"),
         )
         logger.info("Authenticated user: id=%s email=%s", token_user.id, token_user.email)
         return token_user
@@ -84,6 +86,13 @@ def get_optional_current_user(request: Request) -> TokenUser | None:
             picture_url=payload.get("picture_url"),
             latitude=payload.get("latitude"),
             longitude=payload.get("longitude"),
+            role=str(payload.get("role") or "user"),
         )
     except Exception:
         return None
+
+
+def get_admin_user(current_user: TokenUser = Depends(get_current_user)) -> TokenUser:
+    if current_user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return current_user

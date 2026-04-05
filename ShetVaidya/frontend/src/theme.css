@@ -842,6 +842,11 @@ a {
   background: rgba(241, 248, 233, 0.7);
 }
 
+.admin-link {
+  font-size: 0.84rem;
+  padding: 8px 10px;
+}
+
 .btn--compact {
   padding-inline: 12px;
 }
@@ -852,6 +857,225 @@ a {
   background: var(--color-surface);
   box-shadow: var(--shadow-soft);
   padding: 20px;
+}
+
+.admin-dashboard {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-section {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-metric-card {
+  padding: 14px;
+}
+
+.admin-metric-label {
+  margin: 0;
+  color: var(--color-text-soft);
+  font-size: 0.82rem;
+}
+
+.admin-metric-value {
+  margin: 8px 0 0;
+  font-family: 'Sora', 'Segoe UI', sans-serif;
+  color: var(--color-ink);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.admin-metric-card--green {
+  border-top: 4px solid #2e7d32;
+}
+
+.admin-metric-card--teal {
+  border-top: 4px solid #0f766e;
+}
+
+.admin-metric-card--blue {
+  border-top: 4px solid #2563eb;
+}
+
+.admin-metric-card--purple {
+  border-top: 4px solid #7e22ce;
+}
+
+.admin-metric-card--red {
+  border-top: 4px solid #dc2626;
+}
+
+.admin-metric-card--amber {
+  border-top: 4px solid #d97706;
+}
+
+.admin-health-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-health-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-weight: 700;
+  font-size: 0.86rem;
+  border: 1px solid var(--color-border);
+}
+
+.admin-health-pill.ok {
+  background: rgba(34, 197, 94, 0.15);
+  color: #166534;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.admin-health-pill.down {
+  background: rgba(239, 68, 68, 0.14);
+  color: #7f1d1d;
+  border-color: rgba(239, 68, 68, 0.34);
+}
+
+.admin-alerts-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 12px;
+}
+
+.admin-alert-item.is-unread {
+  border-left: 4px solid #f59e0b;
+}
+
+.admin-alert-item.is-read {
+  opacity: 0.85;
+}
+
+.admin-alert-title {
+  margin: 0;
+  font-family: 'Sora', 'Segoe UI', sans-serif;
+  color: var(--color-ink);
+}
+
+.admin-alert-message {
+  margin: 6px 0;
+  color: var(--color-text-soft);
+}
+
+.admin-alert-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.admin-severity {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.admin-severity--critical,
+.admin-severity--error,
+.admin-severity--high {
+  color: #991b1b;
+}
+
+.admin-severity--warning,
+.admin-severity--medium {
+  color: #9a3412;
+}
+
+.admin-severity--info,
+.admin-severity--low {
+  color: #1e3a8a;
+}
+
+.admin-unread-pill {
+  background: rgba(248, 113, 113, 0.18);
+  border-color: rgba(248, 113, 113, 0.32);
+  color: #7f1d1d;
+}
+
+.admin-two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.admin-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-table th {
+  font-family: 'Sora', 'Segoe UI', sans-serif;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-soft);
+}
+
+@media (max-width: 1200px) {
+  .admin-metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .admin-two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-link {
+    display: none;
+  }
+
+  .admin-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .subtitle {
