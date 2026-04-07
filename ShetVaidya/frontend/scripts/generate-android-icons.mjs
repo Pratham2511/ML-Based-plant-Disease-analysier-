@@ -11,7 +11,7 @@ const iconPackRoot = path.join(projectRoot, 'android-icon-pack');
 const sourceDir = path.join(iconPackRoot, 'source');
 const outputRoot = path.join(iconPackRoot, 'res');
 
-const fullIconSvgPath = path.join(projectRoot, 'public', 'app-icon.svg');
+const fullIconSvgPath = path.join(projectRoot, 'public', 'assets', 'shetvaidya-navbar-mobile.svg');
 const foregroundSvgPath = path.join(sourceDir, 'ic_launcher_foreground.svg');
 const monochromeSvgPath = path.join(sourceDir, 'ic_launcher_monochrome.svg');
 

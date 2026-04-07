@@ -10,7 +10,7 @@
   "lang": "mr",
   "icons": [
     {
-      "src": "/assets/shetvaidya-icon.svg",
+      "src": "/assets/shetvaidya-navbar-mobile.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

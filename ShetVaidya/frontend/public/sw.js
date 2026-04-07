@@ -2,7 +2,7 @@ const CACHE_NAME = 'shetvaidya-v1';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/assets/shetvaidya-icon.svg',
+  '/assets/shetvaidya-navbar-mobile.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];
