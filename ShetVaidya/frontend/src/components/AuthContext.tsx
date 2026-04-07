@@ -110,6 +110,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const resolveGoogleClientId = async (): Promise<string> => {
+    const configuredClientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+    if (configuredClientId) {
+      return configuredClientId;
+    }
+
+    try {
+      const res = await api.get('/auth/google-client-id');
+      const apiClientId = String(res.data?.client_id || '').trim();
+      if (apiClientId) {
+        return apiClientId;
+      }
+    } catch {
+      // Fall through to the explicit configuration error below.
+    }
+
+    throw new Error('Google client ID is not configured. Set VITE_GOOGLE_CLIENT_ID or backend GOOGLE_CLIENT_ID.');
+  };
+
   const extractCredentialFromUrl = (urlValue: string): string | null => {
     try {
       const parsed = new URL(urlValue);
@@ -250,13 +269,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const startMobileGoogleSignIn = async () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      throw new Error('VITE_GOOGLE_CLIENT_ID is not configured');
+    const clientId = await resolveGoogleClientId();
+
+    const configuredRedirectUri = String(import.meta.env.VITE_MOBILE_REDIRECT_URI || '').trim();
+    const apiBaseUrl = String(import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
+    const derivedRedirectUri = apiBaseUrl && /^https?:\/\//i.test(apiBaseUrl)
+      ? `${apiBaseUrl}/auth/mobile-callback`
+      : '';
+    const redirectUri = configuredRedirectUri || derivedRedirectUri;
+    if (!redirectUri) {
+      throw new Error('VITE_MOBILE_REDIRECT_URI is not configured and VITE_API_URL is not a valid absolute URL');
     }
 
     const nonce = crypto.randomUUID();
-    const redirectUri = import.meta.env.VITE_MOBILE_REDIRECT_URI || `${window.location.origin}/mobile-auth-callback.html`;
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('redirect_uri', redirectUri);

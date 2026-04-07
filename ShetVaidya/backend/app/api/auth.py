@@ -4,6 +4,7 @@ import logging
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import HTMLResponse
 import httpx
 import jwt
 from google.auth.transport import requests as google_requests
@@ -25,6 +26,34 @@ from app.utils.rate_limiter import enforce_rate_limit
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+MOBILE_AUTH_CALLBACK_HTML = """<!doctype html>
+<html lang=\"en\">
+    <head>
+        <meta charset=\"UTF-8\" />
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
+        <title>ShetVaidya Mobile Auth</title>
+    </head>
+    <body>
+        <p>Completing secure sign-in...</p>
+        <script>
+            (function () {
+                const hashParams = new URLSearchParams(window.location.hash.slice(1));
+                const queryParams = new URLSearchParams(window.location.search);
+                const credential = hashParams.get('id_token') || hashParams.get('credential') || queryParams.get('id_token');
+
+                if (!credential) {
+                    document.body.innerHTML = '<p>Google sign-in failed: missing token.</p>';
+                    return;
+                }
+
+                const deepLink = `shetvaidya://login-callback#credential=${encodeURIComponent(credential)}`;
+                window.location.replace(deepLink);
+            })();
+        </script>
+    </body>
+</html>
+"""
 
 ADMIN_EMAILS = {
     email.strip().lower()
@@ -201,6 +230,14 @@ def google_auth(
     return {"user": _claims_to_user(user_claims), "access_token": token}
 
 
+@router.get("/google-client-id")
+def google_client_id_config():
+    client_id = str(settings.google_client_id or "").strip()
+    if not client_id:
+        raise HTTPException(status_code=503, detail="GOOGLE_CLIENT_ID is not configured")
+    return {"client_id": client_id}
+
+
 @router.post("/logout", response_model=SimpleStatusResponse)
 def logout(
     request: Request,
@@ -311,3 +348,9 @@ async def heartbeat(
         logger.warning("Heartbeat failed for user %s: %s", current_user.id, exc)
 
     return {"ok": True}
+
+
+@router.get("/mobile-callback", response_class=HTMLResponse)
+def mobile_callback(response: Response):
+    response.headers["Cache-Control"] = "no-store"
+    return MOBILE_AUTH_CALLBACK_HTML

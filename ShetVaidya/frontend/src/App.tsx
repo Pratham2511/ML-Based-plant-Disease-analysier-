@@ -51,12 +51,12 @@ const TopNavigation = () => {
     },
   });
 
-  const handleLoginClick = () => {
+  const handleLoginClick = async () => {
     try {
       if (Capacitor.isNativePlatform()) {
-        startMobileGoogleSignIn();
+        await startMobileGoogleSignIn();
       } else {
-        initiateLogin();
+        await initiateLogin();
       }
     } catch (err: any) {
       alert(`${t('auth.errors.loginTriggerError')}: ${err.message}`);
