@@ -12,8 +12,8 @@ const sourceDir = path.join(iconPackRoot, 'source');
 const outputRoot = path.join(iconPackRoot, 'res');
 
 const fullIconSvgPath = path.join(projectRoot, 'public', 'assets', 'shetvaidya-navbar-mobile.svg');
-const foregroundSvgPath = path.join(sourceDir, 'ic_launcher_foreground.svg');
-const monochromeSvgPath = path.join(sourceDir, 'ic_launcher_monochrome.svg');
+const foregroundSvgPath = fullIconSvgPath;
+const monochromeSvgPath = fullIconSvgPath;
 
 const densitySizes = {
   mdpi: 48,

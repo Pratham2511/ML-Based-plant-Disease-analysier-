@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ShetVaidya</string>
+    <string name="title_activity_main">ShetVaidya</string>
+    <string name="package_name">com.shetvaidya.app</string>
+    <string name="custom_url_scheme">com.shetvaidya.app</string>
+</resources>
