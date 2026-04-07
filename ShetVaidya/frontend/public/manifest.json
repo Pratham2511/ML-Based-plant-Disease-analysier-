@@ -1,0 +1,33 @@
+{
+  "name": "ShetVaidya — AI Plant Doctor",
+  "short_name": "ShetVaidya",
+  "description": "ML-based plant disease detection and agricultural advisory for farmers.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5fced",
+  "theme_color": "#166a22",
+  "lang": "mr",
+  "icons": [
+    {
+      "src": "/assets/shetvaidya-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["agriculture", "utilities", "productivity"],
+  "screenshots": []
+}

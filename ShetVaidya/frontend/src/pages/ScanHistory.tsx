@@ -19,7 +19,7 @@ const ScanHistory = () => {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [farmFilter, setFarmFilter] = useState('all');
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const [selectedScan, setSelectedScan] = useState<ScanHistoryItem | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -78,10 +78,6 @@ const ScanHistory = () => {
     ? filteredItems.reduce((acc, item) => acc + item.confidence, 0) / filteredItems.length
     : 0;
 
-  const toggleCard = (id: string) => {
-    setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
   const historyNarration = [
     t('history.title'),
     localizeNumericText(t('history.totalScans', { count: filteredItems.length }), language),
@@ -101,6 +97,28 @@ const ScanHistory = () => {
     const classKey = resolveModelClassKey(item.analysis_json?.raw_class, item.disease_name);
     return localizeModelAdvice(t, classKey, field, localizeAgricultureText(fallbackValue, language));
   };
+
+  const readAloud = (item: ScanHistoryItem) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      return;
+    }
+
+    const narration = [
+      localizeDisease(item.disease_name, item.analysis_json?.raw_class),
+      `${t('history.capturedAt')}: ${formatLocalizedDateTime(item.timestamp, language)}`,
+      `${t('history.cropType')}: ${localizeAgricultureText(item.analysis_json?.crop_type || t('dashboard.notAvailable'), language)}`,
+      `${t('history.cause')}: ${localizeAdvice(item, 'cause', item.analysis_json?.cause || t('dashboard.notAvailable'))}`,
+      `${t('history.treatment')}: ${localizeAdvice(item, 'treatment', item.analysis_json?.treatment || t('dashboard.notAvailable'))}`,
+      `${t('history.description')}: ${localizeAdvice(item, 'description', item.analysis_json?.description || t('dashboard.notAvailable'))}`,
+    ].join('. ');
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(narration);
+    utterance.lang = language === 'mr' || language === 'hi' ? language : 'en-IN';
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const topPredictions = selectedScan?.analysis_json?.top_predictions || [];
 
   return (
     <div className="history-layout">
@@ -154,96 +172,114 @@ const ScanHistory = () => {
           <p>{t('history.emptyLead')}</p>
         </div>
       ) : (
-        <div className="history-timeline history-timeline--cards">
+        <div className="history-timeline">
           {filteredItems.map((item) => (
-            <article className="history-card scan-history-card" key={item.id}>
-              <div className="history-card__header">
-                <strong>{localizeDisease(item.disease_name, item.analysis_json?.raw_class)}</strong>
-                <span className="pill">{formatLocalizedNumber(item.confidence * 100, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
+            <div
+              className="scan-summary-card"
+              key={item.id}
+              onClick={() => setSelectedScan(item)}
+            >
+              <div className="scan-summary-top">
+                <span className="scan-disease-name">{localizeDisease(item.disease_name, item.analysis_json?.raw_class)}</span>
+                <span className="scan-confidence-badge">
+                  {formatLocalizedNumber(item.confidence * 100, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                </span>
               </div>
-
-              <div className="history-meta-grid">
-                <span className="label-muted">{t('history.capturedAt')}: {formatLocalizedDateTime(item.timestamp, language)}</span>
-                <span className="label-muted">{t('history.cropType')}: {localizeAgricultureText(item.analysis_json?.crop_type || t('dashboard.notAvailable'), language)}</span>
-              </div>
-
-              {item.image_url ? (
-                <a href={item.image_url} target="_blank" rel="noreferrer" className="history-link">
-                  {t('history.viewImage')}
-                </a>
-              ) : (
-                <span className="label-muted">{t('dashboard.notAvailable')}</span>
-              )}
-
-              {item.analysis_json?.description && (
-                <div className="history-description">
-                  <span className="label-muted">{t('history.description')}:</span>
-                  <span>{localizeAdvice(item, 'description', item.analysis_json.description)}</span>
-                </div>
-              )}
-
-              <div className="inline-row">
-                <button className="btn outline btn--compact" type="button" onClick={() => toggleCard(item.id)}>
-                  {expandedCards[item.id] ? t('history.hideDetails') : t('history.showDetails')}
-                </button>
-                <ReadAloudButton
-                  text={[
-                    `${localizeDisease(item.disease_name, item.analysis_json?.raw_class)}`,
-                    `${t('history.capturedAt')}: ${formatLocalizedDateTime(item.timestamp, language)}`,
-                    `${t('history.cause')}: ${localizeAdvice(item, 'cause', item.analysis_json?.cause || t('dashboard.notAvailable'))}`,
-                    `${t('history.treatment')}: ${localizeAdvice(item, 'treatment', item.analysis_json?.treatment || t('dashboard.notAvailable'))}`,
-                    `${t('history.description')}: ${localizeAdvice(item, 'description', item.analysis_json?.description || t('dashboard.notAvailable'))}`,
-                    `${t('dashboard.analyzer.recommendedMedicines')}: ${(item.analysis_json?.recommended_medicines || []).map((medicine) => localizeAgricultureText(medicine, language)).join(', ') || t('history.noMedicineRecommendations')}`,
-                  ].join('. ')}
-                  labelKey="history.readEntry"
-                />
-              </div>
-
-              {expandedCards[item.id] && (
-                <div className="history-details-panel">
-                  <div className="scan-card-content">
-                    <div className="scan-detail-row">
-                      <span className="scan-detail-label">{t('history.cause')}</span>
-                      <span className="scan-detail-value">{localizeAdvice(item, 'cause', item.analysis_json?.cause || t('dashboard.notAvailable'))}</span>
-                    </div>
-                    <div className="scan-detail-row">
-                      <span className="scan-detail-label">{t('history.treatment')}</span>
-                      <span className="scan-detail-value">{localizeAdvice(item, 'treatment', item.analysis_json?.treatment || t('dashboard.notAvailable'))}</span>
-                    </div>
-                    <div className="scan-detail-row">
-                      <span className="scan-detail-label">{t('history.description')}</span>
-                      <span className="scan-detail-value">{localizeAdvice(item, 'description', item.analysis_json?.description || t('dashboard.notAvailable'))}</span>
-                    </div>
-                  </div>
-
-                  <div className="pill-row">
-                    {(item.analysis_json?.recommended_medicines || []).length > 0 ? (
-                      (item.analysis_json?.recommended_medicines || []).map((medicine) => (
-                        <span className="pill" key={`${item.id}-${medicine}`}>
-                          {localizeAgricultureText(medicine, language)}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="pill">{t('history.noMedicineRecommendations')}</span>
-                    )}
-                  </div>
-
-                  {(item.analysis_json?.top_predictions || []).length > 0 && (
-                    <div className="history-top-predictions">
-                      <span className="label-muted">{t('history.topPredictions')}</span>
-                      {(item.analysis_json?.top_predictions || []).map((prediction) => (
-                        <span className="pill" key={`${item.id}-${prediction.disease_name}`}>
-                          {localizeDisease(prediction.disease_name, prediction.raw_class)} {formatLocalizedNumber(prediction.confidence * 100, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </article>
+              <p className="scan-date">{t('history.capturedAt')}: {formatLocalizedDateTime(item.timestamp, language)}</p>
+              <p className="scan-crop">{t('history.cropType')}: {localizeAgricultureText(item.analysis_json?.crop_type || t('dashboard.notAvailable'), language)}</p>
+              <button
+                type="button"
+                className="btn outline btn--compact"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setSelectedScan(item);
+                }}
+              >
+                {t('history.showDetails')}
+              </button>
+            </div>
           ))}
         </div>
       )}
+
+      {selectedScan ? (
+        <div className="scan-modal-overlay" onClick={() => setSelectedScan(null)}>
+          <div className="scan-modal-content" onClick={(event) => event.stopPropagation()}>
+            <div className="scan-modal-header">
+              <h2 className="scan-modal-title">{localizeDisease(selectedScan.disease_name, selectedScan.analysis_json?.raw_class)}</h2>
+              <button className="scan-modal-close" type="button" onClick={() => setSelectedScan(null)} aria-label={t('history.hideDetails')}>
+                ✕
+              </button>
+            </div>
+
+            <div className="scan-modal-body">
+              <div className="scan-detail-row">
+                <span className="scan-detail-label">{t('history.averageConfidence')}</span>
+                <span className="scan-detail-value">
+                  {formatLocalizedNumber(selectedScan.confidence * 100, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                </span>
+              </div>
+
+              <div className="scan-detail-row">
+                <span className="scan-detail-label">{t('history.capturedAt')}</span>
+                <span className="scan-detail-value">{formatLocalizedDateTime(selectedScan.timestamp, language)}</span>
+              </div>
+
+              <div className="scan-detail-row">
+                <span className="scan-detail-label">{t('history.cropType')}</span>
+                <span className="scan-detail-value">{localizeAgricultureText(selectedScan.analysis_json?.crop_type || t('dashboard.notAvailable'), language)}</span>
+              </div>
+
+              {selectedScan.image_url ? (
+                <a href={selectedScan.image_url} target="_blank" rel="noopener noreferrer" className="scan-view-image-btn">
+                  {t('history.viewImage')}
+                </a>
+              ) : null}
+
+              <div className="scan-advice-block">
+                <p className="scan-advice-label">{t('history.description')}</p>
+                <p className="scan-advice-text">
+                  {localizeAdvice(selectedScan, 'description', selectedScan.analysis_json?.description || t('dashboard.notAvailable'))}
+                </p>
+              </div>
+
+              <div className="scan-advice-block">
+                <p className="scan-advice-label">{t('history.cause')}</p>
+                <p className="scan-advice-text">
+                  {localizeAdvice(selectedScan, 'cause', selectedScan.analysis_json?.cause || t('dashboard.notAvailable'))}
+                </p>
+              </div>
+
+              <div className="scan-advice-block">
+                <p className="scan-advice-label">{t('history.treatment')}</p>
+                <p className="scan-advice-text">
+                  {localizeAdvice(selectedScan, 'treatment', selectedScan.analysis_json?.treatment || t('dashboard.notAvailable'))}
+                </p>
+              </div>
+
+              {topPredictions.length > 0 ? (
+                <div className="scan-top-predictions">
+                  <p className="scan-advice-label">{t('history.topPredictions')}</p>
+                  {topPredictions.map((prediction, index) => {
+                    const predictionName = prediction.raw_class || prediction.disease_name || 'Unknown';
+                    const predictionScore = typeof prediction.confidence === 'number' ? prediction.confidence : 0;
+                    const normalizedPercent = predictionScore <= 1 ? predictionScore * 100 : predictionScore;
+                    return (
+                      <span key={`${selectedScan.id}-${index}`} className="prediction-pill">
+                        {localizeDisease(predictionName, prediction.raw_class)} {formatLocalizedNumber(normalizedPercent, language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              <button className="scan-read-aloud-btn" type="button" onClick={() => readAloud(selectedScan)}>
+                🔊 {t('history.readEntry')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

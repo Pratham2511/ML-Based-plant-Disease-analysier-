@@ -6,7 +6,6 @@ import { Capacitor } from '@capacitor/core';
 
 import { AuthProvider, useAuth } from './components/AuthContext';
 import AppSplash from './components/AppSplash';
-import LanguageSwitcher from './components/LanguageSwitcher';
 import FarmSelector from './components/FarmSelector';
 import Introduction from './pages/Introduction';
 import Dashboard from './pages/Dashboard';
@@ -64,6 +63,14 @@ const TopNavigation = () => {
     }
   };
 
+  const handleAuthAction = () => {
+    if (user) {
+      logout();
+      return;
+    }
+    handleLoginClick();
+  };
+
   return (
     <>
       <header className={`top-nav w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
@@ -72,57 +79,34 @@ const TopNavigation = () => {
             <img src="/assets/shetvaidya-navbar-mobile.svg" alt="ShetVaidya" height={36} className="brand-lockup-mobile" />
             <span className="top-nav__brand-text">Shet Vaidya</span>
           </div>
-
-          <div className="mobile-lang-switcher top-nav__lang-switcher" aria-label={t('language.label')}>
-            {['mr', 'en', 'hi'].map((lang) => (
-              <button
-                key={lang}
-                type="button"
-                className={`lang-pill ${currentLang === lang ? 'active' : ''}`}
-                onClick={() => i18n.changeLanguage(lang)}
-              >
-                {lang.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          <div className="desktop-only-inline">
-            <LanguageSwitcher compact />
-          </div>
         </div>
 
-        <NavLink to="/" className="brand-mark brand-mark--desktop min-w-0" aria-label="ShetVaidya">
-          <img src="/assets/shetvaidya-navbar-desktop.svg" alt="ShetVaidya" height={48} className="brand-lockup-desktop" />
-        </NavLink>
-
         <div className="top-nav__right max-w-full flex-shrink-0">
-          <span className="session-indicator desktop-only">
-            {loading ? t('auth.restoringSession') : user ? t('nav.sessionActive') : t('nav.loginRequired')}
-          </span>
+          <div className="top-nav__right-actions">
+            <div className="top-nav__lang-switcher" aria-label={t('language.label')}>
+              {['mr', 'en', 'hi'].map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  className={`lang-pill ${currentLang === lang ? 'active' : ''}`}
+                  onClick={() => i18n.changeLanguage(lang)}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
 
-          <div className="top-nav__desktop-action">
-            {user ? (
-              <button className="btn ghost flex-shrink-0 whitespace-nowrap" onClick={logout} disabled={loading}>
-                {t('nav.logout')}
-              </button>
-            ) : (
-              <button className="btn primary flex-shrink-0 whitespace-nowrap" onClick={handleLoginClick} disabled={loading}>
-                {t('nav.login')}
-              </button>
-            )}
+            <button
+              type="button"
+              className="top-nav__auth-btn"
+              onClick={handleAuthAction}
+              disabled={loading}
+            >
+              {user ? t('nav.logout') : t('nav.login')}
+            </button>
           </div>
 
-          <div className="top-nav__mobile-action">
-            {user ? (
-              <button className="btn ghost top-nav__mobile-login top-nav__auth-btn" onClick={logout} disabled={loading}>
-                {t('nav.logout')}
-              </button>
-            ) : (
-              <button className="btn primary top-nav__mobile-login top-nav__auth-btn" onClick={handleLoginClick} disabled={loading}>
-                {loading ? t('auth.restoringSession') : t('nav.login')}
-              </button>
-            )}
-          </div>
-
+          {loading ? <span className="session-restore-text">{t('auth.restoringSession')}</span> : null}
         </div>
 
         <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
