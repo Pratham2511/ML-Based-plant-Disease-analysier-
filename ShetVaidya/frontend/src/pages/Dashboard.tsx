@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Capacitor } from '@capacitor/core';
+import { Camera } from '@capacitor/camera';
 
 import api from '../lib/api';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
@@ -148,10 +150,37 @@ const Dashboard = () => {
     setShowCamera(false);
   };
 
+  const ensureNativeCameraPermission = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      return true;
+    }
+
+    try {
+      const permission = await Camera.checkPermissions();
+      if (permission.camera === 'granted' || permission.camera === 'limited') {
+        return true;
+      }
+
+      const requested = await Camera.requestPermissions({ permissions: ['camera'] });
+      return requested.camera === 'granted' || requested.camera === 'limited';
+    } catch {
+      return false;
+    }
+  };
+
   const startCamera = async () => {
-    setShowCamera(true);
     setCameraError('');
     setStatus(t('dashboard.status.openingCamera'));
+
+    const hasCameraPermission = await ensureNativeCameraPermission();
+    if (!hasCameraPermission) {
+      setCameraError(t('medicine.cameraPermissionDeniedApp'));
+      setStatus(t('dashboard.status.cameraError'));
+      setShowCamera(false);
+      return;
+    }
+
+    setShowCamera(true);
     await new Promise((resolve) => setTimeout(resolve, 400));
 
     try {
@@ -200,7 +229,7 @@ const Dashboard = () => {
       );
     } catch (err: any) {
       if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
-        setCameraError(t('medicine.cameraPermissionDenied'));
+        setCameraError(Capacitor.isNativePlatform() ? t('medicine.cameraPermissionDeniedApp') : t('medicine.cameraPermissionDenied'));
       } else {
         setCameraError(t('medicine.cameraError'));
       }

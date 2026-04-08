@@ -296,6 +296,9 @@
     "displayName": "नाम",
     "account": "ईमेल",
     "notificationsComingSoon": "नोटिफिकेशन सुविधा भविष्य के अपडेट में आएगी।",
+    "notificationsEnabled": "इस ऐप के लिए नोटिफिकेशन अनुमति सक्षम हो गई है।",
+    "notificationsPermissionDenied": "नोटिफिकेशन अनुमति अस्वीकृत। कृपया Android ऐप सेटिंग में इसे सक्षम करें।",
+    "notificationsPermissionError": "नोटिफिकेशन अनुमति का अनुरोध नहीं किया जा सका। कृपया फिर से प्रयास करें।",
     "languagePickerTitle": "भाषा चुनें",
     "helpTitle": "सहायता और समर्थन",
     "helpBody": "फसल सलाह के लिए किसान कॉल सेंटर पर कॉल करें: 1800-180-1551. ऐप सहायता के लिए support@shetvaidya.in पर ईमेल करें।",
@@ -580,6 +583,7 @@
     "manufactured": "निर्माण तिथि",
     "highScanCount": "अधिक स्कैन संख्या - सावधानी से जांचें",
     "cameraPermissionDenied": "कैमरा अनुमति अस्वीकृत। कृपया ब्राउज़र सेटिंग में कैमरा एक्सेस अनुमति दें।",
+    "cameraPermissionDeniedApp": "कैमरा अनुमति अस्वीकृत। कृपया Android ऐप सेटिंग में कैमरा अनुमति सक्षम करें।",
     "cameraError": "कैमरा शुरू नहीं हो सका। कृपया फिर से प्रयास करें।"
   },
   "krushiVibhag": {

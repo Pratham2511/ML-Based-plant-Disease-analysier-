@@ -296,6 +296,9 @@
     "displayName": "Name",
     "account": "Email",
     "notificationsComingSoon": "Notifications feature coming in a future update.",
+    "notificationsEnabled": "Notifications permission enabled for this app.",
+    "notificationsPermissionDenied": "Notifications permission denied. Please enable it in Android app settings.",
+    "notificationsPermissionError": "Could not request notifications permission. Please try again.",
     "languagePickerTitle": "Choose Language",
     "helpTitle": "Help & Support",
     "helpBody": "For crop advisory help call Kisan Call Centre: 1800-180-1551. For app support email us at support@shetvaidya.in",
@@ -580,6 +583,7 @@
     "manufactured": "Manufactured",
     "highScanCount": "High scan count - verify carefully",
     "cameraPermissionDenied": "Camera permission denied. Please allow camera access in your browser settings.",
+    "cameraPermissionDeniedApp": "Camera permission denied. Please allow camera access in Android app settings.",
     "cameraError": "Could not start camera. Please try again."
   },
   "krushiVibhag": {

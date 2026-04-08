@@ -296,6 +296,9 @@
     "displayName": "नाव",
     "account": "ईमेल",
     "notificationsComingSoon": "नोटिफिकेशन वैशिष्ट्य भविष्यातील अपडेटमध्ये येईल.",
+    "notificationsEnabled": "या अॅपसाठी नोटिफिकेशन परवानगी सक्षम झाली आहे.",
+    "notificationsPermissionDenied": "नोटिफिकेशन परवानगी नाकारली. कृपया Android अॅप सेटिंगमध्ये ती सक्षम करा.",
+    "notificationsPermissionError": "नोटिफिकेशन परवानगी मागवता आली नाही. कृपया पुन्हा प्रयत्न करा.",
     "languagePickerTitle": "भाषा निवडा",
     "helpTitle": "मदत आणि सहाय्य",
     "helpBody": "पीक सल्ल्यासाठी किसान कॉल सेंटरवर कॉल करा: 1800-180-1551. अॅप सहाय्यासाठी support@shetvaidya.in वर ईमेल करा.",
@@ -580,6 +583,7 @@
     "manufactured": "उत्पादन तारीख",
     "highScanCount": "जास्त स्कॅन संख्या - काळजीपूर्वक तपासा",
     "cameraPermissionDenied": "कॅमेरा परवानगी नाकारली. कृपया ब्राउझर सेटिंगमध्ये कॅमेरा प्रवेश सुरू करा.",
+    "cameraPermissionDeniedApp": "कॅमेरा परवानगी नाकारली. कृपया Android अॅप सेटिंगमध्ये कॅमेरा परवानगी सक्षम करा.",
     "cameraError": "कॅमेरा सुरू करता आला नाही. कृपया पुन्हा प्रयत्न करा."
   },
   "krushiVibhag": {

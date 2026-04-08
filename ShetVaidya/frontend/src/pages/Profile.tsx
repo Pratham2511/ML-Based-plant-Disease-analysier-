@@ -1,6 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 import api from '../lib/api';
 import { useAuth } from '../components/AuthContext';
@@ -100,9 +102,32 @@ const Profile = () => {
     });
   }, [farms, i18n.language, t]);
 
-  const handleMobileSettingTap = (messageKey: string) => {
-    setStatusMessage(t(messageKey));
+  const handleNotificationsPermissionTap = async () => {
+    setStatusMessage('');
     setErrorMessage('');
+
+    if (!Capacitor.isNativePlatform()) {
+      setStatusMessage(t('profile.notificationsComingSoon'));
+      return;
+    }
+
+    setPendingAction('notifications');
+    try {
+      const current = await LocalNotifications.checkPermissions();
+      const resolved = current.display === 'granted'
+        ? current
+        : await LocalNotifications.requestPermissions();
+
+      if (resolved.display === 'granted') {
+        setStatusMessage(t('profile.notificationsEnabled'));
+      } else {
+        setErrorMessage(t('profile.notificationsPermissionDenied'));
+      }
+    } catch {
+      setErrorMessage(t('profile.notificationsPermissionError'));
+    } finally {
+      setPendingAction(null);
+    }
   };
 
   const handlePersonalInfoOpen = () => {
@@ -171,7 +196,7 @@ const Profile = () => {
             </span>
             <span className="profile-mobile-chevron">›</span>
           </button>
-          <button type="button" className="profile-mobile-row" onClick={() => handleMobileSettingTap('profile.notificationsComingSoon')}>
+          <button type="button" className="profile-mobile-row" onClick={handleNotificationsPermissionTap}>
             <span className="profile-mobile-row-icon">🔔</span>
             <span className="profile-mobile-row-copy">
               <strong>{t('profile.mobile.notificationsTitle')}</strong>
