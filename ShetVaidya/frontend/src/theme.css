@@ -273,6 +273,15 @@ a {
   gap: 6px;
 }
 
+/* Keep mobile and desktop navbar variants isolated by viewport. */
+.desktop-nav {
+  display: none;
+}
+
+.mobile-nav {
+  display: grid;
+}
+
 .session-restore-text {
   display: inline-block;
   font-size: 0.72rem;
