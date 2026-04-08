@@ -3508,6 +3508,14 @@ a {
     gap: 6px;
   }
 
+  .top-nav.desktop-nav {
+    display: none !important;
+  }
+
+  .top-nav.mobile-nav {
+    display: flex;
+  }
+
   .route-stage {
     margin-bottom: calc(88px + env(safe-area-inset-bottom));
   }
