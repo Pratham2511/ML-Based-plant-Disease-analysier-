@@ -19,156 +19,201 @@ logger = logging.getLogger(__name__)
 
 @router.get("/verify/{code}")
 def verify(code: str, request: Request, db: Session = Depends(deps.get_db), current_user=Depends(deps.get_optional_current_user)):
-    client_ip = request.client.host if request.client else "unknown"
-    enforce_rate_limit(
-        f"batch_verify:{client_ip}",
-        settings.medicine_verify_limit,
-        settings.medicine_verify_window_seconds,
-    )
+    try:
+        client_ip = request.client.host if request.client else "unknown"
+        enforce_rate_limit(
+            f"batch_verify:{client_ip}",
+            settings.medicine_verify_limit,
+            settings.medicine_verify_window_seconds,
+        )
 
-    clean_code = validate_batch_code(code).upper()
+        clean_code = validate_batch_code(code).upper()
 
-    # --- TIER 1: Per-bottle unique code ---
-    bottle = db.query(BottleCode).filter(BottleCode.unique_code == clean_code).first()
-    if bottle:
-        medicine = db.query(Medicine).filter(Medicine.id == bottle.medicine_id).first()
-        batch = db.query(MedicineBatch).filter(MedicineBatch.id == bottle.batch_id).first()
+        # --- TIER 1: Per-bottle unique code ---
+        bottle = db.query(BottleCode).filter(BottleCode.unique_code == clean_code).first()
+        if bottle:
+            try:
+                medicine = db.query(Medicine).filter(Medicine.id == bottle.medicine_id).first()
+            except Exception:
+                logger.exception("Failed to load medicine for bottle code=%s", clean_code)
+                db.rollback()
+                bottle = db.query(BottleCode).filter(BottleCode.unique_code == clean_code).first()
+                medicine = None
 
-        bottle.scan_count = (bottle.scan_count or 0) + 1
+            try:
+                batch = db.query(MedicineBatch).filter(MedicineBatch.id == bottle.batch_id).first() if bottle else None
+            except Exception:
+                logger.exception("Failed to load batch for bottle code=%s", clean_code)
+                db.rollback()
+                bottle = db.query(BottleCode).filter(BottleCode.unique_code == clean_code).first()
+                batch = None
 
-        if bottle.is_used:
+            if not bottle:
+                return {
+                    "is_valid": False,
+                    "verification_type": "unknown",
+                    "alert_level": "HIGH",
+                    "message": "Verification state changed. Please scan again.",
+                    "scan_count": 0,
+                }
+
+            bottle.scan_count = (bottle.scan_count or 0) + 1
+
+            if bottle.is_used:
+                try:
+                    db.commit()
+                except Exception:
+                    db.rollback()
+                    logger.exception("Failed to persist re-scan count for bottle code=%s", clean_code)
+                logger.warning(
+                    "COUNTERFEIT ALERT: code=%s first_used_at=%s first_used_district=%s total_scans=%s",
+                    clean_code,
+                    bottle.used_at,
+                    bottle.used_by_district,
+                    bottle.scan_count,
+                )
+                return {
+                    "is_valid": False,
+                    "verification_type": "bottle",
+                    "warning": "ALREADY_VERIFIED",
+                    "alert_level": "HIGH",
+                    "message": "This bottle code has already been verified once. If this is a new sealed bottle, it may be counterfeit. Contact your Krushi Vibhag officer immediately.",
+                    "first_verified_at": bottle.used_at.isoformat() if bottle.used_at else None,
+                    "first_verified_district": bottle.used_by_district,
+                    "scan_count": bottle.scan_count,
+                    "medicine": {
+                        "brand_name": medicine.brand_name if medicine else "Unknown",
+                        "company": medicine.company if medicine else "Unknown",
+                        "crop_type": medicine.crop_type if medicine else "Unknown",
+                        "disease_category": medicine.disease_category if medicine else "Unknown",
+                    },
+                }
+
+            bottle.is_used = True
+            bottle.used_at = datetime.now(timezone.utc)
+            bottle.used_by_district = getattr(current_user, "district", None) or "Unknown"
+            bottle.used_by_user_id = None
+
+            if current_user and getattr(current_user, "id", None):
+                try:
+                    parsed_user_id = UUID(str(current_user.id))
+                    user_exists = db.query(User.id).filter(User.id == parsed_user_id).first() is not None
+                    if user_exists:
+                        bottle.used_by_user_id = parsed_user_id
+                except (TypeError, ValueError):
+                    bottle.used_by_user_id = None
+                except Exception:
+                    logger.exception("User lookup failed during bottle verification for code=%s", clean_code)
+                    bottle.used_by_user_id = None
+
             try:
                 db.commit()
+            except IntegrityError:
+                # Fallback for environments where auth token identity doesn't map to users.id FK.
+                db.rollback()
+                bottle = db.query(BottleCode).filter(BottleCode.unique_code == clean_code).first()
+                if bottle:
+                    bottle.scan_count = (bottle.scan_count or 0) + 1
+                    bottle.is_used = True
+                    bottle.used_at = datetime.now(timezone.utc)
+                    bottle.used_by_user_id = None
+                    bottle.used_by_district = getattr(current_user, "district", None) or "Unknown"
+                    try:
+                        db.commit()
+                    except Exception:
+                        db.rollback()
+                        logger.exception("Failed to persist bottle verification fallback for code=%s", clean_code)
             except Exception:
                 db.rollback()
-                logger.exception("Failed to persist re-scan count for bottle code=%s", clean_code)
-            logger.warning(
-                "COUNTERFEIT ALERT: code=%s first_used_at=%s first_used_district=%s total_scans=%s",
-                clean_code,
-                bottle.used_at,
-                bottle.used_by_district,
-                bottle.scan_count,
-            )
+                logger.exception("Failed to persist bottle verification for code=%s", clean_code)
+
+            logger.info("Bottle code verified first time: code=%s medicine=%s", clean_code, medicine.brand_name if medicine else "Unknown")
+
             return {
-                "is_valid": False,
+                "is_valid": True,
                 "verification_type": "bottle",
-                "warning": "ALREADY_VERIFIED",
-                "alert_level": "HIGH",
-                "message": "This bottle code has already been verified once. If this is a new sealed bottle, it may be counterfeit. Contact your Krushi Vibhag officer immediately.",
-                "first_verified_at": bottle.used_at.isoformat() if bottle.used_at else None,
-                "first_verified_district": bottle.used_by_district,
+                "alert_level": "NONE",
+                "message": "Genuine product verified. This is the first verification of this bottle.",
+                "bottle_number": bottle.bottle_number,
                 "scan_count": bottle.scan_count,
                 "medicine": {
                     "brand_name": medicine.brand_name if medicine else "Unknown",
                     "company": medicine.company if medicine else "Unknown",
+                    "active_ingredient": medicine.active_ingredient if medicine else "Unknown",
+                    "concentration": medicine.concentration if medicine else "Unknown",
+                    "crop_type": medicine.crop_type if medicine else "Unknown",
+                    "disease_category": medicine.disease_category if medicine else "Unknown",
+                },
+                "batch": {
+                    "batch_code": batch.batch_code if batch else "Unknown",
+                    "manufacture_date": str(batch.manufacture_date) if batch and batch.manufacture_date else "Unknown",
+                    "batch_size": batch.batch_size if batch else 0,
+                },
+            }
+
+        # --- TIER 2: Batch code fallback ---
+        try:
+            batch = db.query(MedicineBatch).filter(MedicineBatch.batch_code == clean_code).first()
+        except Exception:
+            logger.exception("Failed to load batch by code=%s", clean_code)
+            db.rollback()
+            batch = None
+
+        if batch:
+            try:
+                medicine = db.query(Medicine).filter(Medicine.id == batch.medicine_id).first()
+            except Exception:
+                logger.exception("Failed to load medicine for batch code=%s", clean_code)
+                db.rollback()
+                medicine = None
+
+            batch.scan_count = (batch.scan_count or 0) + 1
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
+                logger.exception("Failed to persist batch verification count for code=%s", clean_code)
+
+            suspicious = (batch.scan_count or 0) > 100
+            return {
+                "is_valid": bool(batch.is_valid),
+                "verification_type": "batch",
+                "alert_level": "MEDIUM" if suspicious else "LOW",
+                "message": (
+                    f"This batch code has been scanned {batch.scan_count} times. Batch codes can be copied. Use bottle-level QR for stronger verification."
+                    if suspicious
+                    else "Batch verified. Note: batch codes can be duplicated."
+                ),
+                "scan_count": batch.scan_count,
+                "medicine": {
+                    "brand_name": medicine.brand_name if medicine else "Unknown",
+                    "company": medicine.company if medicine else "Unknown",
+                    "active_ingredient": medicine.active_ingredient if medicine else "Unknown",
+                    "concentration": medicine.concentration if medicine else "Unknown",
                     "crop_type": medicine.crop_type if medicine else "Unknown",
                     "disease_category": medicine.disease_category if medicine else "Unknown",
                 },
             }
 
-        bottle.is_used = True
-        bottle.used_at = datetime.now(timezone.utc)
-        bottle.used_by_district = getattr(current_user, "district", None) or "Unknown"
-        bottle.used_by_user_id = None
-
-        if current_user and getattr(current_user, "id", None):
-            try:
-                parsed_user_id = UUID(str(current_user.id))
-                user_exists = db.query(User.id).filter(User.id == parsed_user_id).first() is not None
-                if user_exists:
-                    bottle.used_by_user_id = parsed_user_id
-            except (TypeError, ValueError):
-                bottle.used_by_user_id = None
-            except Exception:
-                logger.exception("User lookup failed during bottle verification for code=%s", clean_code)
-                bottle.used_by_user_id = None
-
-        try:
-            db.commit()
-        except IntegrityError:
-            # Fallback for environments where auth token identity doesn't map to users.id FK.
-            db.rollback()
-            bottle = db.query(BottleCode).filter(BottleCode.unique_code == clean_code).first()
-            if bottle:
-                bottle.scan_count = (bottle.scan_count or 0) + 1
-                bottle.is_used = True
-                bottle.used_at = datetime.now(timezone.utc)
-                bottle.used_by_user_id = None
-                bottle.used_by_district = getattr(current_user, "district", None) or "Unknown"
-                try:
-                    db.commit()
-                except Exception:
-                    db.rollback()
-                    logger.exception("Failed to persist bottle verification fallback for code=%s", clean_code)
-        except Exception:
-            db.rollback()
-            logger.exception("Failed to persist bottle verification for code=%s", clean_code)
-
-        logger.info("Bottle code verified first time: code=%s medicine=%s", clean_code, medicine.brand_name if medicine else "Unknown")
-
+        # --- TIER 3: Unknown code ---
+        logger.warning("Unknown code scanned: %s", clean_code)
         return {
-            "is_valid": True,
-            "verification_type": "bottle",
-            "alert_level": "NONE",
-            "message": "Genuine product verified. This is the first verification of this bottle.",
-            "bottle_number": bottle.bottle_number,
-            "scan_count": bottle.scan_count,
-            "medicine": {
-                "brand_name": medicine.brand_name if medicine else "Unknown",
-                "company": medicine.company if medicine else "Unknown",
-                "active_ingredient": medicine.active_ingredient if medicine else "Unknown",
-                "concentration": medicine.concentration if medicine else "Unknown",
-                "crop_type": medicine.crop_type if medicine else "Unknown",
-                "disease_category": medicine.disease_category if medicine else "Unknown",
-            },
-            "batch": {
-                "batch_code": batch.batch_code if batch else "Unknown",
-                "manufacture_date": str(batch.manufacture_date) if batch and batch.manufacture_date else "Unknown",
-                "batch_size": batch.batch_size if batch else 0,
-            },
+            "is_valid": False,
+            "verification_type": "unknown",
+            "alert_level": "HIGH",
+            "message": "This code is not in our database. This product may be counterfeit. Do not use it. Contact your Krushi Vibhag officer.",
+            "scan_count": 0,
         }
-
-    # --- TIER 2: Batch code fallback ---
-    batch = db.query(MedicineBatch).filter(MedicineBatch.batch_code == clean_code).first()
-    if batch:
-        medicine = db.query(Medicine).filter(Medicine.id == batch.medicine_id).first()
-        batch.scan_count = (batch.scan_count or 0) + 1
-        try:
-            db.commit()
-        except Exception:
-            db.rollback()
-            logger.exception("Failed to persist batch verification count for code=%s", clean_code)
-
-        suspicious = (batch.scan_count or 0) > 100
+    except Exception:
+        db.rollback()
+        logger.exception("Unhandled verify failure for code=%s", code)
         return {
-            "is_valid": bool(batch.is_valid),
-            "verification_type": "batch",
-            "alert_level": "MEDIUM" if suspicious else "LOW",
-            "message": (
-                f"This batch code has been scanned {batch.scan_count} times. Batch codes can be copied. Use bottle-level QR for stronger verification."
-                if suspicious
-                else "Batch verified. Note: batch codes can be duplicated."
-            ),
-            "scan_count": batch.scan_count,
-            "medicine": {
-                "brand_name": medicine.brand_name if medicine else "Unknown",
-                "company": medicine.company if medicine else "Unknown",
-                "active_ingredient": medicine.active_ingredient if medicine else "Unknown",
-                "concentration": medicine.concentration if medicine else "Unknown",
-                "crop_type": medicine.crop_type if medicine else "Unknown",
-                "disease_category": medicine.disease_category if medicine else "Unknown",
-            },
+            "is_valid": False,
+            "verification_type": "unknown",
+            "alert_level": "HIGH",
+            "message": "Verification service temporarily unavailable. Please try again.",
+            "scan_count": 0,
         }
-
-    # --- TIER 3: Unknown code ---
-    logger.warning("Unknown code scanned: %s", clean_code)
-    return {
-        "is_valid": False,
-        "verification_type": "unknown",
-        "alert_level": "HIGH",
-        "message": "This code is not in our database. This product may be counterfeit. Do not use it. Contact your Krushi Vibhag officer.",
-        "scan_count": 0,
-    }
 
 
 @router.get("/list")
