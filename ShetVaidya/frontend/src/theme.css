@@ -2310,101 +2310,161 @@ a {
 @media (min-width: 768px) {
   .desktop-nav {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: 0 24px;
-    height: 64px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-items: stretch;
+    gap: 16px;
+    padding: 18px 20px 14px;
     width: 100%;
     box-sizing: border-box;
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(245, 252, 237, 0.92);
+    background: rgba(240, 247, 236, 0.92);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--color-border-tertiary);
-    border-radius: 16px;
+    border: 1px solid rgba(110, 146, 109, 0.28);
+    border-radius: 22px;
+    box-shadow: 0 10px 24px rgba(25, 68, 27, 0.11);
   }
 
   .mobile-nav {
     display: none;
   }
 
+  .desktop-nav .top-nav__desktop-head {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
+    align-items: center;
+    gap: 14px;
+  }
+
   .desktop-nav .top-nav__lang-switcher {
     display: flex;
-    gap: 6px;
+    gap: 0;
     align-items: center;
     justify-content: flex-start;
+    justify-self: start;
+    border: 1px solid #c9d7c4;
+    background: rgba(216, 225, 214, 0.85);
+    border-radius: 13px;
+    padding: 3px;
   }
 
   .desktop-nav .desktop-brand {
     display: flex;
     align-items: center;
     justify-content: center;
+    justify-self: center;
   }
 
   .desktop-nav .desktop-logo-img {
-    height: 48px;
+    height: 56px;
     width: auto;
     display: block;
   }
 
-  .desktop-nav .top-nav__right-actions {
+  .desktop-nav .top-nav__desktop-auth {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    justify-self: end;
+    gap: 10px;
+  }
+
+  .desktop-nav .top-nav__status-pill {
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 700;
+    color: #3e7444;
+    background: #d6e7d2;
+    border-radius: 999px;
+    padding: 12px 16px;
+    border: 1px solid rgba(110, 146, 109, 0.24);
+    white-space: nowrap;
+  }
+
+  .desktop-nav .top-nav__status-pill.active {
+    color: #2f6734;
+    background: #cee4cd;
+  }
+
+  .desktop-nav .top-nav__desktop-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 38px;
+    min-height: 34px;
+    padding: 0 8px;
   }
 
   .desktop-nav .nav-link {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-text-soft);
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: background 0.15s;
+    font-size: 15px;
+    font-weight: 700;
+    color: #476d4e;
+    padding: 4px 2px;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
   }
 
   .desktop-nav .nav-link:hover {
-    background: rgba(255, 255, 255, 0.72);
-    color: var(--color-ink);
+    color: #2c5932;
+    background: transparent;
   }
 
   .desktop-nav .nav-link.active {
-    background: rgba(129, 199, 132, 0.22);
-    color: var(--color-ink);
+    color: #2f5f35;
+    border-bottom-color: rgba(47, 95, 53, 0.65);
   }
 
   .desktop-nav .top-nav__auth-btn {
     font-size: 13px;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: 10px;
-    background: var(--color-primary);
+    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #2f8a35, #3d9d44);
     color: #fff;
     border: none;
     cursor: pointer;
     white-space: nowrap;
+    box-shadow: 0 12px 20px rgba(47, 138, 53, 0.28);
   }
 
   .desktop-nav .lang-pill {
     font-size: 12px;
-    padding: 5px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--color-border);
+    padding: 8px 15px;
+    border-radius: 10px;
+    border: none;
     background: transparent;
-    color: var(--color-primary);
-    font-weight: 600;
+    color: #4f6b52;
+    font-weight: 700;
     cursor: pointer;
+    min-width: 50px;
+    line-height: 1;
+    transition: background 0.15s, color 0.15s;
   }
 
   .desktop-nav .lang-pill.active {
-    background: var(--color-primary);
+    background: linear-gradient(135deg, #2d8a34, #3a9b42);
     color: #fff;
-    border-color: var(--color-primary);
+  }
+
+  .desktop-nav .admin-link {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 767px) {
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: flex;
   }
 }
 .onboarding-overlay {
