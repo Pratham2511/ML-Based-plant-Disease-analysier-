@@ -14,6 +14,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from app.db.session import engine
 
 from app.api import admin, area_intelligence, auth, deps, health, mandi_prices, medicine, scans
 from app.core.config import settings
@@ -72,6 +73,46 @@ def maybe_raise_alert(db: Session, alert_type: str, message: str, severity: str 
             db.commit()
     except Exception:
         db.rollback()
+
+
+def ensure_medicine_verification_schema() -> None:
+    """Backfill missing medicine verification schema pieces for older deployments."""
+    statements = [
+        "ALTER TABLE medicine_batches ADD COLUMN IF NOT EXISTS is_used BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE medicine_batches ADD COLUMN IF NOT EXISTS used_at TIMESTAMPTZ NULL",
+        "ALTER TABLE medicine_batches ADD COLUMN IF NOT EXISTS used_by_district VARCHAR(100) NULL",
+        "ALTER TABLE medicine_batches ADD COLUMN IF NOT EXISTS scan_count INT NOT NULL DEFAULT 0",
+        """
+        CREATE TABLE IF NOT EXISTS bottle_codes (
+            id UUID PRIMARY KEY,
+            medicine_id UUID NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+            batch_id UUID NOT NULL REFERENCES medicine_batches(id) ON DELETE CASCADE,
+            bottle_number INT NOT NULL,
+            unique_code VARCHAR(50) UNIQUE NOT NULL,
+            is_used BOOLEAN NOT NULL DEFAULT FALSE,
+            used_at TIMESTAMPTZ NULL,
+            used_by_user_id UUID NULL REFERENCES users(id),
+            used_by_district VARCHAR(100) NULL,
+            scan_count INT NOT NULL DEFAULT 0,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_bottle_codes_unique_code ON bottle_codes(unique_code)",
+        "CREATE INDEX IF NOT EXISTS idx_bottle_codes_batch_id ON bottle_codes(batch_id)",
+        "CREATE INDEX IF NOT EXISTS idx_bottle_codes_medicine_id ON bottle_codes(medicine_id)",
+    ]
+
+    try:
+        with engine.begin() as conn:
+            for statement in statements:
+                conn.execute(text(statement))
+    except Exception:
+        logger.exception("Failed to ensure medicine verification schema")
+
+
+@app.on_event("startup")
+def startup_schema_checks() -> None:
+    ensure_medicine_verification_schema()
 
 # V2.0 CLASSES LIST (Alphabetically sorted, exactly as trained)
 CLASSES = [

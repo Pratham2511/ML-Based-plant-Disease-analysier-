@@ -536,7 +536,8 @@ const Dashboard = () => {
       setVerifyResult(body as VerifyResponse);
       setStatus(t('dashboard.status.batchComplete'));
     } catch (err: any) {
-      setError(err?.message || t('dashboard.errors.batchFailed'));
+      const detail = err?.response?.data?.detail || err?.response?.data?.message;
+      setError(detail || t('dashboard.errors.batchFailed'));
     } finally {
       setLoadingBatch(false);
     }

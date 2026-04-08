@@ -21,10 +21,43 @@ CREATE TABLE IF NOT EXISTS medicine_batches (
     batch_size INT NOT NULL DEFAULT 100,
     manufacture_date DATE NOT NULL,
     is_valid BOOLEAN NOT NULL DEFAULT TRUE,
+    is_used BOOLEAN NOT NULL DEFAULT FALSE,
+    used_at TIMESTAMPTZ NULL,
+    used_by_district VARCHAR(100) NULL,
+    scan_count INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_batch_code ON medicine_batches(batch_code);
 CREATE INDEX IF NOT EXISTS idx_batches_medicine_id ON medicine_batches(medicine_id);
+
+ALTER TABLE medicine_batches
+ADD COLUMN IF NOT EXISTS is_used BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE medicine_batches
+ADD COLUMN IF NOT EXISTS used_at TIMESTAMPTZ NULL;
+
+ALTER TABLE medicine_batches
+ADD COLUMN IF NOT EXISTS used_by_district VARCHAR(100) NULL;
+
+ALTER TABLE medicine_batches
+ADD COLUMN IF NOT EXISTS scan_count INT NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS bottle_codes (
+    id UUID PRIMARY KEY,
+    medicine_id UUID NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+    batch_id UUID NOT NULL REFERENCES medicine_batches(id) ON DELETE CASCADE,
+    bottle_number INT NOT NULL,
+    unique_code VARCHAR(50) UNIQUE NOT NULL,
+    is_used BOOLEAN NOT NULL DEFAULT FALSE,
+    used_at TIMESTAMPTZ NULL,
+    used_by_user_id UUID NULL REFERENCES users(id),
+    used_by_district VARCHAR(100) NULL,
+    scan_count INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_bottle_codes_unique_code ON bottle_codes(unique_code);
+CREATE INDEX IF NOT EXISTS idx_bottle_codes_batch_id ON bottle_codes(batch_id);
+CREATE INDEX IF NOT EXISTS idx_bottle_codes_medicine_id ON bottle_codes(medicine_id);
 
 CREATE TABLE IF NOT EXISTS scan_history (
     id UUID PRIMARY KEY,
