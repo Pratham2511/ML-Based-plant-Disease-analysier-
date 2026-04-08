@@ -79,6 +79,9 @@ def verify(code: str, request: Request, db: Session = Depends(deps.get_db), curr
                     bottle.used_by_user_id = parsed_user_id
             except (TypeError, ValueError):
                 bottle.used_by_user_id = None
+            except Exception:
+                logger.exception("User lookup failed during bottle verification for code=%s", clean_code)
+                bottle.used_by_user_id = None
 
         try:
             db.commit()
