@@ -37,7 +37,11 @@ def verify(code: str, request: Request, db: Session = Depends(deps.get_db), curr
         bottle.scan_count = (bottle.scan_count or 0) + 1
 
         if bottle.is_used:
-            db.commit()
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
+                logger.exception("Failed to persist re-scan count for bottle code=%s", clean_code)
             logger.warning(
                 "COUNTERFEIT ALERT: code=%s first_used_at=%s first_used_district=%s total_scans=%s",
                 clean_code,
@@ -88,7 +92,14 @@ def verify(code: str, request: Request, db: Session = Depends(deps.get_db), curr
                 bottle.used_at = datetime.now(timezone.utc)
                 bottle.used_by_user_id = None
                 bottle.used_by_district = getattr(current_user, "district", None) or "Unknown"
-                db.commit()
+                try:
+                    db.commit()
+                except Exception:
+                    db.rollback()
+                    logger.exception("Failed to persist bottle verification fallback for code=%s", clean_code)
+        except Exception:
+            db.rollback()
+            logger.exception("Failed to persist bottle verification for code=%s", clean_code)
 
         logger.info("Bottle code verified first time: code=%s medicine=%s", clean_code, medicine.brand_name if medicine else "Unknown")
 
@@ -119,7 +130,11 @@ def verify(code: str, request: Request, db: Session = Depends(deps.get_db), curr
     if batch:
         medicine = db.query(Medicine).filter(Medicine.id == batch.medicine_id).first()
         batch.scan_count = (batch.scan_count or 0) + 1
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            logger.exception("Failed to persist batch verification count for code=%s", clean_code)
 
         suspicious = (batch.scan_count or 0) > 100
         return {
