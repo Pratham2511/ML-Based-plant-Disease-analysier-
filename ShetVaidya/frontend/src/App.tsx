@@ -25,6 +25,7 @@ const TopNavigation = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const currentLang = i18n.language.split('-')[0];
+  const isAndroidSurface = /android/i.test(window.navigator.userAgent) || (Capacitor.isNativePlatform() && /android/i.test(window.navigator.userAgent));
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 2);
@@ -79,64 +80,66 @@ const TopNavigation = () => {
 
   return (
     <>
-      <nav className="top-nav desktop-nav" aria-label={t('nav.primaryLabel')}>
-        <div className="top-nav__lang-switcher" aria-label={t('language.label')}>
-          {['MR', 'EN', 'HI'].map((lang) => (
-            <button
-              key={lang}
-              type="button"
-              className={`lang-pill ${currentLang === lang.toLowerCase() ? 'active' : ''}`}
-              onClick={() => changeLanguage(lang.toLowerCase())}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
+      {!isAndroidSurface ? (
+        <nav className="top-nav desktop-nav" aria-label={t('nav.primaryLabel')}>
+          <div className="top-nav__lang-switcher" aria-label={t('language.label')}>
+            {['MR', 'EN', 'HI'].map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                className={`lang-pill ${currentLang === lang.toLowerCase() ? 'active' : ''}`}
+                onClick={() => changeLanguage(lang.toLowerCase())}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
 
-        <div className="top-nav__brand desktop-brand" aria-label="ShetVaidya">
-          <img
-            src="/assets/shetvaidya-navbar-desktop.svg"
-            alt="ShetVaidya"
-            height={48}
-            className="desktop-logo-img"
-          />
-        </div>
+          <div className="top-nav__brand desktop-brand" aria-label="ShetVaidya">
+            <img
+              src="/assets/shetvaidya-navbar-desktop.svg"
+              alt="ShetVaidya"
+              height={48}
+              className="desktop-logo-img"
+            />
+          </div>
 
-        <div className="top-nav__right-actions">
-          {user ? (
-            <>
-              <button type="button" onClick={() => navigate('/dashboard')} className={`nav-link ${isActiveRoute('/dashboard') ? 'active' : ''}`}>
-                {t('nav.home')}
-              </button>
-              <button type="button" onClick={() => navigate('/area-intelligence')} className={`nav-link ${isActiveRoute('/area-intelligence') ? 'active' : ''}`}>
-                {t('nav.area')}
-              </button>
-              <button type="button" onClick={() => navigate('/scan-history')} className={`nav-link ${isActiveRoute('/scan-history') ? 'active' : ''}`}>
-                {t('nav.history')}
-              </button>
-              <button type="button" onClick={() => navigate('/krushi-vibhag')} className={`nav-link ${isActiveRoute('/krushi-vibhag') ? 'active' : ''}`}>
-                {t('nav.krushiVibhag')}
-              </button>
-              {user.role === 'admin' ? (
-                <button
-                  type="button"
-                  onClick={() => navigate('/admin')}
-                  className={`nav-link admin-link ${isActiveRoute('/admin') ? 'active' : ''}`}
-                >
-                  Admin
+          <div className="top-nav__right-actions">
+            {user ? (
+              <>
+                <button type="button" onClick={() => navigate('/dashboard')} className={`nav-link ${isActiveRoute('/dashboard') ? 'active' : ''}`}>
+                  {t('nav.home')}
                 </button>
-              ) : null}
-            </>
-          ) : null}
+                <button type="button" onClick={() => navigate('/area-intelligence')} className={`nav-link ${isActiveRoute('/area-intelligence') ? 'active' : ''}`}>
+                  {t('nav.area')}
+                </button>
+                <button type="button" onClick={() => navigate('/scan-history')} className={`nav-link ${isActiveRoute('/scan-history') ? 'active' : ''}`}>
+                  {t('nav.history')}
+                </button>
+                <button type="button" onClick={() => navigate('/krushi-vibhag')} className={`nav-link ${isActiveRoute('/krushi-vibhag') ? 'active' : ''}`}>
+                  {t('nav.krushiVibhag')}
+                </button>
+                {user.role === 'admin' ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/admin')}
+                    className={`nav-link admin-link ${isActiveRoute('/admin') ? 'active' : ''}`}
+                  >
+                    Admin
+                  </button>
+                ) : null}
+              </>
+            ) : null}
 
-          {loading ? <span className="session-indicator">{t('auth.restoringSession')}</span> : null}
-          <button type="button" className="top-nav__auth-btn" onClick={handleAuthAction} disabled={loading}>
-            {user ? t('nav.logout') : t('nav.login')}
-          </button>
-        </div>
-      </nav>
+            {loading ? <span className="session-indicator">{t('auth.restoringSession')}</span> : null}
+            <button type="button" className="top-nav__auth-btn" onClick={handleAuthAction} disabled={loading}>
+              {user ? t('nav.logout') : t('nav.login')}
+            </button>
+          </div>
+        </nav>
+      ) : null}
 
-      <header className={`top-nav mobile-nav w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
+      <header className={`top-nav mobile-nav ${isAndroidSurface ? 'mobile-nav--force' : ''} w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="top-nav__left">
           <div className="top-nav__brand" aria-label="ShetVaidya">
             <img src="/assets/shetvaidya-navbar-mobile.svg" alt="ShetVaidya" height={36} className="brand-lockup-mobile" />

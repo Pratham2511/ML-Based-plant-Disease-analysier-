@@ -2339,6 +2339,10 @@ a {
     display: none;
   }
 
+  .mobile-nav.mobile-nav--force {
+    display: grid;
+  }
+
   .desktop-nav .top-nav__lang-switcher {
     display: flex;
     gap: 6px;
