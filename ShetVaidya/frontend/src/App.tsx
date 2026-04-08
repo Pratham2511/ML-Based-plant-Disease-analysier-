@@ -25,7 +25,7 @@ const TopNavigation = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const currentLang = i18n.language.split('-')[0];
-  const isAndroidSurface = /android/i.test(window.navigator.userAgent) || (Capacitor.isNativePlatform() && /android/i.test(window.navigator.userAgent));
+  const isNativeApp = Capacitor.isNativePlatform();
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 2);
@@ -80,7 +80,7 @@ const TopNavigation = () => {
 
   return (
     <>
-      {!isAndroidSurface ? (
+      {!isNativeApp ? (
         <nav className="top-nav desktop-nav" aria-label={t('nav.primaryLabel')}>
           <div className="top-nav__lang-switcher" aria-label={t('language.label')}>
             {['MR', 'EN', 'HI'].map((lang) => (
@@ -139,7 +139,7 @@ const TopNavigation = () => {
         </nav>
       ) : null}
 
-      <header className={`top-nav mobile-nav ${isAndroidSurface ? 'mobile-nav--force' : ''} w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
+      <header className={`top-nav mobile-nav ${isNativeApp ? 'mobile-nav--force' : ''} w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="top-nav__left">
           <div className="top-nav__brand" aria-label="ShetVaidya">
             <img src="/assets/shetvaidya-navbar-mobile.svg" alt="ShetVaidya" height={36} className="brand-lockup-mobile" />
