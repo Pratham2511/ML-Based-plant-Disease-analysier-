@@ -107,6 +107,66 @@ const AreaIntelligence = () => {
     setSelectedDistrict(activeFarm.district);
   }, [activeFarm?.district, districts]);
 
+  const handleLocationSuccess = async (latitudeValue: number, longitudeValue: number) => {
+    const lat = Number(latitudeValue.toFixed(6));
+    const lng = Number(longitudeValue.toFixed(6));
+
+    setLatitude(lat);
+    setLongitude(lng);
+
+    try {
+      const response = await api.post('/area-intelligence/detect-district', {
+        latitude: lat,
+        longitude: lng,
+      });
+
+      const payload = response.data as DetectDistrictResponse;
+      applyDistrictSelection(payload.district, payload.source);
+    } catch {
+      setError(t('area.errors.detectFailed'));
+    } finally {
+      setDetectingArea(false);
+    }
+  };
+
+  const handleLocationError = (message?: string) => {
+    if (message) {
+      console.warn('Location permission denied or unavailable:', message);
+    }
+    setError(t('area.errors.locationDenied'));
+    setDetectingArea(false);
+  };
+
+  const requestLocationPermission = () => {
+    if (!navigator.geolocation) {
+      console.warn('Geolocation not supported in this browser');
+      handleLocationError();
+      return;
+    }
+
+    setDetectingArea(true);
+    setError('');
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude: positionLatitude, longitude: positionLongitude } = position.coords;
+        handleLocationSuccess(positionLatitude, positionLongitude);
+      },
+      (geoError) => {
+        handleLocationError(geoError.message);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000,
+      }
+    );
+  };
+
+  useEffect(() => {
+    requestLocationPermission();
+  }, []);
+
   useEffect(() => {
     if (!selectedDistrict) return;
 
@@ -143,46 +203,7 @@ const AreaIntelligence = () => {
   }, [selectedDistrict, districtRefreshToken, t]);
 
   const detectMyArea = () => {
-    if (!navigator.geolocation) {
-      setError(t('area.errors.locationDenied'));
-      return;
-    }
-
-    setDetectingArea(true);
-    setError('');
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = Number(position.coords.latitude.toFixed(6));
-        const lng = Number(position.coords.longitude.toFixed(6));
-
-        setLatitude(lat);
-        setLongitude(lng);
-
-        try {
-          const response = await api.post('/area-intelligence/detect-district', {
-            latitude: lat,
-            longitude: lng,
-          });
-
-          const payload = response.data as DetectDistrictResponse;
-          applyDistrictSelection(payload.district, payload.source);
-        } catch {
-          setError(t('area.errors.detectFailed'));
-        } finally {
-          setDetectingArea(false);
-        }
-      },
-      () => {
-        setError(t('area.errors.locationDenied'));
-        setDetectingArea(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 180000,
-      }
-    );
+    requestLocationPermission();
   };
 
   const cropNarrationText = useMemo(() => {
@@ -194,6 +215,17 @@ const AreaIntelligence = () => {
       )
       .join(' ');
   }, [insights, language, t]);
+
+  const buildCropCardNarration = (crop: CropRecommendation) => {
+    return [
+      `${localizeAgricultureText(crop.crop_name, language)}.`,
+      `${t('area.fields.season')}: ${localizeAgricultureText(crop.growing_season, language)}.`,
+      `${t('area.fields.water')}: ${localizeAgricultureText(crop.water_requirement, language)}.`,
+      `${t('area.fields.yield')}: ${localizeAgricultureText(crop.expected_yield, language)}.`,
+      `${t('area.fields.risk')}: ${localizeAgricultureText(crop.pest_disease_risk_level, language)}.`,
+      `${t('area.fields.marketDemand')}: ${localizeAgricultureText(crop.market_demand_indicator, language)}.`,
+    ].join(' ');
+  };
 
   return (
     <div className="area-layout">
@@ -231,6 +263,12 @@ const AreaIntelligence = () => {
         onDetectArea={detectMyArea}
       />
 
+      <div className="inline-row">
+        <button className="btn outline location-retry-btn" onClick={requestLocationPermission}>
+          📍 {t('common.enableLocation')}
+        </button>
+      </div>
+
       {loadingDistricts && (
         <div className="card">
           <LeafLoader variant="panel" label={t('common.loading')} />
@@ -263,7 +301,10 @@ const AreaIntelligence = () => {
 
             <div className="area-crop-grid">
               {insights.recommended_crops.map((crop) => (
-                <CropCard key={crop.crop_name} crop={crop} onOpenDetails={setActiveCrop} />
+                <div className="area-crop-card-shell" key={crop.crop_name}>
+                  <CropCard crop={crop} onOpenDetails={setActiveCrop} />
+                  <ReadAloudButton text={buildCropCardNarration(crop)} className="tts-read-btn" labelKey="common.readAloud" />
+                </div>
               ))}
             </div>
           </section>

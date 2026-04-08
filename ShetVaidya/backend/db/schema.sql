@@ -6,9 +6,13 @@ CREATE TABLE IF NOT EXISTS medicines (
     concentration TEXT NOT NULL,
     crop_type TEXT NOT NULL,
     disease_category TEXT NOT NULL,
+    purchase_url TEXT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_medicine_normalized UNIQUE (brand_name, company, active_ingredient, concentration, crop_type, disease_category)
 );
+
+ALTER TABLE medicines
+ADD COLUMN IF NOT EXISTS purchase_url TEXT NULL;
 
 CREATE TABLE IF NOT EXISTS medicine_batches (
     id UUID PRIMARY KEY,

@@ -34,6 +34,7 @@
   },
   "common": {
     "loading": "लोड होत आहे...",
+    "enableLocation": "लोकेशन सुरू करा",
     "readAloud": "मोठ्याने वाचा",
     "stopReading": "थांबवा",
     "close": "बंद करा",
@@ -184,6 +185,10 @@
     "readHeroSummary": "डॅशबोर्ड सारांश ऐका",
     "readTreatmentAdvice": "उपचार शिफारसी ऐका",
     "readBatchDetails": "बॅच पडताळणी ऐका",
+    "recommendedMedicines": "शिफारस केलेली औषधे",
+    "medicinesDisclaimer": "ऑनलाइन खरेदीसाठी उपलब्ध. वापरण्यापूर्वी नेहमी कृषी विभाग अधिकाऱ्याचा सल्ला घ्या.",
+    "buyMedicine": "ऑनलाइन खरेदी करा",
+    "availableAtLocalStore": "स्थानिक कृषी दुकानात उपलब्ध",
     "notAvailable": "उपलब्ध नाही",
     "locationDetected": "शेत लोकेशन सापडले",
     "locationUnavailable": "शेत लोकेशन उपलब्ध नाही",
@@ -573,7 +578,9 @@
     "disease": "रोग",
     "batchCode": "बॅच कोड",
     "manufactured": "उत्पादन तारीख",
-    "highScanCount": "जास्त स्कॅन संख्या - काळजीपूर्वक तपासा"
+    "highScanCount": "जास्त स्कॅन संख्या - काळजीपूर्वक तपासा",
+    "cameraPermissionDenied": "कॅमेरा परवानगी नाकारली. कृपया ब्राउझर सेटिंगमध्ये कॅमेरा प्रवेश सुरू करा.",
+    "cameraError": "कॅमेरा सुरू करता आला नाही. कृपया पुन्हा प्रयत्न करा."
   },
   "krushiVibhag": {
     "title": "कृषि विभाग",

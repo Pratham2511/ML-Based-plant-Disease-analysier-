@@ -172,6 +172,7 @@ def list_medicines(crop_type: str | None = None, disease: str | None = None, db:
                 "concentration": m.concentration,
                 "crop_type": m.crop_type,
                 "disease_category": m.disease_category,
+                "purchase_url": m.purchase_url if hasattr(m, "purchase_url") else None,
             }
             for m in medicines
         ]

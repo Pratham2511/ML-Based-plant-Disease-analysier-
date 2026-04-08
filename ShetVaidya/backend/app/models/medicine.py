@@ -26,6 +26,7 @@ class Medicine(Base):
     concentration = Column(String, nullable=False)
     crop_type = Column(String, nullable=False)
     disease_category = Column(String, nullable=False)
+    purchase_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     batches = relationship("MedicineBatch", back_populates="medicine")

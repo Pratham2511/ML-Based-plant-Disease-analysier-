@@ -2178,6 +2178,235 @@ a {
   background: linear-gradient(140deg, #2e7d32, #3d9f42);
 }
 
+.tts-read-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  margin-top: 12px;
+  min-height: 44px;
+}
+
+.tts-read-btn:active {
+  opacity: 0.8;
+}
+
+.location-retry-btn {
+  min-height: 44px;
+}
+
+.scan-empty-state {
+  text-align: center;
+  color: var(--color-text-soft);
+  padding: 8px 0;
+}
+
+.recommended-medicines-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-tertiary);
+}
+
+.medicines-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0 0 4px;
+}
+
+.medicines-section-subtitle {
+  font-size: 12px;
+  color: var(--color-text-soft);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.medicines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.medicine-card {
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-tertiary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.medicine-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.medicine-brand-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+  flex: 1;
+}
+
+.medicine-company {
+  font-size: 11px;
+  color: var(--color-text-soft);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--color-border-tertiary);
+  white-space: nowrap;
+}
+
+.medicine-ingredient {
+  font-size: 12px;
+  color: var(--color-text-soft);
+}
+
+.medicine-buy-btn {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 8px 16px;
+  background: #3b6d11;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.medicine-buy-btn:hover {
+  opacity: 0.88;
+}
+
+.medicine-no-link {
+  font-size: 12px;
+  color: var(--color-text-soft);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.area-crop-card-shell {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .desktop-nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 24px;
+    height: 64px;
+    width: 100%;
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(245, 252, 237, 0.92);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-border-tertiary);
+    border-radius: 16px;
+  }
+
+  .mobile-nav {
+    display: none;
+  }
+
+  .desktop-nav .top-nav__lang-switcher {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .desktop-nav .desktop-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .desktop-nav .desktop-logo-img {
+    height: 48px;
+    width: auto;
+    display: block;
+  }
+
+  .desktop-nav .top-nav__right-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .desktop-nav .nav-link {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-soft);
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+
+  .desktop-nav .nav-link:hover {
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--color-ink);
+  }
+
+  .desktop-nav .nav-link.active {
+    background: rgba(129, 199, 132, 0.22);
+    color: var(--color-ink);
+  }
+
+  .desktop-nav .top-nav__auth-btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .desktop-nav .lang-pill {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-primary);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .desktop-nav .lang-pill.active {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+  }
+}
 .onboarding-overlay {
   position: fixed;
   inset: 0;

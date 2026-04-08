@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import api from '../lib/api';
+
 export interface WeatherDay {
   date: string;
   tempMin: number;
@@ -79,19 +81,67 @@ const labelForDay = (index: number, dateText: string, t: (key: string) => string
 
 const WeatherWidget = ({ district }: WeatherWidgetProps) => {
   const { t, i18n } = useTranslation();
+  const [detectedDistrict, setDetectedDistrict] = useState('');
   const [forecast, setForecast] = useState<WeatherDay[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [cacheNotice, setCacheNotice] = useState('');
 
-  const key = useMemo(() => `shetvaidya_weather_${district}`, [district]);
+  const effectiveDistrict = useMemo(() => String(district || detectedDistrict || '').trim(), [district, detectedDistrict]);
+  const key = useMemo(() => `shetvaidya_weather_${effectiveDistrict || 'unknown'}`, [effectiveDistrict]);
   const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
   const advisory = useMemo(() => getFarmingAdvisory(forecast, t), [forecast, t]);
 
+  const handleLocationSuccess = async (latitude: number, longitude: number) => {
+    try {
+      const response = await api.post('/area-intelligence/detect-district', {
+        latitude: Number(latitude.toFixed(6)),
+        longitude: Number(longitude.toFixed(6)),
+      });
+      const resolvedDistrict = String(response.data?.district || '').trim();
+      if (resolvedDistrict) {
+        setDetectedDistrict(resolvedDistrict);
+      }
+    } catch {
+      // Keep existing district fallback if auto detect API fails.
+    }
+  };
+
+  const handleLocationError = () => {
+    // Preserve existing district-driven flow; this only affects auto-detection fallback.
+  };
+
+  const requestLocationPermission = () => {
+    if (!navigator.geolocation) {
+      console.warn('Geolocation not supported in this browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        handleLocationSuccess(latitude, longitude);
+      },
+      (geoError) => {
+        console.warn('Location permission denied or unavailable:', geoError.message);
+        handleLocationError();
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000,
+      }
+    );
+  };
+
+  useEffect(() => {
+    requestLocationPermission();
+  }, []);
+
   const fetchWeather = async (forceRefresh = false) => {
-    if (!district) return;
+    if (!effectiveDistrict) return;
 
     if (!API_KEY) {
       console.error('VITE_OPENWEATHER_API_KEY is not set');
@@ -123,7 +173,7 @@ const WeatherWidget = ({ district }: WeatherWidgetProps) => {
     setCacheNotice('');
 
     try {
-      const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(district)},Maharashtra,IN&appid=${API_KEY}&units=metric&cnt=5&lang=en`;
+      const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(effectiveDistrict)},Maharashtra,IN&appid=${API_KEY}&units=metric&cnt=5&lang=en`;
 
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Weather API failed: ${response.status}`);
@@ -136,7 +186,7 @@ const WeatherWidget = ({ district }: WeatherWidgetProps) => {
 
       const cachePayload: CachedWeatherPayload = {
         updatedAt,
-        district,
+        district: effectiveDistrict,
         forecast: parsed,
       };
       localStorage.setItem(key, JSON.stringify(cachePayload));
@@ -166,7 +216,7 @@ const WeatherWidget = ({ district }: WeatherWidgetProps) => {
 
   useEffect(() => {
     fetchWeather(false);
-  }, [district]);
+  }, [effectiveDistrict]);
 
   const lastUpdatedLabel = useMemo(() => {
     if (!lastUpdated) return '';
@@ -176,11 +226,18 @@ const WeatherWidget = ({ district }: WeatherWidgetProps) => {
   return (
     <section className="card weather-widget">
       <div className="weather-widget__header">
-        <h2>🌤 {t('weather.title')} - {district} {t('weather.district')}</h2>
-        <button type="button" className="btn outline btn--compact" onClick={() => fetchWeather(true)} disabled={loading}>
-          {t('weather.refresh')} ↻
-        </button>
+        <h2>🌤 {t('weather.title')} {effectiveDistrict ? `- ${effectiveDistrict} ${t('weather.district')}` : ''}</h2>
+        <div className="inline-row">
+          <button type="button" className="btn outline btn--compact location-retry-btn" onClick={requestLocationPermission}>
+            📍 {t('common.enableLocation')}
+          </button>
+          <button type="button" className="btn outline btn--compact" onClick={() => fetchWeather(true)} disabled={loading || !effectiveDistrict}>
+            {t('weather.refresh')} ↻
+          </button>
+        </div>
       </div>
+
+      {!effectiveDistrict ? <p className="panel-muted">{t('weather.locationPrompt')}</p> : null}
 
       {loading ? <p className="panel-muted">{t('weather.loading')}</p> : null}
       {error ? <p className="form-error">{error}</p> : null}

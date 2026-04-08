@@ -34,6 +34,7 @@
   },
   "common": {
     "loading": "Loading...",
+    "enableLocation": "Enable Location",
     "readAloud": "Read Aloud",
     "stopReading": "Stop",
     "close": "Close",
@@ -184,6 +185,10 @@
     "readHeroSummary": "Read dashboard summary",
     "readTreatmentAdvice": "Read treatment recommendations",
     "readBatchDetails": "Read batch verification",
+    "recommendedMedicines": "Recommended Medicines",
+    "medicinesDisclaimer": "Available for purchase online. Always consult your Krushi Vibhag officer before use.",
+    "buyMedicine": "Buy Online",
+    "availableAtLocalStore": "Available at local agri store",
     "notAvailable": "N/A",
     "locationDetected": "Farm location detected",
     "locationUnavailable": "Farm location not available",
@@ -573,7 +578,9 @@
     "disease": "Disease",
     "batchCode": "Batch Code",
     "manufactured": "Manufactured",
-    "highScanCount": "High scan count - verify carefully"
+    "highScanCount": "High scan count - verify carefully",
+    "cameraPermissionDenied": "Camera permission denied. Please allow camera access in your browser settings.",
+    "cameraError": "Could not start camera. Please try again."
   },
   "krushiVibhag": {
     "title": "Krushi Vibhag",

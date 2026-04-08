@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGoogleLogin } from '@react-oauth/google';
 import { Capacitor } from '@capacitor/core';
 
 import { AuthProvider, useAuth } from './components/AuthContext';
 import AppSplash from './components/AppSplash';
-import FarmSelector from './components/FarmSelector';
 import Introduction from './pages/Introduction';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -23,6 +22,7 @@ const TopNavigation = () => {
   const { user, loading, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const currentLang = i18n.language.split('-')[0];
 
@@ -71,9 +71,72 @@ const TopNavigation = () => {
     handleLoginClick();
   };
 
+  const changeLanguage = (lang: string) => {
+    i18n.changeLanguage(lang);
+  };
+
+  const isActiveRoute = (path: string) => location.pathname === path;
+
   return (
     <>
-      <header className={`top-nav w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
+      <nav className="top-nav desktop-nav" aria-label={t('nav.primaryLabel')}>
+        <div className="top-nav__lang-switcher" aria-label={t('language.label')}>
+          {['MR', 'EN', 'HI'].map((lang) => (
+            <button
+              key={lang}
+              type="button"
+              className={`lang-pill ${currentLang === lang.toLowerCase() ? 'active' : ''}`}
+              onClick={() => changeLanguage(lang.toLowerCase())}
+            >
+              {lang}
+            </button>
+          ))}
+        </div>
+
+        <div className="top-nav__brand desktop-brand" aria-label="ShetVaidya">
+          <img
+            src="/assets/shetvaidya-navbar-desktop.svg"
+            alt="ShetVaidya"
+            height={48}
+            className="desktop-logo-img"
+          />
+        </div>
+
+        <div className="top-nav__right-actions">
+          {user ? (
+            <>
+              <button type="button" onClick={() => navigate('/dashboard')} className={`nav-link ${isActiveRoute('/dashboard') ? 'active' : ''}`}>
+                {t('nav.home')}
+              </button>
+              <button type="button" onClick={() => navigate('/area-intelligence')} className={`nav-link ${isActiveRoute('/area-intelligence') ? 'active' : ''}`}>
+                {t('nav.area')}
+              </button>
+              <button type="button" onClick={() => navigate('/scan-history')} className={`nav-link ${isActiveRoute('/scan-history') ? 'active' : ''}`}>
+                {t('nav.history')}
+              </button>
+              <button type="button" onClick={() => navigate('/krushi-vibhag')} className={`nav-link ${isActiveRoute('/krushi-vibhag') ? 'active' : ''}`}>
+                {t('nav.krushiVibhag')}
+              </button>
+              {user.role === 'admin' ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  className={`nav-link admin-link ${isActiveRoute('/admin') ? 'active' : ''}`}
+                >
+                  Admin
+                </button>
+              ) : null}
+            </>
+          ) : null}
+
+          {loading ? <span className="session-indicator">{t('auth.restoringSession')}</span> : null}
+          <button type="button" className="top-nav__auth-btn" onClick={handleAuthAction} disabled={loading}>
+            {user ? t('nav.logout') : t('nav.login')}
+          </button>
+        </div>
+      </nav>
+
+      <header className={`top-nav mobile-nav w-full max-w-[100vw] ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="top-nav__left">
           <div className="top-nav__brand" aria-label="ShetVaidya">
             <img src="/assets/shetvaidya-navbar-mobile.svg" alt="ShetVaidya" height={36} className="brand-lockup-mobile" />
@@ -108,31 +171,8 @@ const TopNavigation = () => {
 
           {loading ? <span className="session-restore-text">{t('auth.restoringSession')}</span> : null}
         </div>
-
-        <nav className="top-nav__links" aria-label={t('nav.primaryLabel')}>
-          {user ? <FarmSelector compact /> : null}
-          {user?.role === 'admin' ? (
-            <button onClick={() => navigate('/admin')} className="btn outline admin-link" type="button">
-              Admin Panel
-            </button>
-          ) : null}
-          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-            {t('nav.dashboard')}
-          </NavLink>
-          <NavLink to="/area-intelligence" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-            {t('nav.areaIntelligence')}
-          </NavLink>
-          <NavLink to="/krushi-vibhag" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-            {t('nav.krushiVibhag')}
-          </NavLink>
-          <NavLink to="/scan-history" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-            {t('nav.scanHistory')}
-          </NavLink>
-          <NavLink to="/profile" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-            {t('nav.accountSettings')}
-          </NavLink>
-        </nav>
       </header>
+
     </>
   );
 };

@@ -34,6 +34,7 @@
   },
   "common": {
     "loading": "लोड हो रहा है...",
+    "enableLocation": "लोकेशन सक्षम करें",
     "readAloud": "उच्चारण सुनें",
     "stopReading": "रोकें",
     "close": "बंद करें",
@@ -184,6 +185,10 @@
     "readHeroSummary": "डैशबोर्ड सारांश सुनें",
     "readTreatmentAdvice": "उपचार सुझाव सुनें",
     "readBatchDetails": "बैच सत्यापन सुनें",
+    "recommendedMedicines": "अनुशंसित दवाएं",
+    "medicinesDisclaimer": "ऑनलाइन खरीद के लिए उपलब्ध। उपयोग से पहले हमेशा कृषि विभाग अधिकारी से परामर्श करें।",
+    "buyMedicine": "ऑनलाइन खरीदें",
+    "availableAtLocalStore": "स्थानीय कृषि स्टोर पर उपलब्ध",
     "notAvailable": "उपलब्ध नहीं",
     "locationDetected": "फार्म लोकेशन प्राप्त",
     "locationUnavailable": "फार्म लोकेशन उपलब्ध नहीं",
@@ -573,7 +578,9 @@
     "disease": "रोग",
     "batchCode": "बैच कोड",
     "manufactured": "निर्माण तिथि",
-    "highScanCount": "अधिक स्कैन संख्या - सावधानी से जांचें"
+    "highScanCount": "अधिक स्कैन संख्या - सावधानी से जांचें",
+    "cameraPermissionDenied": "कैमरा अनुमति अस्वीकृत। कृपया ब्राउज़र सेटिंग में कैमरा एक्सेस अनुमति दें।",
+    "cameraError": "कैमरा शुरू नहीं हो सका। कृपया फिर से प्रयास करें।"
   },
   "krushiVibhag": {
     "title": "कृषि विभाग",

@@ -16,7 +16,6 @@ const ScanHistory = () => {
 
   const [items, setItems] = useState<ScanHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [farmFilter, setFarmFilter] = useState('all');
   const [selectedScan, setSelectedScan] = useState<ScanHistoryItem | null>(null);
@@ -39,17 +38,15 @@ const ScanHistory = () => {
         if (!active) return;
         setItems(mergedItems);
         writeLocalScanHistory(mergedItems);
-        setError(remoteItems.length === 0 && localItems.length > 0 ? t('history.errors.fetchFailed') : '');
       })
       .catch((err) => {
         const message = err?.response?.data?.detail || err?.message || t('history.errors.fetchFailed');
+        console.error('Scan history fetch failed:', message);
         if (!active) return;
         if (localItems.length > 0) {
           setItems(localItems);
-          setError(t('history.errors.fetchFailed'));
           return;
         }
-        setError(message);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -98,27 +95,17 @@ const ScanHistory = () => {
     return localizeModelAdvice(t, classKey, field, localizeAgricultureText(fallbackValue, language));
   };
 
-  const readAloud = (item: ScanHistoryItem) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      return;
-    }
-
-    const narration = [
-      localizeDisease(item.disease_name, item.analysis_json?.raw_class),
-      `${t('history.capturedAt')}: ${formatLocalizedDateTime(item.timestamp, language)}`,
-      `${t('history.cropType')}: ${localizeAgricultureText(item.analysis_json?.crop_type || t('dashboard.notAvailable'), language)}`,
-      `${t('history.cause')}: ${localizeAdvice(item, 'cause', item.analysis_json?.cause || t('dashboard.notAvailable'))}`,
-      `${t('history.treatment')}: ${localizeAdvice(item, 'treatment', item.analysis_json?.treatment || t('dashboard.notAvailable'))}`,
-      `${t('history.description')}: ${localizeAdvice(item, 'description', item.analysis_json?.description || t('dashboard.notAvailable'))}`,
-    ].join('. ');
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(narration);
-    utterance.lang = language === 'mr' || language === 'hi' ? language : 'en-IN';
-    window.speechSynthesis.speak(utterance);
-  };
-
   const topPredictions = selectedScan?.analysis_json?.top_predictions || [];
+  const selectedScanNarration = selectedScan
+    ? [
+        localizeDisease(selectedScan.disease_name, selectedScan.analysis_json?.raw_class),
+        `${t('history.capturedAt')}: ${formatLocalizedDateTime(selectedScan.timestamp, language)}`,
+        `${t('history.cropType')}: ${localizeAgricultureText(selectedScan.analysis_json?.crop_type || t('dashboard.notAvailable'), language)}`,
+        `${t('history.cause')}: ${localizeAdvice(selectedScan, 'cause', selectedScan.analysis_json?.cause || t('dashboard.notAvailable'))}`,
+        `${t('history.treatment')}: ${localizeAdvice(selectedScan, 'treatment', selectedScan.analysis_json?.treatment || t('dashboard.notAvailable'))}`,
+        `${t('history.description')}: ${localizeAdvice(selectedScan, 'description', selectedScan.analysis_json?.description || t('dashboard.notAvailable'))}`,
+      ].join('. ')
+    : '';
 
   return (
     <div className="history-layout">
@@ -163,8 +150,6 @@ const ScanHistory = () => {
           <span className="pill">{t('history.totalRecordsLoaded')}: {formatLocalizedNumber(items.length, language)}</span>
         </div>
       </section>
-
-      {error && <p className="form-error">{error}</p>}
 
       {filteredItems.length === 0 ? (
         <div className="card empty-state-card">
@@ -273,9 +258,7 @@ const ScanHistory = () => {
                 </div>
               ) : null}
 
-              <button className="scan-read-aloud-btn" type="button" onClick={() => readAloud(selectedScan)}>
-                🔊 {t('history.readEntry')}
-              </button>
+              <ReadAloudButton text={selectedScanNarration} labelKey="common.readAloud" className="tts-read-btn" />
             </div>
           </div>
         </div>

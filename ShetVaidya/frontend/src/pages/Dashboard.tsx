@@ -24,6 +24,17 @@ type PredictionResult = {
   recommended_medicines: string[];
 };
 
+type MedicineRecommendation = {
+  id: string;
+  brand_name: string;
+  company: string;
+  active_ingredient: string;
+  concentration: string;
+  crop_type: string;
+  disease_category: string;
+  purchase_url: string | null;
+};
+
 type WarningResult = {
   success: false;
   error?: string;
@@ -111,6 +122,7 @@ const Dashboard = () => {
   const [loadingPrediction, setLoadingPrediction] = useState(false);
   const [loadingBatch, setLoadingBatch] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [recommendedMedicines, setRecommendedMedicines] = useState<MedicineRecommendation[]>([]);
   const [historyItems, setHistoryItems] = useState<HistoryInsight[]>([]);
   const [historySyncNotice, setHistorySyncNotice] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -140,48 +152,89 @@ const Dashboard = () => {
     setShowCamera(true);
     setCameraError('');
     setStatus(t('dashboard.status.openingCamera'));
-    setTimeout(async () => {
-      try {
-        const html5Qrcode = new Html5Qrcode('qr-reader-div');
-        html5QrcodeRef.current = html5Qrcode;
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
-        await html5Qrcode.start(
-          { facingMode: 'environment' },
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 150 },
-            aspectRatio: 1.5,
-            formatsToSupport: [
-              Html5QrcodeSupportedFormats.QR_CODE,
-              Html5QrcodeSupportedFormats.AZTEC,
-              Html5QrcodeSupportedFormats.CODABAR,
-              Html5QrcodeSupportedFormats.CODE_39,
-              Html5QrcodeSupportedFormats.CODE_93,
-              Html5QrcodeSupportedFormats.CODE_128,
-              Html5QrcodeSupportedFormats.EAN_13,
-              Html5QrcodeSupportedFormats.EAN_8,
-              Html5QrcodeSupportedFormats.ITF,
-              Html5QrcodeSupportedFormats.DATA_MATRIX,
-              Html5QrcodeSupportedFormats.UPC_A,
-              Html5QrcodeSupportedFormats.UPC_E,
-            ],
-          },
-          (decodedText: string) => {
-            setCameraResult(decodedText);
-            setBatchCode(decodedText);
-            setStatus(t('dashboard.status.captured'));
-            stopCamera();
-          },
-          () => {
-            // Scanner emits frequent decode misses while searching; safe to ignore.
-          }
-        );
-      } catch {
-        setCameraError('Could not access camera. Please allow camera permission.');
-        setStatus(t('dashboard.status.cameraError'));
-        setShowCamera(false);
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('MediaDevices API unavailable');
       }
-    }, 300);
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      });
+      stream.getTracks().forEach((track) => track.stop());
+
+      const html5Qrcode = new Html5Qrcode('qr-reader-div');
+      html5QrcodeRef.current = html5Qrcode;
+
+      await html5Qrcode.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 150 },
+          aspectRatio: 1.5,
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.AZTEC,
+            Html5QrcodeSupportedFormats.CODABAR,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.CODE_93,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.DATA_MATRIX,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+          ],
+        },
+        (decodedText: string) => {
+          setCameraResult(decodedText);
+          setBatchCode(decodedText);
+          setStatus(t('dashboard.status.captured'));
+          stopCamera();
+        },
+        () => {
+          // Scanner emits frequent decode misses while searching; safe to ignore.
+        }
+      );
+    } catch (err: any) {
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        setCameraError(t('medicine.cameraPermissionDenied'));
+      } else {
+        setCameraError(t('medicine.cameraError'));
+      }
+      setStatus(t('dashboard.status.cameraError'));
+      setShowCamera(false);
+    }
+  };
+
+  const fetchRecommendedMedicines = async (cropType: string, diseaseCategory: string) => {
+    const normalizedDisease = String(diseaseCategory || '').trim();
+    if (!cropType || normalizedDisease.toLowerCase().includes('healthy')) {
+      setRecommendedMedicines([]);
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams();
+      if (cropType) params.set('crop_type', cropType);
+      if (normalizedDisease) params.set('disease', normalizedDisease);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/medicine/list?${params.toString()}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const medicines = Array.isArray(data?.medicines) ? data.medicines : [];
+        setRecommendedMedicines(medicines as MedicineRecommendation[]);
+      } else {
+        setRecommendedMedicines([]);
+      }
+    } catch {
+      setRecommendedMedicines([]);
+    }
   };
 
   useEffect(() => {
@@ -314,6 +367,7 @@ const Dashboard = () => {
     setLoadingPrediction(true);
     setError('');
     setPrediction(null);
+    setRecommendedMedicines([]);
     setShowWarningModal(false);
     setWarningMessage('');
 
@@ -362,6 +416,12 @@ const Dashboard = () => {
         recommended_medicines: medicines,
       });
       setShowPredictionModal(true);
+
+      const detectedCropType = String(payload.crop_type || payload.class_name || payload.raw_class || '')
+        .split('_')[0]
+        .trim();
+      const detectedDiseaseCategory = String(diseaseData.disease_name || payload.disease_name || payload.class_name || payload.raw_class || '').trim();
+      fetchRecommendedMedicines(detectedCropType, detectedDiseaseCategory);
 
       const nowIso = new Date().toISOString();
       const diseaseForTrend = (payload.disease_name || payload.raw_class || t('dashboard.notAvailable')).replaceAll(' ', '_');
@@ -415,6 +475,7 @@ const Dashboard = () => {
   const retakePhoto = () => {
     setSelectedFile(null);
     setPrediction(null);
+    setRecommendedMedicines([]);
     setShowPredictionModal(false);
     setShowWarningModal(false);
     setWarningMessage('');
@@ -425,6 +486,7 @@ const Dashboard = () => {
     setWarningMessage('');
     setSelectedFile(null);
     setPrediction(null);
+    setRecommendedMedicines([]);
   };
 
   const verifyBatch = async () => {
@@ -498,6 +560,11 @@ const Dashboard = () => {
         `${t('dashboard.analyzer.recommendedMedicines')}: ${(prediction.recommended_medicines || []).map((medicine) => localizeAgricultureText(medicine, language)).join(', ') || t('dashboard.analyzer.noMedicine')}`,
       ].join('. ')
     : '';
+
+  const modalMedicineNarration = recommendedMedicines
+    .slice(0, 5)
+    .map((medicine) => `${localizeAgricultureText(medicine.brand_name, language)} ${localizeAgricultureText(medicine.company, language)}`)
+    .join('. ');
 
   const batchNarration = verifyResult
     ? [
@@ -622,9 +689,12 @@ const Dashboard = () => {
             {loadingPrediction && <LeafLoader variant="panel" label={t('dashboard.analyzer.loadingPrediction')} />}
 
             {prediction && (
-              <button className="btn outline" onClick={() => setShowPredictionModal(true)}>
-                {t('dashboard.readTreatmentAdvice')}
-              </button>
+              <>
+                <button className="btn outline" onClick={() => setShowPredictionModal(true)}>
+                  {t('dashboard.readTreatmentAdvice')}
+                </button>
+                <ReadAloudButton text={analyzerNarration} className="tts-read-btn" labelKey="common.readAloud" />
+              </>
             )}
           </div>
         </article>
@@ -807,8 +877,47 @@ const Dashboard = () => {
 
               <ReadAloudButton
                 text={analyzerNarration}
-                labelKey="dashboard.readTreatmentAdvice"
+                labelKey="common.readAloud"
+                className="tts-read-btn"
               />
+
+              {recommendedMedicines.length > 0 && !prediction.disease_name.toLowerCase().includes('healthy') ? (
+                <div className="recommended-medicines-section">
+                  <h3 className="medicines-section-title">💊 {t('dashboard.recommendedMedicines')}</h3>
+                  <p className="medicines-section-subtitle">{t('dashboard.medicinesDisclaimer')}</p>
+
+                  <div className="medicines-list">
+                    {recommendedMedicines.slice(0, 5).map((medicine) => {
+                      const purchaseUrl = String(medicine.purchase_url || '').trim();
+                      return (
+                        <div key={medicine.id} className="medicine-card">
+                          <div className="medicine-card-top">
+                            <span className="medicine-brand-name">{localizeAgricultureText(medicine.brand_name, language)}</span>
+                            <span className="medicine-company">{localizeAgricultureText(medicine.company, language)}</span>
+                          </div>
+
+                          <div className="medicine-card-details">
+                            <span className="medicine-ingredient">
+                              {localizeAgricultureText(medicine.active_ingredient, language)}
+                              {medicine.concentration ? ` - ${localizeAgricultureText(medicine.concentration, language)}` : ''}
+                            </span>
+                          </div>
+
+                          {purchaseUrl ? (
+                            <a href={purchaseUrl} target="_blank" rel="noopener noreferrer" className="medicine-buy-btn">
+                              🛒 {t('dashboard.buyMedicine')}
+                            </a>
+                          ) : (
+                            <span className="medicine-no-link">{t('dashboard.availableAtLocalStore')}</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {modalMedicineNarration ? <ReadAloudButton text={modalMedicineNarration} className="tts-read-btn" labelKey="common.readAloud" /> : null}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
