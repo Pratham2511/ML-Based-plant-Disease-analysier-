@@ -111,10 +111,6 @@ const TopNavigation = () => {
           </div>
 
           <div className="top-nav__desktop-auth">
-            <span className={`top-nav__status-pill ${user ? 'active' : ''}`}>
-              {user ? t('nav.sessionActive') : t('nav.loginRequired')}
-            </span>
-
             <button type="button" className="top-nav__auth-btn" onClick={handleAuthAction} disabled={loading}>
               {user ? t('nav.logout') : t('nav.login')}
             </button>
