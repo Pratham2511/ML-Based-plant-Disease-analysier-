@@ -1,107 +1,37 @@
 {
-  "Pepper__bell___Bacterial_spot": {
-    "disease_name": "Bacterial Spot (Bell Pepper)",
-    "description": "Small, water-soaked, yellowish spots on leaves that eventually turn brown and create dead tissue. Can cause severe leaf drop and sun-scalded fruit.",
-    "cause": "Caused by Xanthomonas bacteria. It spreads rapidly in warm, humid, and rainy field conditions. Splashing water spreads it from soil to leaves.",
-    "treatment": "Avoid overhead watering. Practice crop rotation. Remove and burn severely infected plants immediately.",
-    "medicine": "Use Copper Oxychloride 50% WP (e.g., Tata Rallis Blitox, Crystal Blue Copper) OR Copper Hydroxide (e.g., DuPont Kocide 2000). Combine with a bactericide like Streptomycin Sulphate (e.g., Aries Plantomycin, Tagmycin)."
+  "healthy": {
+    "disease_name": "Healthy Money Plant",
+    "description": "The money plant leaf appears healthy with no visible signs of disease or stress. The colour and texture are normal.",
+    "cause": "N/A — plant is in good condition.",
+    "treatment": "Continue regular care. Water when the top inch of soil feels dry. Ensure indirect bright light and occasional wiping of leaves to remove dust.",
+    "medicine": []
   },
-  "Pepper__bell___healthy": {
-    "disease_name": "Healthy Bell Pepper",
-    "description": "The leaf structure is vibrant green, firm, and shows no signs of lesions, bacterial spotting, or pest damage.",
-    "cause": "Optimal soil health, good irrigation practices, and effective preventative care.",
-    "treatment": "Maintain current agricultural practices. Ensure proper drainage to prevent root rot.",
-    "medicine": "No treatment required. Continue standard fertilizer and micronutrient schedule."
+  "unhealthy": {
+    "disease_name": "Unhealthy / Diseased Leaf",
+    "description": "The leaf shows signs of disease, pest damage, fungal infection, or physical stress. Common symptoms include brown spots, wilting, black edges, or lesions.",
+    "cause": "Possible causes include fungal infections (e.g. root rot from overwatering), bacterial leaf spot, pest infestation (spider mites, mealybugs), or physical damage.",
+    "treatment": "1. Isolate the plant immediately to prevent spread.\n2. Remove severely affected leaves with clean scissors.\n3. If root rot is suspected, unpot the plant, trim black/mushy roots, and repot in fresh well-draining soil.\n4. Apply a neem oil spray (5ml neem oil + 1 litre water + few drops dish soap) every 3 days for 2 weeks.\n5. Avoid overwatering — let soil dry between waterings.",
+    "medicine": [
+      "Neem oil spray",
+      "Copper-based fungicide (for fungal infections)",
+      "Systemic insecticide (for pest infestations)"
+    ]
   },
-  "Potato___Early_blight": {
-    "disease_name": "Early Blight (Potato)",
-    "description": "Brown or black spots on older leaves with distinct dark concentric rings (like a target board). Lower leaves yellow and drop off.",
-    "cause": "Caused by the fungus Alternaria solani. Thrives in high humidity and temperatures above 24°C. Spores survive in soil debris.",
-    "treatment": "Prune lower leaves to improve air circulation. Apply mulch to prevent soil spores from splashing onto the plant.",
-    "medicine": "Apply Mancozeb 75% WP (e.g., Indofil M-45, Dhanuka M-45), Chlorothalonil 75% WP (e.g., Syngenta Kavach), or Azoxystrobin (e.g., Syngenta Amistar)."
+  "yellow": {
+    "disease_name": "Yellow Leaf — Nutrient or Watering Issue",
+    "description": "The leaf has turned yellow, which typically indicates a nutrient deficiency, overwatering, underwatering, or too much direct sunlight.",
+    "cause": "Most common causes: overwatering leading to root oxygen deprivation, nitrogen or magnesium deficiency, too much direct sun, or natural ageing of lower leaves.",
+    "treatment": "1. Check soil moisture — if soggy, reduce watering frequency immediately and ensure pot has drainage holes.\n2. If soil is dry, water thoroughly and ensure consistent moisture.\n3. Feed with a balanced liquid fertiliser (NPK 20-20-20) once every 2 weeks during growing season.\n4. Move plant to a spot with bright indirect light — avoid harsh direct afternoon sun.\n5. Remove fully yellow leaves to redirect plant energy.",
+    "medicine": [
+      "Balanced NPK liquid fertiliser (20-20-20)",
+      "Magnesium sulphate (Epsom salt) foliar spray for magnesium deficiency"
+    ]
   },
-  "Potato___Late_blight": {
-    "disease_name": "Late Blight (Potato)",
-    "description": "Large, dark brown/black water-soaked lesions on leaves, often with a white fungal growth on the underside during humid conditions. Can destroy a field in days.",
-    "cause": "Caused by the water mold Phytophthora infestans. Spreads incredibly fast in cool, wet weather.",
-    "treatment": "Destroy infected plants immediately. Do not leave infected tubers in the field after harvest.",
-    "medicine": "Urgent: Spray Metalaxyl + Mancozeb (e.g., Syngenta Ridomil Gold, Tata Master), Cymoxanil combos (e.g., Corteva Curzate), or Ametoctradin (e.g., BASF Zampro)."
-  },
-  "Potato___healthy": {
-    "disease_name": "Healthy Potato Plant",
-    "description": "Foliage is healthy, green, and intact. No signs of blight lesions or yellowing.",
-    "cause": "Good field management and favorable weather conditions.",
-    "treatment": "Continue regular monitoring, especially when weather turns cool and wet.",
-    "medicine": "No treatment required. Maintain preventative sprays only if district risk is high."
-  },
-  "Tomato_Bacterial_spot": {
-    "disease_name": "Bacterial Spot (Tomato)",
-    "description": "Small, dark, greasy spots on leaves and stems. Spots on fruit become raised and scabby.",
-    "cause": "Caused by Xanthomonas bacteria species. Seed-borne and spread by splashing rain or overhead irrigation.",
-    "treatment": "Use disease-free seeds. Avoid working in the field when foliage is wet. Drip irrigation is highly recommended.",
-    "medicine": "Use Copper Oxychloride 50% WP (e.g., Tata Rallis Blitox, IFFCO MC Copper) OR Copper Hydroxide (e.g., DuPont Kocide 2000). Combine with Streptomycin Sulphate (e.g., Aries Plantomycin)."
-  },
-  "Tomato_Early_blight": {
-    "disease_name": "Early Blight (Tomato)",
-    "description": "Irregular brown spots with concentric rings on older, lower leaves. Causes premature defoliation and sunscald on fruit.",
-    "cause": "Fungus Alternaria solani. Worsened by heavy dew, frequent rain, and poor plant nutrition.",
-    "treatment": "Stake plants to keep foliage off the ground. Remove infected bottom leaves.",
-    "medicine": "Apply Mancozeb 75% WP (e.g., Indofil M-45, Uthane M-45), Chlorothalonil 75% WP (e.g., Syngenta Kavach, Tata Ishaan), or Difenoconazole (e.g., Syngenta Score)."
-  },
-  "Tomato_Late_blight": {
-    "disease_name": "Late Blight (Tomato)",
-    "description": "Pale green to brown spots on leaves, developing a white fuzzy growth on the underside. Stems develop dark lesions.",
-    "cause": "Phytophthora infestans. Same pathogen that caused the Irish Potato Famine. Requires wet, cool conditions.",
-    "treatment": "Immediate removal of infected plants. Ensure excellent field drainage and weed control.",
-    "medicine": "Urgent: Spray Metalaxyl + Mancozeb (e.g., Syngenta Ridomil Gold, UPL Unilax), Cymoxanil combos (e.g., Corteva Curzate), or Fluopicolide (e.g., Bayer Infinito)."
-  },
-  "Tomato_Leaf_Mold": {
-    "disease_name": "Leaf Mold (Tomato)",
-    "description": "Pale greenish-yellow spots on the upper leaf surface with olive-green to brown velvety fungal growth on the underside.",
-    "cause": "Fungus Passalora fulva. Extremely common in greenhouses or high tunnels with poor ventilation and high humidity.",
-    "treatment": "Increase row spacing and prune aggressively to improve air circulation. Keep greenhouse humidity below 85%.",
-    "medicine": "Apply Propiconazole 25% EC (e.g., Syngenta Tilt, Crystal Radar) or standard preventative Mancozeb/Chlorothalonil."
-  },
-  "Tomato_Septoria_leaf_spot": {
-    "disease_name": "Septoria Leaf Spot (Tomato)",
-    "description": "Numerous small, circular spots with dark borders and tan/gray centers. Heavily infected leaves turn yellow and drop.",
-    "cause": "Fungus Septoria lycopersici. Spores splash from the soil onto lower leaves during rain.",
-    "treatment": "Use thick organic mulch to create a barrier between soil and leaves. Do not compost infected debris.",
-    "medicine": "Treat with Chlorothalonil 75% WP (e.g., Syngenta Kavach) or Propiconazole 25% EC (e.g., Syngenta Tilt) starting when the first fruits form."
-  },
-  "Tomato_Spider_mites_Two_spotted_spider_mite": {
-    "disease_name": "Two-Spotted Spider Mite",
-    "description": "Leaves appear stippled (tiny yellow/white dots). Severe infestations show fine, silky webbing on the undersides of leaves, turning them bronze.",
-    "cause": "Microscopic arachnids (Tetranychus urticae). They thrive in hot, dry, dusty field conditions.",
-    "treatment": "Reduce field dust. Keep plants well-watered. Introduce natural predators like ladybugs if possible.",
-    "medicine": "Apply specific miticides: Abamectin 1.9% EC (e.g., Crystal Abacin), Spiromesifen 22.9% SC (e.g., Bayer Oberon), or Bifenthrin 10% EC (e.g., FMC Talstar)."
-  },
-  "Tomato__Target_Spot": {
-    "disease_name": "Target Spot (Tomato)",
-    "description": "Small, dark brown spots with light brown centers on leaves. Fruit develops deeply sunken, dark lesions with concentric rings.",
-    "cause": "Fungus Corynespora cassiicola. Favors high humidity, moderate temperatures, and extended periods of leaf wetness.",
-    "treatment": "Improve airflow through pruning. Avoid excessive nitrogen fertilization, which creates dense canopies.",
-    "medicine": "Spray Propiconazole 25% EC (e.g., Syngenta Tilt) or Azoxystrobin (e.g., Syngenta Amistar)."
-  },
-  "Tomato__Tomato_YellowLeaf__Curl_Virus": {
-    "disease_name": "Tomato Yellow Leaf Curl Virus (TYLCV)",
-    "description": "Severe stunting of the plant. Leaves cup upward, turn yellow at the margins, and become noticeably crumpled and reduced in size.",
-    "cause": "A viral disease transmitted entirely by the Silverleaf Whitefly (Bemisia tabaci).",
-    "treatment": "Infected plants cannot be cured and must be uprooted and destroyed immediately. Focus on vector control.",
-    "medicine": "Control whiteflies using Imidacloprid (e.g., Bayer Confidor, Tata Mida) or Thiamethoxam (e.g., Syngenta Actara). Use yellow sticky traps."
-  },
-  "Tomato__Tomato_mosaic_virus": {
-    "disease_name": "Tomato Mosaic Virus (ToMV)",
-    "description": "Leaves show a mottled light and dark green mosaic pattern. Plants are stunted, and fruits may be distorted with internal browning.",
-    "cause": "A highly contagious virus that survives in seed, soil, and debris. Easily spread by workers' hands and contaminated tools.",
-    "treatment": "No cure exists. Pull and burn infected plants. Wash hands with soap and disinfect pruners thoroughly before touching healthy plants.",
-    "medicine": "No chemical treatment available. Focus strictly on sanitation and planting resistant varieties."
-  },
-  "Tomato_healthy": {
-    "disease_name": "Healthy Tomato Plant",
-    "description": "Leaves are a rich, even green with no mottling, spots, or curling. Stems are sturdy.",
-    "cause": "Excellent agronomic practices, balanced nutrition, and good pest management.",
-    "treatment": "Maintain preventative care routines.",
-    "medicine": "No treatment required. Use Neem oil spray periodically as a preventative organic measure against pests."
+  "not_a_leaf": {
+    "disease_name": "Not a Leaf",
+    "description": "The uploaded image does not appear to be a money plant leaf.",
+    "cause": "N/A",
+    "treatment": "Please upload a clear, well-lit photograph of a money plant leaf and try again.",
+    "medicine": []
   }
 }
