@@ -11,7 +11,7 @@ import ReadAloudButton from '../components/ReadAloudButton';
 import AddFarmModal from '../components/AddFarmModal';
 import MandiPrices from '../components/MandiPrices';
 import WeatherWidget from '../components/WeatherWidget';
-import { formatLocalizedNumber, localizeAgricultureText } from '../utils/localization';
+import { formatLocalizedDateTime, formatLocalizedNumber, localizeAgricultureText } from '../utils/localization';
 import { localizeModelAdvice, localizeModelClassLabel, resolveModelClassKey } from '../utils/mlLocalization';
 import { appendLocalScanHistory, mergeScanHistory, readLocalScanHistory, type ScanHistoryItem } from '../utils/localScanHistory';
 import { useFarmContext } from '../context/FarmContext';
@@ -785,7 +785,7 @@ const Dashboard = () => {
                       <p>{t('medicine.cropType')}: {localizeAgricultureText(verifyResult.medicine?.crop_type || t('dashboard.notAvailable'), language)}</p>
                       <p>{t('medicine.disease')}: {localizeAgricultureText(verifyResult.medicine?.disease_category || t('dashboard.notAvailable'), language)}</p>
                       <p>{t('medicine.batchCode')}: {localizeAgricultureText(verifyResult.batch?.batch_code || t('dashboard.notAvailable'), language)}</p>
-                      <p>{t('medicine.manufactured')}: {localizeAgricultureText(verifyResult.batch?.manufacture_date || t('dashboard.notAvailable'), language)}</p>
+                      <p>{t('medicine.manufactured')}: {verifyResult.batch?.manufacture_date ? formatLocalizedDateTime(verifyResult.batch.manufacture_date, language) : t('dashboard.notAvailable')}</p>
                     </div>
                   </div>
                 )}

@@ -171,13 +171,85 @@ def run_inference_with_fallback(model, image_array: np.ndarray) -> tuple[np.ndar
     return normalized, "mobilenet_v2"
 
 def build_disease_data(class_name: str) -> dict:
+    # Hardcoded fallback content for each money-plant class so the frontend
+    # never shows empty description / cause / treatment fields.
+    _FALLBACKS = {
+        "healthy": {
+            "description": (
+                "The money plant leaf appears healthy with no visible signs of "
+                "disease or stress. The colour and texture look normal."
+            ),
+            "cause": (
+                "The plant is currently in good condition with no observed issues."
+            ),
+            "treatment": (
+                "Continue regular care. Water when the top inch of soil feels dry. "
+                "Keep in bright indirect light and wipe leaves occasionally to remove dust."
+            ),
+        },
+        "unhealthy": {
+            "description": (
+                "The leaf shows signs of disease, pest damage, fungal infection, or "
+                "physical stress. Common visible symptoms include brown spots, wilting, "
+                "black edges, or lesions on the leaf surface."
+            ),
+            "cause": (
+                "Possible causes include fungal infections such as root rot from "
+                "overwatering, bacterial leaf spot, pest infestation from spider mites "
+                "or mealybugs, or physical damage to the leaf."
+            ),
+            "treatment": (
+                "Isolate the plant immediately to prevent spread to other plants. "
+                "Remove severely affected leaves using clean scissors. If root rot is "
+                "suspected unpot the plant, trim black or mushy roots, and repot in "
+                "fresh well-draining soil. Apply a neem oil spray made of 5ml neem oil "
+                "plus 1 litre water plus a few drops of dish soap every 3 days for 2 "
+                "weeks. Avoid overwatering and let soil dry between waterings."
+            ),
+        },
+        "yellow": {
+            "description": (
+                "The leaf has turned yellow which typically indicates a nutrient "
+                "deficiency, overwatering, underwatering, or exposure to too much "
+                "direct sunlight."
+            ),
+            "cause": (
+                "Most common causes are overwatering leading to root oxygen "
+                "deprivation, nitrogen or magnesium deficiency, too much direct sun "
+                "exposure, or natural ageing of lower leaves."
+            ),
+            "treatment": (
+                "Check soil moisture first. If the soil is soggy reduce watering "
+                "frequency immediately and ensure the pot has drainage holes. If the "
+                "soil is dry water thoroughly. Feed the plant with a balanced liquid "
+                "fertiliser NPK 20-20-20 once every 2 weeks during the growing season. "
+                "Move the plant to a spot with bright indirect light and avoid harsh "
+                "direct afternoon sun. Remove fully yellow leaves to redirect the "
+                "plant's energy."
+            ),
+        },
+        "not_a_leaf": {
+            "description": (
+                "The uploaded image does not appear to be a money plant leaf."
+            ),
+            "cause": (
+                "The image may be blurry, too dark, or not showing a leaf at all."
+            ),
+            "treatment": (
+                "Please upload a clear well-lit close-up photograph of a money plant "
+                "leaf and try again."
+            ),
+        },
+    }
+
     entry = DISEASE_DATABASE.get(class_name, {})
+    fallback = _FALLBACKS.get(class_name, {})
     return {
         "disease_name": entry.get("disease_name") or clean_class_name(class_name),
-        "description": entry.get("description", ""),
-        "cause": entry.get("cause", ""),
-        "treatment": entry.get("treatment", ""),
-        "medicine": entry.get("medicine", "N/A"),
+        "description": entry.get("description") or fallback.get("description", ""),
+        "cause": entry.get("cause") or fallback.get("cause", ""),
+        "treatment": entry.get("treatment") or fallback.get("treatment", ""),
+        "medicine": entry.get("medicine") or "N/A",
     }
 
 if settings.environment == "production":
