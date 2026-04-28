@@ -238,6 +238,66 @@ const Profile = () => {
           </button>
         </section>
 
+        <section className="card farms-section" style={{ margin: '0 16px 16px' }}>
+          <div className="section-title-row">
+            <h3>{t('farms.title')}</h3>
+            <button
+              type="button"
+              className="btn primary btn--compact"
+              onClick={() => {
+                setEditingFarm(null);
+                setShowFarmModal(true);
+              }}
+            >
+              + {t('farms.addFarm')}
+            </button>
+          </div>
+
+          {farmsLoading ? <LeafLoader variant="panel" label={t('common.loading')} /> : null}
+
+          {farms.length === 0 ? <p className="panel-muted">{t('farms.noFarms')}</p> : null}
+
+          <div className="farms-grid">
+            {farms.map((farm) => (
+              <article key={farm.id} className={`farm-card ${farm.isActive ? 'is-active' : ''}`}>
+                <strong>{farm.isActive ? `✅ ${farm.name}` : farm.name}</strong>
+                <span>{farm.crop} · {farm.areaAcres ?? '-'} {t('farms.acres')}</span>
+                <span>{farm.district || '-'}</span>
+                <span>{farm.soilType ? t(`farms.soilTypes.${farm.soilType}`) : '-'}</span>
+                <div className="inline-row">
+                  <button
+                    type="button"
+                    className="btn outline btn--compact"
+                    onClick={() => {
+                      setEditingFarm(farm);
+                      setShowFarmModal(true);
+                    }}
+                  >
+                    {t('farms.editFarm')}
+                  </button>
+                  {!farm.isActive ? (
+                    <button type="button" className="btn ghost btn--compact" onClick={() => setActiveFarm(farm)}>
+                      {t('farms.setActive')}
+                    </button>
+                  ) : (
+                    <span className="pill">{t('farms.active')}</span>
+                  )}
+                  <button
+                    type="button"
+                    className="btn ghost btn--compact"
+                    onClick={async () => {
+                      if (!window.confirm(t('farms.deleteConfirm'))) return;
+                      await deleteFarm(farm.id);
+                    }}
+                  >
+                    {t('farms.deleteFarm')}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="profile-mobile-actions">
           <button
             type="button"
