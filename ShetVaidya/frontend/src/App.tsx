@@ -82,60 +82,71 @@ const TopNavigation = () => {
     <>
       {!isNativeApp ? (
         <nav className="top-nav desktop-nav" aria-label={t('nav.primaryLabel')}>
-          <div className="top-nav__lang-switcher" aria-label={t('language.label')}>
-            {['MR', 'EN', 'HI'].map((lang) => (
-              <button
-                key={lang}
-                type="button"
-                className={`lang-pill ${currentLang === lang.toLowerCase() ? 'active' : ''}`}
-                onClick={() => changeLanguage(lang.toLowerCase())}
-              >
-                {lang}
+          {/* ── Top row: lang pills | logo | auth buttons ── */}
+          <div className="desktop-nav__top-row">
+            <div className="top-nav__lang-switcher" aria-label={t('language.label')}>
+              {['MR', 'EN', 'HI'].map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  className={`lang-pill ${currentLang === lang.toLowerCase() ? 'active' : ''}`}
+                  onClick={() => changeLanguage(lang.toLowerCase())}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+
+            <div className="top-nav__brand desktop-brand" aria-label="ShetVaidya">
+              <img
+                src="/assets/shetvaidya-navbar-desktop.svg"
+                alt="ShetVaidya"
+                height={48}
+                className="desktop-logo-img"
+              />
+            </div>
+
+            <div className="desktop-nav__auth-group">
+              {loading ? (
+                <span className="session-indicator">{t('auth.restoringSession')}</span>
+              ) : !user ? (
+                <span className="desktop-nav__login-required">{t('nav.loginRequired')}</span>
+              ) : null}
+              <button type="button" className="top-nav__auth-btn" onClick={handleAuthAction} disabled={loading}>
+                {user ? t('nav.logout') : t('nav.login')}
               </button>
-            ))}
+            </div>
           </div>
 
-          <div className="top-nav__brand desktop-brand" aria-label="ShetVaidya">
-            <img
-              src="/assets/shetvaidya-navbar-desktop.svg"
-              alt="ShetVaidya"
-              height={48}
-              className="desktop-logo-img"
-            />
-          </div>
-
-          <div className="top-nav__right-actions">
-            {user ? (
-              <>
-                <button type="button" onClick={() => navigate('/dashboard')} className={`nav-link ${isActiveRoute('/dashboard') ? 'active' : ''}`}>
-                  {t('nav.home')}
+          {/* ── Bottom row: centered nav links ── */}
+          {user ? (
+            <div className="desktop-nav__links-row">
+              <button type="button" onClick={() => navigate('/dashboard')} className={`nav-link ${isActiveRoute('/dashboard') ? 'active' : ''}`}>
+                {t('nav.home')}
+              </button>
+              <button type="button" onClick={() => navigate('/area-intelligence')} className={`nav-link ${isActiveRoute('/area-intelligence') ? 'active' : ''}`}>
+                {t('nav.areaIntelligence')}
+              </button>
+              <button type="button" onClick={() => navigate('/krushi-vibhag')} className={`nav-link ${isActiveRoute('/krushi-vibhag') ? 'active' : ''}`}>
+                {t('nav.krushiVibhag')}
+              </button>
+              <button type="button" onClick={() => navigate('/scan-history')} className={`nav-link ${isActiveRoute('/scan-history') ? 'active' : ''}`}>
+                {t('nav.scanHistory')}
+              </button>
+              <button type="button" onClick={() => navigate('/profile')} className={`nav-link ${isActiveRoute('/profile') ? 'active' : ''}`}>
+                {t('nav.accountSettings')}
+              </button>
+              {user.role === 'admin' ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  className={`nav-link admin-link ${isActiveRoute('/admin') ? 'active' : ''}`}
+                >
+                  Admin
                 </button>
-                <button type="button" onClick={() => navigate('/area-intelligence')} className={`nav-link ${isActiveRoute('/area-intelligence') ? 'active' : ''}`}>
-                  {t('nav.area')}
-                </button>
-                <button type="button" onClick={() => navigate('/scan-history')} className={`nav-link ${isActiveRoute('/scan-history') ? 'active' : ''}`}>
-                  {t('nav.history')}
-                </button>
-                <button type="button" onClick={() => navigate('/krushi-vibhag')} className={`nav-link ${isActiveRoute('/krushi-vibhag') ? 'active' : ''}`}>
-                  {t('nav.krushiVibhag')}
-                </button>
-                {user.role === 'admin' ? (
-                  <button
-                    type="button"
-                    onClick={() => navigate('/admin')}
-                    className={`nav-link admin-link ${isActiveRoute('/admin') ? 'active' : ''}`}
-                  >
-                    Admin
-                  </button>
-                ) : null}
-              </>
-            ) : null}
-
-            {loading ? <span className="session-indicator">{t('auth.restoringSession')}</span> : null}
-            <button type="button" className="top-nav__auth-btn" onClick={handleAuthAction} disabled={loading}>
-              {user ? t('nav.logout') : t('nav.login')}
-            </button>
-          </div>
+              ) : null}
+            </div>
+          ) : null}
         </nav>
       ) : null}
 

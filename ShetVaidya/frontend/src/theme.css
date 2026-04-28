@@ -2318,11 +2318,10 @@ a {
 
 @media (min-width: 768px) {
   .desktop-nav {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: 0 24px;
-    height: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
     width: 100%;
     box-sizing: border-box;
     position: sticky;
@@ -2333,6 +2332,7 @@ a {
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border-tertiary);
     border-radius: 16px;
+    gap: 0;
   }
 
   .mobile-nav {
@@ -2343,11 +2343,25 @@ a {
     display: grid;
   }
 
+  /* ── Top row: lang | logo | auth ── */
+  .desktop-nav__top-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 10px 24px;
+    min-height: 58px;
+    gap: 16px;
+  }
+
   .desktop-nav .top-nav__lang-switcher {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     align-items: center;
-    justify-content: flex-start;
+    justify-self: start;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    padding: 4px 5px;
   }
 
   .desktop-nav .desktop-brand {
@@ -2362,11 +2376,32 @@ a {
     display: block;
   }
 
-  .desktop-nav .top-nav__right-actions {
+  .desktop-nav__auth-group {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
+    justify-self: end;
+    gap: 10px;
+  }
+
+  .desktop-nav__login-required {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-primary);
+    border: 1.5px solid var(--color-primary);
+    border-radius: 10px;
+    padding: 7px 14px;
+    white-space: nowrap;
+    background: transparent;
+  }
+
+  /* ── Bottom row: centered nav links ── */
+  .desktop-nav__links-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 24px 10px;
+    border-top: 1px solid rgba(46, 125, 50, 0.08);
   }
 
   .desktop-nav .nav-link {
@@ -2374,11 +2409,12 @@ a {
     border: none;
     cursor: pointer;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--color-text-soft);
-    padding: 6px 10px;
+    padding: 7px 14px;
     border-radius: 8px;
-    transition: background 0.15s;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
   }
 
   .desktop-nav .nav-link:hover {
@@ -2393,8 +2429,8 @@ a {
 
   .desktop-nav .top-nav__auth-btn {
     font-size: 13px;
-    font-weight: 600;
-    padding: 8px 16px;
+    font-weight: 700;
+    padding: 8px 18px;
     border-radius: 10px;
     background: var(--color-primary);
     color: #fff;
@@ -2405,13 +2441,14 @@ a {
 
   .desktop-nav .lang-pill {
     font-size: 12px;
-    padding: 5px 10px;
+    padding: 5px 12px;
     border-radius: 20px;
-    border: 1px solid var(--color-border);
+    border: 1px solid transparent;
     background: transparent;
     color: var(--color-primary);
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
+    transition: background 0.15s, color 0.15s;
   }
 
   .desktop-nav .lang-pill.active {
