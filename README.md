@@ -79,3 +79,6 @@ uvicorn app.main:app --reload --port 9000
 - Keep all secrets in environment files (`.env`) and deployment secret stores only.
 - Do not hardcode credentials, tokens, private keys, or bucket secrets in code or docs.
 - Public README intentionally lists variable names and architecture, not secret values.
+
+
+Made with ❤ and too much coffee.
