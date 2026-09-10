@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { formatLocalizedNumber } from '../utils/localization';
+import DisclaimerBanner from '../components/DisclaimerBanner';
 
 const Introduction = () => {
   const { t, i18n } = useTranslation();
@@ -17,6 +18,7 @@ const Introduction = () => {
 
   return (
     <div className="landing-layout">
+      <DisclaimerBanner />
       <section className="hero-shell">
         <div className="hero-content">
           <p className="subtitle">{t('intro.subtitle')}</p>
