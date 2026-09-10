@@ -12,7 +12,7 @@ export type User = {
   email: string;
   picture?: string | null;
   picture_url?: string | null;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'guest';
 };
 
 type AuthContextProps = {
@@ -21,6 +21,7 @@ type AuthContextProps = {
   loginWithGoogleCredential: (credential: string) => Promise<void>;
   loginWithGoogleAccessToken: (accessToken: string) => Promise<void>;
   startMobileGoogleSignIn: () => Promise<void>;
+  loginGuest: () => void;
   logout: () => Promise<void>;
 };
 
@@ -47,12 +48,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const normalizeUser = (rawUser: any): User | null => {
     if (!rawUser) return null;
-    const email = String(rawUser?.email || '').trim();
-    if (!email) return null;
+    const email = String(rawUser?.email || (rawUser?.role === 'guest' ? 'guest@shetvaidya.local' : '')).trim();
+    if (!email && rawUser?.role !== 'guest') return null;
 
     const preferredName = String(rawUser?.full_name || rawUser?.name || '').trim() || email.split('@')[0] || '';
     const preferredPicture = String(rawUser?.picture_url || rawUser?.picture || '').trim() || null;
-    const normalizedRole = String(rawUser?.role || 'user').trim().toLowerCase() === 'admin' ? 'admin' : 'user';
+    const normalizedRole = String(rawUser?.role || 'user').trim().toLowerCase();
+    const finalRole = normalizedRole === 'admin' ? 'admin' : normalizedRole === 'guest' ? 'guest' : 'user';
 
     return {
       id: String(rawUser?.id || email).trim(),
@@ -61,7 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       name: preferredName || null,
       picture: preferredPicture,
       picture_url: preferredPicture,
-      role: normalizedRole,
+      role: finalRole,
     };
   };
 
@@ -152,6 +154,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const restoreSession = async () => {
       try {
+        const guestSession = sessionStorage.getItem('shetvaidya_guest_session');
+        if (guestSession) {
+          const guestUser = JSON.parse(guestSession);
+          if (active) {
+            setUser(normalizeUser(guestUser));
+          }
+          if (active) {
+            setLoading(false);
+          }
+          return;
+        }
         const persistedToken = getStoredAccessToken();
         if (persistedToken) {
           setApiAuthToken(persistedToken);
@@ -301,11 +314,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const loginGuest = () => {
+    const guestUser = normalizeUser({
+      id: 'guest',
+      email: 'guest@shetvaidya.local',
+      full_name: 'Guest User',
+      name: 'Guest User',
+      role: 'guest',
+    });
+    if (guestUser) {
+      sessionStorage.setItem('shetvaidya_guest_session', JSON.stringify(guestUser));
+      setUser(guestUser);
+      navigate('/dashboard');
+    }
+  };
+
   const logout = async () => {
     setLoading(true);
     setUser(null);
     setStoredAccessToken(null);
     setApiAuthToken(null);
+    sessionStorage.removeItem('shetvaidya_guest_session');
     try {
       await api.post('/auth/logout');
     } catch {
@@ -317,7 +346,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, loginWithGoogleCredential, loginWithGoogleAccessToken, startMobileGoogleSignIn, logout }}
+      value={{ user, loading, loginWithGoogleCredential, loginWithGoogleAccessToken, startMobileGoogleSignIn, loginGuest, logout }}
     >
       {children}
     </AuthContext.Provider>

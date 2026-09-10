@@ -23,7 +23,7 @@ class UserOut(BaseModel):
     picture_url: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-    role: Literal["user", "admin"] = "user"
+    role: Literal["user", "admin", "guest"] = "user"
 
     model_config = ConfigDict(from_attributes=True)
 

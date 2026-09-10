@@ -33,7 +33,7 @@ const Profile = () => {
     },
   });
 
-  const authUser = (user as (typeof user & { picture?: string | null; name?: string | null }) | null);
+  const isGuest = user?.role === 'guest' || sessionStorage.getItem('shetvaidya_guest_session') !== null;
   const fallbackName = authUser?.name || user?.full_name || user?.email?.split('@')[0] || '';
   const displayName = (nameForm.watch('full_name') || fallbackName || t('dashboard.notAvailable')).trim();
   const avatarUrl = (authUser?.picture || user?.picture_url || '').trim();

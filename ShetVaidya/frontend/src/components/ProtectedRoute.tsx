@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
       </div>
     );
   }
-  if (!user) return <Navigate to="/" replace />;
+  if (!user && !sessionStorage.getItem('shetvaidya_guest_session')) return <Navigate to="/" replace />;
   return children;
 };
 

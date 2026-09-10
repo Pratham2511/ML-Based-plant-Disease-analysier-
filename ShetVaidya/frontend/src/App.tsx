@@ -19,7 +19,7 @@ import { FarmProvider } from './context/FarmContext';
 const SPLASH_STORAGE_KEY = 'shetvaidya-splash-seen';
 
 const TopNavigation = () => {
-  const { user, loading, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn } = useAuth();
+  const { user, loading, logout, loginWithGoogleAccessToken, startMobileGoogleSignIn, loginGuest } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -110,7 +110,12 @@ const TopNavigation = () => {
               {loading ? (
                 <span className="session-indicator">{t('auth.restoringSession')}</span>
               ) : !user ? (
-                <span className="desktop-nav__login-required">{t('nav.loginRequired')}</span>
+                <>
+                  <span className="desktop-nav__login-required">{t('nav.loginRequired')}</span>
+                  <button type="button" className="top-nav__auth-btn" onClick={loginGuest} disabled={loading} style={{ marginLeft: 6, background: '#fbc02d', color: '#1b5e20' }}>
+                    Guest Login
+                  </button>
+                </>
               ) : null}
               <button type="button" className="top-nav__auth-btn" onClick={handleAuthAction} disabled={loading}>
                 {user ? t('nav.logout') : t('nav.login')}
@@ -119,7 +124,7 @@ const TopNavigation = () => {
           </div>
 
           {/* ── Bottom row: centered nav links ── */}
-          {user ? (
+          {user || sessionStorage.getItem('shetvaidya_guest_session') ? (
             <div className="desktop-nav__links-row">
               <button type="button" onClick={() => navigate('/dashboard')} className={`nav-link ${isActiveRoute('/dashboard') ? 'active' : ''}`}>
                 {t('nav.home')}
@@ -136,7 +141,7 @@ const TopNavigation = () => {
               <button type="button" onClick={() => navigate('/profile')} className={`nav-link ${isActiveRoute('/profile') ? 'active' : ''}`}>
                 {t('nav.accountSettings')}
               </button>
-              {user.role === 'admin' ? (
+              {(user?.role === 'admin' || (user?.role === 'guest' && sessionStorage.getItem('shetvaidya_guest_session'))) ? (
                 <button
                   type="button"
                   onClick={() => navigate('/admin')}
@@ -181,6 +186,17 @@ const TopNavigation = () => {
             >
               {user ? t('nav.logout') : t('nav.login')}
             </button>
+            {!user && (
+              <button
+                type="button"
+                className="top-nav__auth-btn"
+                onClick={loginGuest}
+                disabled={loading}
+                style={{ background: '#fbc02d', color: '#1b5e20', marginLeft: 6 }}
+              >
+                Guest Login
+              </button>
+            )}
           </div>
 
           {loading ? <span className="session-restore-text">{t('auth.restoringSession')}</span> : null}
@@ -197,7 +213,7 @@ const MobileBottomTabBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  if (!user) {
+  if (!user && !sessionStorage.getItem('shetvaidya_guest_session')) {
     return null;
   }
 
@@ -239,8 +255,8 @@ const AdminRoute = ({ children }: { children: React.ReactElement }) => {
   if (loading) {
     return null;
   }
-  if (!user) return <Navigate to="/" replace />;
-  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  if (!user && !sessionStorage.getItem('shetvaidya_guest_session')) return <Navigate to="/" replace />;
+  if (user && user.role !== 'admin' && user.role !== 'guest') return <Navigate to="/dashboard" replace />;
   return children;
 };
 
